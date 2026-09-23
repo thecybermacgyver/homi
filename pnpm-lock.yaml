@@ -330,6 +330,34 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  packages/shopping:
+    dependencies:
+      '@homi/module-sdk':
+        specifier: workspace:*
+        version: link:../module-sdk
+      '@homi/ui':
+        specifier: workspace:*
+        version: link:../ui
+      fastify:
+        specifier: 5.12.4
+        version: 5.12.4
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.4
+        version: 24.13.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.25.10
+        version: 0.25.10
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   packages/ui:
     devDependencies:
       '@types/react':
