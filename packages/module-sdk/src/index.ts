@@ -79,6 +79,8 @@ export {
   type HomiWebModuleHostActions,
   type HomiWebModuleHostContext,
   type HomiWebModuleMutationInput,
+  type HomiWebModuleMutationState,
+  type HomiWebModuleMutationStatus,
   type HomiWebModuleQueuedMutationReceipt,
   type HomiWebModuleSettingsSurfaces,
   type HomiWebModuleSurface,
