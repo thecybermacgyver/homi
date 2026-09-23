@@ -414,8 +414,8 @@ export interface HomiModuleSyncChangeHandler {
 }
 
 export interface HomiWebModuleSyncContributions {
-  readonly mutationAdapters?: readonly HomiModuleMutationAdapter[];
-  readonly changeHandlers?: readonly HomiModuleSyncChangeHandler[];
+  readonly mutationAdapters: readonly HomiModuleMutationAdapter[];
+  readonly changeHandlers: readonly HomiModuleSyncChangeHandler[];
 }
 
 export interface HomiWebModuleSettingsSurfaces {
@@ -432,7 +432,7 @@ export interface HomiWebModuleDefinition {
   readonly familyBoard?: Readonly<
     Record<string, HomiWebModuleSurface>
   >;
-  readonly sync?: HomiWebModuleSyncContributions;
+  readonly sync: HomiWebModuleSyncContributions;
 }
 
 function validModuleKey(value: string): boolean {
