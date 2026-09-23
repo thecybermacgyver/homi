@@ -780,6 +780,58 @@ export async function getHouseholdMutations(
   return rows.sort((left, right) => left.queueOrder - right.queueOrder);
 }
 
+export async function getModuleMutations(
+  authSubject: string,
+  householdId: string,
+  moduleKey: string,
+): Promise<QueuedMutation[]> {
+  requireUuid(authSubject, "authSubject");
+  requireUuid(householdId, "householdId");
+  requireNonEmpty(moduleKey, "moduleKey");
+
+  const rows = await homiClientDb.mutations
+    .where("authSubject")
+    .equals(authSubject)
+    .and(
+      (mutation) =>
+        mutation.householdId === householdId &&
+        mutation.moduleKey === moduleKey,
+    )
+    .toArray();
+
+  return rows.sort((left, right) => left.queueOrder - right.queueOrder);
+}
+
+export async function dismissModuleMutation(
+  authSubject: string,
+  householdId: string,
+  moduleKey: string,
+  clientMutationId: string,
+): Promise<void> {
+  requireUuid(authSubject, "authSubject");
+  requireUuid(householdId, "householdId");
+  requireNonEmpty(moduleKey, "moduleKey");
+  requireUuid(clientMutationId, "clientMutationId");
+
+  await homiClientDb.transaction("rw", homiClientDb.mutations, async () => {
+    const mutation = await homiClientDb.mutations.get(clientMutationId);
+    if (
+      !mutation ||
+      mutation.authSubject !== authSubject ||
+      mutation.householdId !== householdId ||
+      mutation.moduleKey !== moduleKey
+    ) {
+      throw new Error(`Unknown mutation ${clientMutationId}`);
+    }
+    if (mutation.status !== "conflict" && mutation.status !== "rejected") {
+      throw new Error(
+        "Only conflict or rejected mutations may be dismissed",
+      );
+    }
+    await homiClientDb.mutations.delete(clientMutationId);
+  });
+}
+
 export async function rewriteUnsentMutation(
   authSubject: string,
   clientMutationId: string,

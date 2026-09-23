@@ -33,9 +33,11 @@ import {
 } from "./sync/app-sync-runtime.js";
 import {
   deleteCachedRecord,
+  dismissModuleMutation,
   enqueueMutation,
   getCachedRecord,
   getCachedRecords,
+  getModuleMutations,
   retireQueuedMutationsForMissingModules,
   seedCachedRecord,
 } from "./sync/local-db.js";
@@ -908,6 +910,49 @@ export function App() {
         return Object.freeze({
           clientMutationId: queued.clientMutationId,
         });
+      },
+      async listMutations() {
+        if (!moduleAuthSubject || !moduleHouseholdId) {
+          return Object.freeze([]);
+        }
+        const mutations = await getModuleMutations(
+          moduleAuthSubject,
+          moduleHouseholdId,
+          moduleKey,
+        );
+        return Object.freeze(
+          mutations.map((mutation) =>
+            Object.freeze({
+              clientMutationId: mutation.clientMutationId,
+              entityType: mutation.entityType,
+              entityId: mutation.entityId,
+              operation: mutation.operation,
+              baseRevision: mutation.baseRevision,
+              payload: Object.freeze({ ...mutation.payload }),
+              status: mutation.status,
+              attempts: mutation.attempts,
+              createdAt: mutation.createdAt,
+              updatedAt: mutation.updatedAt,
+              errorCode: mutation.lastErrorCode ?? null,
+              serverRevision: mutation.serverRevision ?? null,
+              changeSequence: mutation.changeSequence ?? null,
+              serverState: mutation.serverState ?? null,
+            }),
+          ),
+        );
+      },
+      async dismissMutation(clientMutationId: string) {
+        if (!moduleAuthSubject || !moduleHouseholdId) {
+          throw new Error(
+            "A verified household context is required to dismiss a module mutation.",
+          );
+        }
+        await dismissModuleMutation(
+          moduleAuthSubject,
+          moduleHouseholdId,
+          moduleKey,
+          clientMutationId,
+        );
       },
       async getCachedEntity(
         entityType: string,
