@@ -279,6 +279,26 @@ export interface HomiWebModuleQueuedMutationReceipt {
   readonly clientMutationId: string;
 }
 
+export type HomiWebModuleMutationStatus =
+  | "queued"
+  | "sending"
+  | "applied"
+  | "conflict"
+  | "rejected";
+
+export interface HomiWebModuleMutationState
+  extends HomiWebModuleMutationInput {
+  readonly clientMutationId: string;
+  readonly status: HomiWebModuleMutationStatus;
+  readonly attempts: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly errorCode: string | null;
+  readonly serverRevision: string | null;
+  readonly changeSequence: string | null;
+  readonly serverState: unknown;
+}
+
 export interface HomiWebModuleCachedEntity {
   readonly entityType: string;
   readonly entityId: string;
@@ -314,6 +334,8 @@ export interface HomiWebModuleHostActions {
   enqueueMutation(
     input: HomiWebModuleMutationInput,
   ): Promise<HomiWebModuleQueuedMutationReceipt>;
+  listMutations(): Promise<readonly HomiWebModuleMutationState[]>;
+  dismissMutation(clientMutationId: string): Promise<void>;
   getCachedEntity(
     entityType: string,
     entityId: string,
