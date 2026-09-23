@@ -10,6 +10,7 @@ import {
   HOMI_MODULE_API_VERSION,
   defineHomiWebModule,
   type HomiWebModuleHostContext,
+  type HomiWebModuleMutationState,
   type HomiWebModuleSurfaceProps,
 } from "@homi/module-sdk";
 import {
@@ -701,9 +702,9 @@ async function loadCalendarMetadata(
   }
 
   const [settingsRows, layerRows, personRows] = await Promise.all([
-    actions.listCachedEntities("calendar-settings"),
-    actions.listCachedEntities("calendar-layer"),
-    actions.listCachedEntities("calendar-person"),
+    actions.listWorkingEntities("calendar-settings"),
+    actions.listWorkingEntities("calendar-layer"),
+    actions.listWorkingEntities("calendar-person"),
   ]);
   const settings = settingsRows[0]?.data;
   const cachedSettings = isObject(settings)
@@ -746,7 +747,7 @@ async function loadServerEvents(
 async function loadCachedEvents(
   actions: HomiWebModuleSurfaceProps["actions"],
 ): Promise<readonly CalendarEvent[]> {
-  const records = await actions.listCachedEntities("event");
+  const records = await actions.listWorkingEntities("event");
   const events: CalendarEvent[] = [];
   for (const record of records) {
     try {
@@ -1177,6 +1178,9 @@ function CalendarPage({
   const [externalDetail, setExternalDetail] =
     useState<CalendarOccurrence | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [terminalMutations, setTerminalMutations] = useState<
+    readonly HomiWebModuleMutationState[]
+  >([]);
   const [busy, setBusy] = useState(false);
   const [chequebookOpen, setChequebookOpen] = useState(false);
   const [chequebookOptions, setChequebookOptions] =
@@ -1232,6 +1236,18 @@ function CalendarPage({
     if (!viewInitialized) return;
     rememberCalendarView(context, view);
   }, [context.authSubject, context.householdId, view, viewInitialized]);
+
+  useEffect(() => {
+    void actions.listMutations().then((mutations) =>
+      setTerminalMutations(
+        mutations.filter(
+          (mutation) =>
+            mutation.status === "conflict" ||
+            mutation.status === "rejected",
+        ),
+      ),
+    );
+  }, [actions, context.householdId, context.online]);
 
   const weekStart =
     settings?.weekStart === "monday" ? "monday" : "sunday";
@@ -1872,6 +1888,41 @@ function CalendarPage({
         </Notice>
       )}
       {message && <Notice>{message}</Notice>}
+      {terminalMutations.map((mutation) => (
+        <Notice
+          key={mutation.clientMutationId}
+          tone="warning"
+          title={
+            mutation.status === "conflict"
+              ? "Calendar change needs review"
+              : "Calendar change was rejected"
+          }
+        >
+          <p>
+            {mutation.entityType} {mutation.entityId}:{" "}
+            {mutation.errorCode ?? "The server could not apply this change."}
+            {mutation.serverRevision
+              ? ` Server revision: ${mutation.serverRevision}.`
+              : ""}
+          </p>
+          <Button
+            variant="quiet"
+            onClick={() => void actions
+              .dismissMutation(mutation.clientMutationId)
+              .then(() => {
+                setTerminalMutations((current) =>
+                  current.filter(
+                    (item) =>
+                      item.clientMutationId !== mutation.clientMutationId,
+                  ),
+                );
+                return reload();
+              })}
+          >
+            Dismiss reviewed change
+          </Button>
+        </Notice>
+      ))}
 
       <div className="homi-calendar-toolbar">
         <Tabs

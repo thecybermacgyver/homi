@@ -11,6 +11,7 @@ import {
   defineHomiWebModule,
   type HomiWebModuleHostContext,
   type HomiWebModuleMutationInput,
+  type HomiWebModuleMutationState,
   type HomiWebModuleSurfaceProps,
 } from "@homi/module-sdk";
 import {
@@ -295,7 +296,7 @@ async function cached<T>(
   entityType: string,
 ): Promise<readonly T[]> {
   const rows =
-    await actions.listCachedEntities(entityType);
+    await actions.listWorkingEntities(entityType);
   return Object.freeze(
     rows
       .map((row) => parseCached<T>(row.data))
@@ -806,6 +807,9 @@ function ChequebookPage({
     useState("all");
   const [message, setMessage] =
     useState<string | null>(null);
+  const [terminalMutations, setTerminalMutations] = useState<
+    readonly HomiWebModuleMutationState[]
+  >([]);
   const [editor, setEditor] =
     useState<TransactionEditor | null>(null);
   const [recurringEditor, setRecurringEditor] =
@@ -1047,6 +1051,18 @@ function ChequebookPage({
     reloadCached,
     refreshOnline,
   ]);
+
+  useEffect(() => {
+    void actions.listMutations().then((mutations) =>
+      setTerminalMutations(
+        mutations.filter(
+          (mutation) =>
+            mutation.status === "conflict" ||
+            mutation.status === "rejected",
+        ),
+      ),
+    );
+  }, [actions, householdId, online]);
 
   useEffect(() => {
     if (!online) return;
@@ -1863,6 +1879,42 @@ function ChequebookPage({
           {message}
         </Notice>
       )}
+
+      {terminalMutations.map((mutation) => (
+        <Notice
+          key={mutation.clientMutationId}
+          tone="warning"
+          title={
+            mutation.status === "conflict"
+              ? "Chequebook change needs review"
+              : "Chequebook change was rejected"
+          }
+        >
+          <p>
+            {mutation.entityType} {mutation.entityId}:{" "}
+            {mutation.errorCode ?? "The server could not apply this change."}
+            {mutation.serverRevision
+              ? ` Server revision: ${mutation.serverRevision}.`
+              : ""}
+          </p>
+          <Button
+            variant="quiet"
+            onClick={() => void actions
+              .dismissMutation(mutation.clientMutationId)
+              .then(() => {
+                setTerminalMutations((current) =>
+                  current.filter(
+                    (item) =>
+                      item.clientMutationId !== mutation.clientMutationId,
+                  ),
+                );
+                return reloadCached();
+              })}
+          >
+            Dismiss reviewed change
+          </Button>
+        </Notice>
+      ))}
 
       <div className="cheq-toolbar">
         <Tabs

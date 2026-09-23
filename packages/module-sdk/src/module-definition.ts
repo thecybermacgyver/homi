@@ -343,6 +343,9 @@ export interface HomiWebModuleHostActions {
   listCachedEntities(
     entityType: string,
   ): Promise<readonly HomiWebModuleCachedEntity[]>;
+  listWorkingEntities(
+    entityType: string,
+  ): Promise<readonly HomiWebModuleCachedEntity[]>;
   replaceCachedEntities(
     entityType: string,
     entities: readonly HomiWebModuleSnapshotEntity[],

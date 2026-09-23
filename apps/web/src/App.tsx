@@ -41,6 +41,7 @@ import {
   retireQueuedMutationsForMissingModules,
   seedCachedRecord,
 } from "./sync/local-db.js";
+import { projectWorkingEntities } from "./sync/working-entities.js";
 import { HouseholdModulesPage } from "./HouseholdModulesPage.js";
 import {
   cacheMemberModulePreferences,
@@ -1003,6 +1004,26 @@ export function App() {
             }),
           ),
         );
+      },
+      async listWorkingEntities(entityType: string) {
+        if (!moduleAuthSubject || !moduleHouseholdId) {
+          return Object.freeze([]);
+        }
+        requireCacheEntityType(entityType);
+        const [records, mutations] = await Promise.all([
+          getCachedRecords(
+            moduleAuthSubject,
+            moduleHouseholdId,
+            moduleKey,
+            entityType,
+          ),
+          getModuleMutations(
+            moduleAuthSubject,
+            moduleHouseholdId,
+            moduleKey,
+          ),
+        ]);
+        return projectWorkingEntities(records, mutations, entityType);
       },
       async replaceCachedEntities(
         entityType: string,
