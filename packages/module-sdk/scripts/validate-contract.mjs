@@ -149,6 +149,29 @@ rejectsManifest(
 
 rejectsManifest(
   (candidate) => {
+    delete candidate.sync;
+  },
+  /sync is required for every Homi module/,
+);
+
+rejectsManifest(
+  (candidate) => {
+    candidate.coreCapabilities = candidate.coreCapabilities.filter(
+      (capability) => capability !== "sync",
+    );
+  },
+  /coreCapabilities must include 'sync'/,
+);
+
+rejectsManifest(
+  (candidate) => {
+    candidate.sync.entities = [];
+  },
+  /sync.entities must declare at least one synchronized entity/,
+);
+
+rejectsManifest(
+  (candidate) => {
     candidate.sync.entities[0].operations.push("merge");
   },
   /Unsupported sync operation 'merge'/,

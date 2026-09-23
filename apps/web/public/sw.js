@@ -1,4 +1,4 @@
-const SHELL_CACHE = "homi-shell-v13";
+const SHELL_CACHE = "homi-shell-v14";
 const STATIC_SEEDS = [
   "/manifest.webmanifest",
   "/brand/homi_icon_192.png",
@@ -50,6 +50,23 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.startsWith("/api/v1/core/module-assets/")) {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      try {
+        const response = await fetch(request, { cache: "no-store" });
+        if (response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch {
+        const cached = await cache.match(request, { ignoreSearch: true });
+        if (cached) return cached;
+        throw new Error("The installed Homi module is unavailable offline.");
+      }
+    })());
+    return;
+  }
+
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/health/")) {
     return;
   }

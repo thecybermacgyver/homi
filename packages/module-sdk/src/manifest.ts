@@ -95,7 +95,7 @@ export interface HomiModuleManifest {
   setup?: HomiModuleSetupManifest;
   settings?: HomiModuleSettingsManifest;
   localization?: HomiModuleLocalizationManifest;
-  sync?: HomiModuleSyncManifest;
+  sync: HomiModuleSyncManifest;
   broker?: HomiModuleBrokerManifest;
   extensions: HomiModuleExtensionManifest;
 }
@@ -395,6 +395,11 @@ function parseSync(value: unknown): HomiModuleSyncManifest {
   const input = record(value, "sync");
   assertKnownKeys(input, "sync", ["entities"]);
   const entities = array(input.entities, "sync.entities");
+  if (entities.length === 0) {
+    throw new HomiModuleManifestError(
+      "sync.entities must declare at least one synchronized entity.",
+    );
+  }
   const entityTypes = new Set<string>();
 
   const parsed = entities.map((entity, index) => {
@@ -620,8 +625,17 @@ export function parseHomiModuleManifest(
     input.localization === undefined
       ? undefined
       : parseLocalization(input.localization);
-  const sync =
-    input.sync === undefined ? undefined : parseSync(input.sync);
+  if (input.sync === undefined) {
+    throw new HomiModuleManifestError(
+      "sync is required for every Homi module.",
+    );
+  }
+  if (!coreCapabilities.includes("sync")) {
+    throw new HomiModuleManifestError(
+      "coreCapabilities must include 'sync'.",
+    );
+  }
+  const sync = parseSync(input.sync);
   const broker =
     input.broker === undefined ? undefined : parseBroker(input.broker);
 
@@ -643,7 +657,7 @@ export function parseHomiModuleManifest(
     ...(setup !== undefined ? { setup } : {}),
     ...(settings !== undefined ? { settings } : {}),
     ...(localization !== undefined ? { localization } : {}),
-    ...(sync !== undefined ? { sync } : {}),
+    sync,
     ...(broker !== undefined ? { broker } : {}),
     extensions: parseExtensions(input.extensions),
   });
