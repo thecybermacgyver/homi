@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "starter",
+  "name": "Starter Module",
+  "publisher": "Your Name",
+  "version": "0.1.0",
+  "moduleApiVersion": 1,
+  "description": "A minimal Homi module template with server, web, setup, settings, localization, and sync declarations.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_starter",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "starter",
+      "label": "Starter",
+      "path": "/modules/starter",
+      "icon": "home"
+    }
+  ],
+  "setup": {
+    "required": true,
+    "scope": "household"
+  },
+  "settings": {
+    "household": true,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "item",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [],
+    "consumes": []
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "starter-board",
+        "label": "Family notes",
+        "slot": "noticeboard"
+      }
+    ],
+    "householdSettings": true,
+    "notifications": false,
+    "search": false
+  }
+}

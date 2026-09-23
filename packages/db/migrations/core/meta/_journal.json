@@ -1,0 +1,69 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789503126484,
+      "tag": "0000_homi_core_initial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789503904785,
+      "tag": "0001_homi_auth_initial",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789506856370,
+      "tag": "0002_homi_core_authorization_seed",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789513006174,
+      "tag": "0003_sync_mutation_request_hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789513451237,
+      "tag": "0004_sync_mutation_result_payload",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790186400000,
+      "tag": "0005_member_module_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790191800000,
+      "tag": "0006_member_home_card_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790195400000,
+      "tag": "0007_module_platform_services",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "8",
+      "when": 1790197200000,
+      "tag": "0008_audit_request_id_text",
+      "breakpoints": true
+    }
+  ]
+}

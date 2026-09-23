@@ -1,0 +1,1 @@
+ALTER TABLE "core"."sync_mutations" ADD COLUMN "result_payload" jsonb;

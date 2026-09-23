@@ -1,0 +1,993 @@
+.homi-platform-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 18px;
+}
+
+.homi-platform-auth__card {
+  width: min(100%, 440px);
+  padding: 30px 26px;
+}
+
+.homi-platform-auth__logo {
+  display: block;
+  width: auto;
+  max-width: 150px;
+  max-height: 68px;
+  margin-bottom: 24px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.homi-platform-auth h1 {
+  margin: 0;
+  color: var(--homi-text);
+  font-size: clamp(2.2rem, 9vw, 3.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.homi-platform-auth__intro {
+  margin: 12px 0 26px;
+  color: var(--homi-text-muted);
+}
+
+.homi-platform-auth__form {
+  display: grid;
+  gap: 17px;
+}
+
+.homi-platform-auth__submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.homi-platform-page {
+  width: min(100%, 1220px);
+  margin: 0 auto;
+}
+
+.homi-platform-notice {
+  width: min(100%, 1220px);
+  margin: 0 auto 18px;
+}
+
+.homi-platform-household-list {
+  display: grid;
+  gap: 10px;
+}
+
+.homi-platform-choice-card {
+  padding: 18px;
+}
+
+.homi-platform-choice-card .homi-ui-notice {
+  margin-bottom: 14px;
+}
+
+.homi-platform-household-choice {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.homi-platform-home-grid,
+.homi-platform-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.homi-platform-welcome-card,
+.homi-platform-summary-card,
+.homi-platform-detail-card,
+.homi-platform-setting-row {
+  padding: 18px;
+}
+
+.homi-platform-welcome-card {
+  min-height: 172px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  background:
+    linear-gradient(145deg, rgba(241, 216, 202, 0.92), rgba(255, 250, 240, 0.98));
+}
+
+.homi-platform-welcome-card__accent {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: #fffaf4;
+  background: var(--homi-primary);
+  box-shadow: 0 10px 24px rgba(200, 111, 82, 0.18);
+  font-size: 1.5rem;
+}
+
+.homi-platform-welcome-card h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(1.4rem, 5vw, 1.95rem);
+  line-height: 1.05;
+}
+
+.homi-platform-welcome-card p,
+.homi-platform-detail-card p,
+.homi-platform-setting-row p {
+  margin: 0;
+  color: var(--homi-text-muted);
+  line-height: 1.5;
+}
+
+.homi-platform-summary-card {
+  min-height: 116px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.homi-platform-summary-card strong,
+.homi-platform-detail-card strong,
+.homi-platform-setting-row strong {
+  color: var(--homi-text);
+  font-size: 1.2rem;
+}
+
+.homi-platform-summary-card > span:last-child {
+  color: var(--homi-text-muted);
+  font-size: 0.86rem;
+}
+
+.homi-platform-card-kicker {
+  color: var(--homi-sage-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.homi-platform-module-home {
+  margin-top: 14px;
+}
+
+.homi-platform-detail-grid {
+  align-items: stretch;
+}
+
+.homi-platform-detail-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.homi-platform-settings-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.homi-platform-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.homi-platform-setting-row > div {
+  display: grid;
+  gap: 6px;
+}
+
+@media (min-width: 720px) {
+  .homi-platform-auth__card {
+    padding: 38px;
+  }
+
+  .homi-platform-home-grid {
+    grid-template-columns: minmax(0, 1.7fr) minmax(190px, 0.8fr);
+  }
+
+  .homi-platform-welcome-card {
+    grid-row: span 2;
+  }
+
+  .homi-platform-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1040px) {
+  .homi-platform-home-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.7fr) minmax(220px, 0.7fr);
+  }
+
+  .homi-platform-welcome-card {
+    grid-row: auto;
+  }
+}
+
+.homi-platform-module-notice {
+  margin-bottom: 14px;
+}
+
+.homi-platform-module-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.homi-platform-module-card {
+  min-height: 230px;
+  display: grid;
+  align-content: space-between;
+  gap: 20px;
+  padding: 20px;
+}
+
+.homi-platform-module-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.homi-platform-module-card__heading > div {
+  min-width: 0;
+}
+
+.homi-platform-module-card h2 {
+  margin: 4px 0 5px;
+  color: var(--homi-text);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.homi-platform-module-card__heading p,
+.homi-platform-module-card__status span,
+.homi-platform-module-card__actions > span,
+.homi-platform-module-caption {
+  color: var(--homi-text-muted);
+  font-size: 0.82rem;
+}
+
+.homi-platform-module-card__heading p {
+  margin: 0;
+}
+
+.homi-platform-module-card__status {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.homi-platform-module-card__status span {
+  line-height: 1.45;
+}
+
+.homi-platform-module-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--homi-border);
+}
+
+.homi-platform-module-card__actions .homi-ui-button {
+  flex: 0 0 auto;
+}
+
+.homi-platform-module-card__home-cards {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--homi-border);
+  border-radius: var(--homi-radius-md);
+  background: var(--homi-bg-soft);
+}
+
+.homi-platform-module-card__home-cards > strong {
+  color: var(--homi-text);
+  font-size: 0.88rem;
+}
+
+.homi-platform-module-card__home-card-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--homi-border);
+  border-radius: 12px;
+  background: var(--homi-surface-strong);
+}
+
+.homi-platform-module-card__home-card-row > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.homi-platform-module-card__home-card-row > div:first-child > span {
+  color: var(--homi-text);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.homi-platform-module-card__home-card-row .homi-platform-module-card__actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.homi-platform-module-caption {
+  margin: 14px 2px 0;
+}
+
+.homi-platform-module-home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.homi-platform-module-settings-back {
+  margin-bottom: 14px;
+}
+
+@media (min-width: 720px) {
+  .homi-platform-module-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homi-platform-module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homi-platform-module-card {
+    padding: 22px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Family Board home foundation                                                */
+/* -------------------------------------------------------------------------- */
+
+.homi-family-board {
+  --board-sage: #7e9885;
+  --card-cream: #f9f7f1;
+  --notice-tan: #ddd3c1;
+  --meal-placeholder: #ece6da;
+  --board-text: #221f1f;
+  --board-muted: #59534e;
+  --board-terracotta: #c2634b;
+  --board-ochre: #b86e36;
+  --board-gold: #c89b48;
+  --board-olive: #4b634e;
+  --board-espresso: #3e2d27;
+  width: min(100%, 1460px);
+  min-height: calc(100vh - 32px);
+  margin: 0 auto;
+  padding: 24px;
+  border: 2px solid rgba(34, 31, 31, 0.78);
+  border-radius: 18px;
+  color: var(--board-text);
+  background: var(--board-sage);
+  box-shadow:
+    inset 0 0 0 1px rgba(249, 247, 241, 0.16),
+    0 8px 26px rgba(34, 31, 31, 0.14);
+}
+
+.homi-family-board__header {
+  min-height: 112px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.homi-family-board__brand {
+  min-width: 185px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+}
+
+.homi-family-board__logo {
+  width: min(230px, 24vw);
+  max-height: 88px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.homi-family-board__brand-subtitle {
+  margin-top: -2px;
+  color: var(--board-text);
+  font-size: 1.16rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.homi-family-board__header-actions {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.homi-family-board__household {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--board-text);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.homi-family-board__status {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.homi-family-board__status.is-online {
+  color: #35533c;
+  background: rgba(249, 247, 241, 0.72);
+}
+
+.homi-family-board__status.is-offline {
+  color: #7e4c2b;
+  background: #fbe29b;
+}
+
+.homi-family-board__admin-nav {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.homi-family-board__admin-nav button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(34, 31, 31, 0.2);
+  border-radius: 10px;
+  color: var(--board-text);
+  background: rgba(249, 247, 241, 0.74);
+  font-size: 0.76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.homi-family-board__admin-nav button:hover,
+.homi-family-board__admin-nav button:focus-visible {
+  background: var(--card-cream);
+  border-color: rgba(34, 31, 31, 0.42);
+}
+
+.homi-family-board__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row;
+  gap: 16px;
+}
+
+.homi-family-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(34, 31, 31, 0.13);
+  border-radius: 18px;
+  color: var(--board-text);
+  background: var(--card-cream);
+  box-shadow:
+    0 2px 3px rgba(34, 31, 31, 0.08),
+    0 7px 14px rgba(34, 31, 31, 0.09);
+}
+
+.homi-family-card--module-link {
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+
+.homi-family-card--module-link:hover,
+.homi-family-card--module-link:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(34, 31, 31, 0.28);
+  box-shadow:
+    0 4px 8px rgba(34, 31, 31, 0.10),
+    0 13px 24px rgba(34, 31, 31, 0.12);
+}
+
+.homi-family-card--noticeboard {
+  background: var(--notice-tan);
+}
+
+.homi-family-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.homi-family-card__header > div {
+  min-width: 0;
+}
+
+.homi-family-card__header h2 {
+  margin: 0;
+  color: var(--board-text);
+  font-family:
+    ui-rounded, "Avenir Next", "Trebuchet MS", "Segoe UI",
+    system-ui, sans-serif;
+  font-size: clamp(1.18rem, 1.85vw, 1.48rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.homi-family-card__header p {
+  margin: 5px 0 0;
+  color: var(--board-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.homi-family-card__sparkle {
+  flex: 0 0 auto;
+  margin-top: -2px;
+  color: var(--board-gold);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.homi-family-card--noticeboard .homi-family-card__sparkle {
+  color: #a95c3f;
+}
+
+.homi-family-card h3 {
+  margin: 0 0 10px;
+  color: var(--board-text);
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.homi-family-placeholder {
+  min-height: 164px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  text-align: center;
+  color: #66786a;
+  border: 1px dashed rgba(75, 99, 78, 0.38);
+  border-radius: 14px;
+  background: rgba(126, 152, 133, 0.07);
+}
+
+.homi-family-placeholder strong {
+  color: #596b5d;
+  font-size: 0.86rem;
+}
+
+.homi-family-placeholder > span {
+  max-width: 17rem;
+  color: #756f69;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.homi-family-placeholder__weather-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(75, 99, 78, 0.46);
+  border-radius: 50%;
+  color: #728779;
+  font-size: 1.35rem;
+}
+
+.homi-family-meal-skeleton {
+  display: grid;
+  gap: 11px;
+}
+
+.homi-family-meal-skeleton__row {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 30% minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: 13px;
+  background: var(--meal-placeholder);
+}
+
+.homi-family-meal-skeleton__row span {
+  background: #e1d9cc;
+}
+
+.homi-family-meal-skeleton__row i {
+  display: block;
+  margin: 17px 18px;
+  border-radius: 999px;
+  background: #ded7cb;
+}
+
+.homi-family-noticeboard-empty {
+  min-height: 278px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(89, 83, 78, 0.2);
+  border-radius: 12px;
+  color: rgba(89, 83, 78, 0.48);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.homi-family-checklist-skeleton,
+.homi-family-chore-skeleton {
+  display: grid;
+  gap: 0;
+}
+
+.homi-family-checklist-skeleton__row {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 1px solid #e0dbd1;
+}
+
+.homi-family-checklist-skeleton__row:last-child {
+  border-bottom: 0;
+}
+
+.homi-family-checklist-skeleton__box,
+.homi-family-chore-skeleton__check {
+  width: 19px;
+  height: 19px;
+  border: 1.5px solid #b9b2a7;
+  border-radius: 5px;
+}
+
+.homi-family-checklist-skeleton__row i,
+.homi-family-chore-skeleton__row i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #e0dbd1;
+}
+
+.homi-family-checklist-skeleton__count {
+  width: 15px;
+  height: 15px;
+  justify-self: end;
+  border: 1.5px solid #c7c0b6;
+  border-radius: 50%;
+}
+
+.homi-family-chore-skeleton__row {
+  min-height: 41px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px 16px 20px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #ddd8cf;
+}
+
+.homi-family-chore-skeleton__row:last-child {
+  border-bottom: 0;
+}
+
+.homi-family-chore-skeleton__avatar,
+.homi-family-chore-skeleton__dot {
+  display: block;
+  border-radius: 50%;
+}
+
+.homi-family-chore-skeleton__avatar {
+  width: 17px;
+  height: 17px;
+  border: 2px solid #b8b2a8;
+}
+
+.homi-family-chore-skeleton__dot {
+  width: 14px;
+  height: 14px;
+  background: #c9b99b;
+}
+
+.homi-family-schedule-skeleton {
+  min-height: 142px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.homi-family-schedule-skeleton__times {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  align-items: center;
+  color: var(--board-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.homi-family-schedule-skeleton__grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dfd9cf;
+  border-radius: 9px;
+  background: rgba(236, 230, 218, 0.35);
+}
+
+.homi-family-schedule-skeleton__grid > span {
+  border-right: 1px solid #dfd9cf;
+  border-bottom: 1px solid #dfd9cf;
+}
+
+.homi-family-schedule-skeleton__grid > span:nth-child(4n) {
+  border-right: 0;
+}
+
+.homi-family-schedule-skeleton__grid > span:nth-child(n + 13) {
+  border-bottom: 0;
+}
+
+.homi-family-schedule-skeleton__grid > strong {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(89, 83, 78, 0.46);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.homi-family-module-surface {
+  min-width: 0;
+  min-height: 0;
+  color: var(--board-text);
+}
+
+.homi-family-module-surface > :first-child {
+  margin-top: 0;
+}
+
+.homi-family-module-surface > :last-child {
+  margin-bottom: 0;
+}
+
+.homi-family-placeholder--module-setup {
+  min-height: 132px;
+  gap: 10px;
+  text-align: center;
+}
+
+.homi-family-placeholder--module-setup .homi-ui-button {
+  margin-top: 2px;
+}
+
+@media (min-width: 720px) {
+  .homi-family-board__admin-nav {
+    display: flex;
+  }
+
+  .homi-family-board__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homi-family-card--meals {
+    min-height: 380px;
+  }
+
+  .homi-family-card--noticeboard {
+    min-height: 300px;
+  }
+
+  .homi-family-card--schedule {
+    min-height: 210px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .homi-family-board {
+    min-height: calc(100vh - 32px);
+  }
+
+  .homi-family-board__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .homi-family-card--weather {
+    min-height: 260px;
+    align-self: start;
+  }
+
+  .homi-family-card--meals,
+  .homi-family-card--noticeboard {
+    min-height: 380px;
+  }
+
+  .homi-family-card--grocery {
+    min-height: 280px;
+    align-self: start;
+  }
+
+  .homi-family-card--chores {
+    min-height: 232px;
+  }
+
+  .homi-family-card--schedule {
+    min-height: 232px;
+  }
+}
+
+@media (max-width: 719px) {
+  .homi-family-board {
+    min-height: calc(100vh - 20px);
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .homi-family-board__header {
+    min-height: auto;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .homi-family-board__brand {
+    min-width: 0;
+    justify-items: start;
+  }
+
+  .homi-family-board__logo {
+    width: 142px;
+    max-height: 58px;
+  }
+
+  .homi-family-board__brand-subtitle {
+    margin-top: -4px;
+    font-size: 0.84rem;
+  }
+
+  .homi-family-board__header-actions {
+    gap: 6px;
+  }
+
+  .homi-family-board__household {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+    font-size: 0.72rem;
+  }
+
+  .homi-family-card {
+    padding: 16px;
+  }
+
+  .homi-family-card__header h2 {
+    font-size: 1.22rem;
+  }
+
+  .homi-family-card--weather,
+  .homi-family-card--grocery,
+  .homi-family-card--chores,
+  .homi-family-card--schedule {
+    min-height: 0;
+  }
+}
+
+/* Desktop Family Board keeps the brand/navigation above a dynamic card grid.
+   Card position belongs to the signed-in member, so no card type owns a fixed
+   grid cell and multiple modules may contribute the same card type. */
+@media (min-width: 960px) {
+  .homi-family-board__header {
+    min-height: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 16px;
+  }
+
+  .homi-family-board__brand {
+    min-width: 0;
+    justify-items: start;
+  }
+
+  .homi-family-board__logo {
+    width: min(174px, 100%);
+    max-height: 78px;
+    object-position: left center;
+  }
+
+  .homi-family-board__brand-subtitle {
+    margin: -5px 0 0 14px;
+    font-size: 0.95rem;
+  }
+
+  .homi-family-board__header-actions {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .homi-family-board__household {
+    display: none;
+  }
+
+  .homi-family-board__admin-nav {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 3px;
+  }
+
+  .homi-family-board__admin-nav button {
+    min-width: 0;
+    min-height: 26px;
+    flex: 0 1 auto;
+    padding: 0 8px;
+    border-color: rgba(34, 31, 31, 0.13);
+    border-radius: 8px;
+    font-size: 0.62rem;
+    background: rgba(249, 247, 241, 0.42);
+  }
+
+  .homi-family-card {
+    min-height: 232px;
+  }
+}
+
+.homi-platform-context-actions {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: flex;
+  gap: 10px;
+}
+
+.homi-platform-context-action {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(92, 70, 61, 0.16);
+  border-radius: 999px;
+  background: var(--homi-color-surface, #fffaf2);
+  color: var(--homi-color-text, #292321);
+  box-shadow: 0 12px 28px rgba(77, 55, 45, 0.2);
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.homi-platform-context-action--primary {
+  background: var(--homi-color-primary, #c96f55);
+  color: white;
+}
+
+.homi-platform-context-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (min-width: 900px) {
+  .homi-platform-context-actions {
+    bottom: 24px;
+  }
+}

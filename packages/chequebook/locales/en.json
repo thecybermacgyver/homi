@@ -1,0 +1,11 @@
+{
+  "module.name": "Chequebook",
+  "page.title": "Chequebook",
+  "setup.title": "Set up Chequebook",
+  "settings.title": "Chequebook settings",
+  "navigation.label": "Chequebook",
+  "tabs.register": "Register",
+  "tabs.recurring": "Recurring",
+  "tabs.budget": "Budget",
+  "tabs.analytics": "Analytics"
+}
