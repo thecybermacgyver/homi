@@ -1,0 +1,1 @@
+ALTER TABLE "core"."sync_mutations" ADD COLUMN "request_hash" text;

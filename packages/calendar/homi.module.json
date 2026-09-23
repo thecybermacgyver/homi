@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "calendar",
+  "name": "Calendar",
+  "publisher": "Homi",
+  "version": "0.6.9",
+  "moduleApiVersion": 1,
+  "description": "Shared household calendar, events, recurrence, reminders, people, and transportation coordination.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_calendar",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "household-people",
+    "jobs",
+    "localization",
+    "notifications",
+    "secrets",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "calendar",
+      "label": "Calendar",
+      "path": "/modules/calendar",
+      "icon": "calendar"
+    }
+  ],
+  "setup": {
+    "required": true,
+    "scope": "household"
+  },
+  "settings": {
+    "household": true,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "event",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "calendar-layer",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "calendar-settings",
+        "operations": [
+          "update"
+        ]
+      },
+      {
+        "entityType": "calendar",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "settings",
+        "operations": [
+          "create",
+          "update"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [
+      "calendar.range.v1",
+      "calendar.transport.v1",
+      "calendar.linked-events.v1"
+    ],
+    "consumes": [
+      "chequebook.transactions.v1"
+    ]
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "today-count",
+        "label": "Events today",
+        "slot": "family-schedule"
+      },
+      {
+        "surfaceId": "coming-week",
+        "label": "Coming week",
+        "slot": "family-schedule"
+      },
+      {
+        "surfaceId": "mini-month",
+        "label": "Mini month",
+        "slot": "family-schedule"
+      }
+    ],
+    "householdSettings": true,
+    "notifications": false,
+    "search": true
+  }
+}

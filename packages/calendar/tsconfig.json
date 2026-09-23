@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": [
+    "src/constants.ts",
+    "src/types.ts",
+    "src/settings.ts",
+    "src/calendars.ts",
+    "src/event-validation.ts",
+    "src/recurrence.ts",
+    "src/providers.ts",
+    "src/server.ts",
+    "src/sync.ts",
+    "src/web.tsx"
+  ]
+}

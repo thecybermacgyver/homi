@@ -1,0 +1,21 @@
+{
+  "name": "homi",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "db:generate": "pnpm --filter @homi/db db:generate",
+    "db:migrate": "pnpm --filter @homi/db db:migrate",
+    "auth:generate": "pnpm --filter @homi/core auth:generate",
+    "dev:core": "pnpm --filter @homi/core dev",
+    "dev:web": "pnpm --filter @homi/web dev",
+    "start:core": "pnpm --filter @homi/core start",
+    "calendar:db:migrate": "pnpm --filter @homi/calendar db:migrate"
+  }
+}

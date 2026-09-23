@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # Workspace packages expose generated declarations from dist/, so build first.
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm audit --prod --audit-level high
+      - run: pnpm --filter @homi/calendar contract:validate
+      - run: pnpm --filter @homi/chequebook manifest:validate
+      - run: pnpm --filter @homi/core module-directory:validate
+      - run: pnpm --filter @homi/core module-lifecycle:validate
+      - run: bash -n scripts/package-deployment.sh scripts/verify-deployment-source.sh
+      - run: |
+          test_dir="$(mktemp -d)"
+          trap 'rm -rf "$test_dir"' EXIT
+          cp Dockerfile.web "$test_dir/"
+          mkdir -p "$test_dir/deploy" "$test_dir/apps/web/src" "$test_dir/apps/web"
+          cp deploy/nginx.conf deploy/nginx-security-headers.conf "$test_dir/deploy/"
+          cp apps/web/src/main.tsx "$test_dir/apps/web/src/"
+          cp apps/web/index.html "$test_dir/apps/web/"
+          printf '%s\n' "$GITHUB_SHA" > "$test_dir/.homi-source-commit"
+          (cd "$test_dir" && "$GITHUB_WORKSPACE/scripts/verify-deployment-source.sh" "$GITHUB_SHA")
+          if (cd "$test_dir" && "$GITHUB_WORKSPACE/scripts/verify-deployment-source.sh" deadbeef); then
+            echo "Deployment verifier accepted a mismatched commit" >&2
+            exit 1
+          fi
+      - run: git diff --check

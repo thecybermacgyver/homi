@@ -1,0 +1,42 @@
+{
+  "name": "@homi/calendar",
+  "version": "0.6.9",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./web": {
+      "types": "./dist/web.d.ts",
+      "import": "./dist/web.js"
+    }
+  },
+  "files": [
+    "dist",
+    "homi.module.json",
+    "migrations",
+    "locales"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json && node ../../scripts/rewrite-module-web-imports.mjs dist/web.js && esbuild src/server.ts --bundle --platform=node --format=esm --target=node24 --minify --legal-comments=none --outfile=dist/server.js --sourcemap",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "manifest:validate": "node scripts/validate-manifest.mjs",
+    "security:validate": "node scripts/validate-provider-security.mjs",
+    "contract:validate": "pnpm manifest:validate && pnpm security:validate"
+  },
+  "dependencies": {
+    "@homi/module-sdk": "workspace:*",
+    "@homi/ui": "workspace:*",
+    "fast-xml-parser": "5.11.1",
+    "fastify": "5.12.4",
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "@types/react": "19.3.0",
+    "esbuild": "0.25.10",
+    "typescript": "7.0.2"
+  }
+}

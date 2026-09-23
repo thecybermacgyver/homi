@@ -1,0 +1,178 @@
+services:
+  db:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: homi
+      POSTGRES_USER: homi_bootstrap
+      POSTGRES_PASSWORD: ${HOMI_POSTGRES_BOOTSTRAP_PASSWORD:?HOMI_POSTGRES_BOOTSTRAP_PASSWORD must be set}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      HOMI_MIGRATOR_DB_PASSWORD: ${HOMI_MIGRATOR_DB_PASSWORD:?HOMI_MIGRATOR_DB_PASSWORD must be set}
+      HOMI_APP_DB_PASSWORD: ${HOMI_APP_DB_PASSWORD:?HOMI_APP_DB_PASSWORD must be set}
+      HOMI_JOBS_DB_PASSWORD: ${HOMI_JOBS_DB_PASSWORD:?HOMI_JOBS_DB_PASSWORD must be set}
+      HOMI_BACKUP_DB_PASSWORD: ${HOMI_BACKUP_DB_PASSWORD:?HOMI_BACKUP_DB_PASSWORD must be set}
+    volumes:
+      - homi_postgres_data:/var/lib/postgresql
+      - ./deploy/postgres/001-init.sh:/docker-entrypoint-initdb.d/001-init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homi_bootstrap -d homi"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  migrate:
+    profiles: ["maintenance"]
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOMI_MIGRATOR_DATABASE_URL: postgresql://homi_migrator:${HOMI_MIGRATOR_DB_PASSWORD}@db:5432/homi
+    command: ["node", "packages/db/dist/migrate.js"]
+    restart: "no"
+
+  bootstrap:
+    profiles: ["maintenance"]
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOMI_DATABASE_URL: postgresql://homi_app:${HOMI_APP_DB_PASSWORD}@db:5432/homi
+      HOMI_AUTH_SECRET: ${HOMI_AUTH_SECRET:?HOMI_AUTH_SECRET must be set}
+    command: ["node", "apps/core/dist/bootstrap-first-account.js"]
+    restart: "no"
+
+  calendar-migrate:
+    profiles: ["maintenance"]
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOMI_MIGRATOR_DATABASE_URL: postgresql://homi_migrator:${HOMI_MIGRATOR_DB_PASSWORD}@db:5432/homi
+    command: ["node", "packages/calendar/dist/migrate.js"]
+    restart: "no"
+
+  module-admin:
+    profiles: ["maintenance"]
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOMI_MIGRATOR_DATABASE_URL: postgresql://homi_migrator:${HOMI_MIGRATOR_DB_PASSWORD}@db:5432/homi
+      HOMI_MODULES_DIRECTORY: /app/apps/core/.homi-modules
+    volumes:
+      - homi_modules_data:/app/apps/core/.homi-modules
+    entrypoint: ["node", "apps/core/dist/module-installer-cli.js"]
+    restart: "no"
+
+  module-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOMI_MODULE_MANAGER_HOST: 0.0.0.0
+      HOMI_MODULE_MANAGER_PORT: 3002
+      HOMI_MODULE_MANAGER_SECRET: ${HOMI_MODULE_MANAGER_SECRET:?HOMI_MODULE_MANAGER_SECRET must be set}
+      HOMI_MIGRATOR_DATABASE_URL: postgresql://homi_migrator:${HOMI_MIGRATOR_DB_PASSWORD}@db:5432/homi
+      HOMI_BACKUP_DATABASE_URL: postgresql://homi_backup:${HOMI_BACKUP_DB_PASSWORD}@db:5432/homi
+      HOMI_MODULES_DIRECTORY: /app/apps/core/.homi-modules
+      HOMI_MODULE_BACKUPS_DIRECTORY: /app/backups
+      HOMI_GITHUB_TOKEN: ${HOMI_GITHUB_TOKEN:-}
+    volumes:
+      - homi_modules_data:/app/apps/core/.homi-modules
+      - homi_module_backups:/app/backups
+    command: ["node", "apps/core/dist/module-manager-server.js"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3002/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      module-manager:
+        condition: service_healthy
+    environment:
+      HOMI_HOST: 0.0.0.0
+      HOMI_PORT: 3001
+      HOMI_DATABASE_URL: postgresql://homi_app:${HOMI_APP_DB_PASSWORD}@db:5432/homi
+      HOMI_AUTH_SECRET: ${HOMI_AUTH_SECRET:?HOMI_AUTH_SECRET must be set}
+      HOMI_AUTH_BASE_URL: ${HOMI_AUTH_BASE_URL:?HOMI_AUTH_BASE_URL must be set}
+      HOMI_MODULES_DIRECTORY: /app/apps/core/.homi-modules
+      HOMI_MODULE_DIRECTORY_URL: ${HOMI_MODULE_DIRECTORY_URL:-}
+      HOMI_MODULE_DIRECTORY_TRUSTED_KEYS: ${HOMI_MODULE_DIRECTORY_TRUSTED_KEYS:-}
+      HOMI_MODULE_MANAGER_URL: http://module-manager:3002
+      HOMI_MODULE_MANAGER_SECRET: ${HOMI_MODULE_MANAGER_SECRET:?HOMI_MODULE_MANAGER_SECRET must be set}
+      HOMI_GITHUB_TOKEN: ${HOMI_GITHUB_TOKEN:-}
+      NODE_ENV: production
+    volumes:
+      - homi_modules_data:/app/apps/core/.homi-modules:ro
+    ports:
+      - "${HOMI_BIND_ADDRESS:-127.0.0.1}:${HOMI_CORE_PORT:-3101}:3001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/health/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      core:
+        condition: service_healthy
+    ports:
+      - "${HOMI_BIND_ADDRESS:-127.0.0.1}:${HOMI_WEB_PORT:-3100}:8080"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1:8080/health/live || exit 1"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
+
+volumes:
+  homi_postgres_data:
+  homi_modules_data:
+  homi_module_backups:

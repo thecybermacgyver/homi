@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "chequebook",
+  "name": "Chequebook",
+  "publisher": "Homi",
+  "version": "0.1.12",
+  "moduleApiVersion": 1,
+  "description": "Household chequebook, cash-flow forecasting, recurring bills and income, category budgets, reconciliation, analytics, and Calendar-linked financial events.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_chequebook",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "household-people",
+    "jobs",
+    "localization",
+    "notifications",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "chequebook",
+      "label": "Chequebook",
+      "path": "/modules/chequebook",
+      "icon": "wallet"
+    }
+  ],
+  "setup": {
+    "required": true,
+    "scope": "household"
+  },
+  "settings": {
+    "household": true,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "account",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "transaction",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "recurring-rule",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "category",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "budget-limit",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "chequebook-settings",
+        "operations": [
+          "update"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [
+      "chequebook.transactions.v1"
+    ],
+    "consumes": [
+      "calendar.linked-events.v1"
+    ]
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "current-balance",
+        "label": "Current balance",
+        "slot": "noticeboard"
+      },
+      {
+        "surfaceId": "monthly-spend",
+        "label": "Spent this month",
+        "slot": "noticeboard"
+      },
+      {
+        "surfaceId": "cash-flow-forecast",
+        "label": "Cash-flow forecast",
+        "slot": "noticeboard"
+      }
+    ],
+    "householdSettings": true,
+    "notifications": true,
+    "search": true
+  }
+}

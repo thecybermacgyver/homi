@@ -1,0 +1,857 @@
+:root {
+  font-family:
+    ui-rounded, "Avenir Next", "Trebuchet MS", "Segoe UI",
+    system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #3f3028;
+  background: #ebe5d8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+
+  --homi-bg: #ebe5d8;
+  --homi-bg-soft: #e7ddd0;
+  --homi-board: #d7e2cf;
+  --homi-board-strong: #c8d6bf;
+  --homi-surface: #fffaf0;
+  --homi-surface-strong: #fffdf7;
+  --homi-text: #3f3028;
+  --homi-text-muted: #74665a;
+  --homi-border: #d8ccbc;
+  --homi-border-strong: #c7b7a4;
+
+  --homi-primary: #c97050;
+  --homi-primary-hover: #aa563d;
+  --homi-primary-action: #a6533a;
+  --homi-primary-action-hover: #8d432f;
+  --homi-primary-soft: #f1d8ca;
+
+  --homi-sage: #8b9f7b;
+  --homi-sage-strong: #657b5b;
+  --homi-sage-soft: #e3eadc;
+
+  --homi-honey: #d7aa4a;
+  --homi-honey-strong: #ad7e27;
+  --homi-honey-soft: #f4e5ba;
+
+  --homi-danger: #a9544d;
+  --homi-danger-soft: #f4dfdc;
+
+  --homi-shadow-sm:
+    0 2px 4px rgba(71, 52, 39, 0.08),
+    0 9px 22px rgba(71, 52, 39, 0.08);
+  --homi-shadow-md:
+    0 3px 8px rgba(71, 52, 39, 0.10),
+    0 16px 32px rgba(71, 52, 39, 0.10);
+  --homi-shadow-lg:
+    0 6px 16px rgba(71, 52, 39, 0.12),
+    0 28px 70px rgba(71, 52, 39, 0.14);
+
+  --homi-radius-sm: 10px;
+  --homi-radius-md: 14px;
+  --homi-radius-lg: 18px;
+  --homi-radius-xl: 22px;
+  --homi-radius-pill: 999px;
+
+  --homi-space-1: 4px;
+  --homi-space-2: 8px;
+  --homi-space-3: 12px;
+  --homi-space-4: 16px;
+  --homi-space-5: 20px;
+  --homi-space-6: 24px;
+  --homi-space-8: 32px;
+  --homi-space-10: 40px;
+
+  --homi-touch: 46px;
+  --homi-shell-max: 1440px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--homi-bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--homi-text);
+  background:
+    radial-gradient(circle at 8% 2%, rgba(215, 170, 74, 0.10), transparent 26rem),
+    radial-gradient(circle at 94% 4%, rgba(139, 159, 123, 0.16), transparent 24rem),
+    var(--homi-bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(112, 134, 101, 0.34);
+  outline-offset: 2px;
+}
+
+.homi-ui-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.homi-ui-button,
+.homi-ui-icon-button,
+.homi-ui-nav-button,
+.homi-ui-tab {
+  border: 0;
+  color: inherit;
+  background: none;
+}
+
+.homi-ui-button {
+  min-height: var(--homi-touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--homi-space-2);
+  padding: 0 18px;
+  border-radius: 12px;
+  font-weight: 800;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.homi-ui-button:not(:disabled):active,
+.homi-ui-icon-button:not(:disabled):active,
+.homi-ui-nav-button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.homi-ui-button--primary {
+  color: #fffdf9;
+  background: var(--homi-primary-action);
+  box-shadow: 0 8px 18px rgba(166, 83, 58, 0.18);
+}
+
+.homi-ui-button--primary:not(:disabled):hover {
+  background: var(--homi-primary-action-hover);
+}
+
+.homi-ui-button--secondary {
+  color: var(--homi-text);
+  border: 1px solid var(--homi-border-strong);
+  background: var(--homi-surface-strong);
+}
+
+.homi-ui-button--secondary:not(:disabled):hover,
+.homi-ui-button--quiet:not(:disabled):hover {
+  background: var(--homi-bg-soft);
+}
+
+.homi-ui-button--quiet {
+  color: var(--homi-text-muted);
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.homi-ui-button--danger {
+  color: #fff;
+  background: var(--homi-danger);
+}
+
+.homi-ui-icon-button {
+  width: var(--homi-touch);
+  height: var(--homi-touch);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 1.35rem;
+}
+
+.homi-ui-icon-button:hover {
+  background: var(--homi-bg-soft);
+}
+
+.homi-ui-surface {
+  border: 1px solid var(--homi-border);
+  border-radius: var(--homi-radius-lg);
+  background: rgba(255, 250, 240, 0.97);
+  box-shadow: var(--homi-shadow-sm);
+}
+
+.homi-ui-surface--padding-compact {
+  padding: var(--homi-space-4);
+}
+
+.homi-ui-surface--padding-normal {
+  padding: var(--homi-space-5);
+}
+
+.homi-ui-surface--padding-roomy {
+  padding: var(--homi-space-8);
+}
+
+.homi-ui-badge {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 9px;
+  border-radius: var(--homi-radius-pill);
+  color: var(--homi-text-muted);
+  background: var(--homi-bg-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.homi-ui-badge--success {
+  color: #526a4b;
+  background: var(--homi-sage-soft);
+}
+
+.homi-ui-badge--warning {
+  color: #7d5c1b;
+  background: var(--homi-honey-soft);
+}
+
+.homi-ui-badge--danger {
+  color: #883f39;
+  background: var(--homi-danger-soft);
+}
+
+.homi-ui-notice {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--homi-border);
+  border-radius: var(--homi-radius-md);
+  color: var(--homi-text-muted);
+  background: var(--homi-surface);
+  line-height: 1.45;
+}
+
+.homi-ui-notice strong {
+  color: var(--homi-text);
+}
+
+.homi-ui-notice--success {
+  border-color: #c3d2bc;
+  background: var(--homi-sage-soft);
+}
+
+.homi-ui-notice--warning {
+  border-color: #e1c98e;
+  background: var(--homi-honey-soft);
+}
+
+.homi-ui-notice--danger {
+  border-color: #dfb2ae;
+  background: var(--homi-danger-soft);
+}
+
+.homi-ui-form-field {
+  display: grid;
+  gap: 7px;
+  color: var(--homi-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.homi-ui-form-field__hint,
+.homi-ui-form-field__error {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.homi-ui-form-field__hint {
+  color: var(--homi-text-muted);
+}
+
+.homi-ui-form-field__error {
+  color: var(--homi-danger);
+}
+
+.homi-ui-input,
+.homi-ui-textarea,
+.homi-ui-select,
+.homi-ui-search__input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--homi-border-strong);
+  border-radius: 14px;
+  padding: 0 13px;
+  color: var(--homi-text);
+  background: var(--homi-surface-strong);
+  outline: none;
+}
+
+.homi-ui-textarea {
+  min-height: 112px;
+  padding-block: 12px;
+  resize: vertical;
+}
+
+.homi-ui-input:focus,
+.homi-ui-textarea:focus,
+.homi-ui-select:focus,
+.homi-ui-search__input:focus {
+  border-color: var(--homi-sage-strong);
+  box-shadow: 0 0 0 3px rgba(143, 162, 127, 0.18);
+}
+
+.homi-ui-check,
+.homi-ui-switch {
+  min-height: var(--homi-touch);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--homi-text);
+  font-weight: 700;
+}
+
+.homi-ui-check__control {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--homi-primary);
+}
+
+.homi-ui-switch__control {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.homi-ui-switch__track {
+  width: 44px;
+  height: 26px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border-radius: var(--homi-radius-pill);
+  background: #c8beb3;
+  transition: background 140ms ease;
+}
+
+.homi-ui-switch__track span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(63, 53, 45, 0.18);
+  transition: transform 140ms ease;
+}
+
+.homi-ui-switch__control:checked + .homi-ui-switch__track {
+  background: var(--homi-sage-strong);
+}
+
+.homi-ui-switch__control:checked + .homi-ui-switch__track span {
+  transform: translateX(18px);
+}
+
+.homi-ui-switch__control:focus-visible + .homi-ui-switch__track {
+  outline: 3px solid rgba(112, 134, 101, 0.34);
+  outline-offset: 2px;
+}
+
+.homi-ui-empty-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 34px 24px;
+  color: var(--homi-text-muted);
+  text-align: center;
+}
+
+.homi-ui-empty-state__mark {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 21px;
+  color: var(--homi-primary-hover);
+  background: var(--homi-primary-soft);
+  font-size: 1.65rem;
+  box-shadow: inset 0 0 0 1px rgba(200, 111, 82, 0.08);
+}
+
+.homi-ui-empty-state strong {
+  color: var(--homi-text);
+  font-size: 1.08rem;
+}
+
+.homi-ui-empty-state p {
+  max-width: 34rem;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.homi-ui-dialog-backdrop,
+.homi-ui-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(53, 42, 34, 0.34);
+  backdrop-filter: blur(6px);
+}
+
+.homi-ui-dialog-backdrop {
+  align-items: center;
+}
+
+.homi-ui-sheet-backdrop {
+  align-items: flex-end;
+}
+
+.homi-ui-dialog,
+.homi-ui-sheet {
+  width: min(100%, 600px);
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  border: 1px solid var(--homi-border);
+  border-radius: var(--homi-radius-xl);
+  padding: 22px;
+  color: var(--homi-text);
+  background: var(--homi-surface-strong);
+  box-shadow: var(--homi-shadow-lg);
+}
+
+.homi-ui-sheet {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.homi-ui-dialog__heading,
+.homi-ui-dialog__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.homi-ui-dialog__heading {
+  justify-content: space-between;
+}
+
+.homi-ui-dialog__heading h2 {
+  margin: 0;
+}
+
+.homi-ui-dialog__body {
+  padding: 18px 0;
+}
+
+.homi-ui-dialog__actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.homi-ui-app-shell {
+  min-height: 100vh;
+  padding-bottom: 84px;
+}
+
+.homi-ui-app-header {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(122, 106, 84, 0.22);
+  background: rgba(215, 226, 207, 0.94);
+  backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.homi-ui-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.homi-ui-brand__icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  object-fit: contain;
+}
+
+.homi-ui-brand__name,
+.homi-ui-brand__tagline {
+  display: block;
+}
+
+.homi-ui-brand__name {
+  color: var(--homi-text);
+  font-size: 1.08rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.homi-ui-brand__tagline {
+  margin-top: 2px;
+  color: var(--homi-text-muted);
+  font-size: 0.7rem;
+}
+
+.homi-ui-app-header__context {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.homi-ui-app-header__household {
+  display: none;
+  color: var(--homi-text-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.homi-ui-shell-layout {
+  width: min(100%, var(--homi-shell-max));
+  margin: 0 auto;
+}
+
+.homi-ui-shell-sidebar {
+  display: none;
+}
+
+.homi-ui-shell-content {
+  min-width: 0;
+  padding: 22px 16px 30px;
+}
+
+.homi-ui-bottom-nav {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 70;
+  min-height: 64px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(122, 106, 84, 0.24);
+  border-radius: 20px;
+  background: rgba(255, 250, 240, 0.98);
+  box-shadow: var(--homi-shadow-md);
+  backdrop-filter: blur(18px);
+}
+
+.homi-ui-nav-button {
+  min-width: 0;
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 5px 6px;
+  border-radius: 14px;
+  color: var(--homi-text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.homi-ui-nav-button__icon {
+  min-height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 1.12rem;
+  line-height: 1;
+}
+
+.homi-ui-nav-button.is-active {
+  color: var(--homi-primary-hover);
+  background: var(--homi-primary-soft);
+}
+
+.homi-ui-side-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.homi-ui-side-nav .homi-ui-nav-button {
+  min-height: 48px;
+  grid-template-columns: 30px 1fr auto;
+  justify-items: start;
+  align-items: center;
+  text-align: left;
+  padding: 0 12px;
+  font-size: 0.88rem;
+}
+
+.homi-ui-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.homi-ui-page-header h1 {
+  margin: 0;
+  color: var(--homi-text);
+  font-size: clamp(1.75rem, 6vw, 2.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+.homi-ui-page-header p:not(.homi-ui-eyebrow) {
+  max-width: 46rem;
+  margin: 10px 0 0;
+  color: var(--homi-text-muted);
+  line-height: 1.55;
+}
+
+.homi-ui-page-header__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.homi-ui-eyebrow {
+  margin: 0 0 8px;
+  color: var(--homi-sage-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.homi-ui-setup-layout,
+.homi-ui-settings-section {
+  padding: 22px;
+}
+
+.homi-ui-setup-layout__body,
+.homi-ui-settings-section__body {
+  display: grid;
+  gap: 16px;
+}
+
+.homi-ui-setup-layout__actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.homi-ui-settings-section h2 {
+  margin: 0;
+}
+
+.homi-ui-settings-section > p {
+  margin: 8px 0 20px;
+  color: var(--homi-text-muted);
+  line-height: 1.5;
+}
+
+.homi-ui-tabs {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--homi-border);
+  border-radius: 14px;
+  background: var(--homi-bg-soft);
+  overflow-x: auto;
+}
+
+.homi-ui-tab {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: var(--homi-text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.homi-ui-tab.is-active {
+  color: var(--homi-text);
+  background: var(--homi-surface-strong);
+  box-shadow: 0 2px 10px rgba(84, 63, 46, 0.08);
+}
+
+.homi-ui-search {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding-left: 14px;
+  border: 1px solid var(--homi-border-strong);
+  border-radius: 15px;
+  color: var(--homi-text-muted);
+  background: var(--homi-surface-strong);
+}
+
+.homi-ui-search__input {
+  min-height: 46px;
+  border: 0;
+  padding-left: 0;
+  background: transparent;
+}
+
+.homi-ui-search__input:focus {
+  box-shadow: none;
+}
+
+@media (min-width: 720px) {
+  .homi-ui-app-header {
+    min-height: 80px;
+    padding-inline: 24px;
+  }
+
+  .homi-ui-app-header__household {
+    display: inline;
+  }
+
+  .homi-ui-shell-content {
+    padding: 30px 26px 42px;
+  }
+
+  .homi-ui-bottom-nav {
+    left: 50%;
+    right: auto;
+    width: min(620px, calc(100vw - 40px));
+    transform: translateX(-50%);
+  }
+
+  .homi-ui-dialog,
+  .homi-ui-sheet {
+    padding: 26px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .homi-ui-app-shell {
+    padding-bottom: 84px;
+  }
+
+  .homi-ui-app-header {
+    padding-inline: max(28px, calc((100vw - var(--homi-shell-max)) / 2 + 28px));
+  }
+
+  .homi-ui-shell-layout {
+    min-height: calc(100vh - 80px);
+    display: block;
+    background: var(--homi-board);
+  }
+
+  .homi-ui-shell-sidebar {
+    display: none;
+  }
+
+  .homi-ui-shell-content {
+    padding: 28px 30px 46px;
+  }
+
+  .homi-ui-bottom-nav {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Family Board shell mode: Home uses the household board canvas rather than
+   the administrative application chrome. */
+.homi-ui-app-shell--family-board {
+  min-height: 100vh;
+  padding-bottom: 84px;
+  background: #7e9885;
+}
+
+.homi-ui-app-shell--family-board .homi-ui-app-header,
+.homi-ui-app-shell--family-board .homi-ui-shell-sidebar {
+  display: none;
+}
+
+.homi-ui-app-shell--family-board .homi-ui-shell-layout {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  background: #7e9885;
+}
+
+.homi-ui-app-shell--family-board .homi-ui-shell-content {
+  min-height: 100vh;
+  padding: 10px;
+  background: #7e9885;
+}
+
+@media (min-width: 720px) {
+  .homi-ui-app-shell--family-board .homi-ui-shell-content {
+    padding: 14px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .homi-ui-app-shell--family-board {
+    padding-bottom: 84px;
+  }
+
+  .homi-ui-app-shell--family-board .homi-ui-shell-layout {
+    min-height: 100vh;
+    display: block;
+  }
+
+  .homi-ui-app-shell--family-board .homi-ui-shell-content {
+    padding: 16px;
+  }
+
+  .homi-ui-app-shell--family-board .homi-ui-bottom-nav {
+    display: grid;
+  }
+}
