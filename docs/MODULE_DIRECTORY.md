@@ -1,6 +1,6 @@
 # Homi trusted module directory
 
-Homi discovers publishable modules through one signed JSON catalogue hosted as a GitHub release asset. Core does not scrape repositories, trust mutable branch files, or execute package-manager lifecycle scripts.
+Homi discovers publishable modules through one signed JSON catalogue hosted as a GitHub release asset. Homi installations use the permanent `module-directory` release URL; publication refreshes that release's signed catalogue assets only after retaining the same assets in a new immutable, versioned directory release for audit and recovery. Core does not scrape repositories, trust mutable branch files, or execute package-manager lifecycle scripts.
 
 ## Trust boundary
 
@@ -42,8 +42,9 @@ A household administrator can uninstall an installed module with `DELETE /api/v1
 3. Package only prepared runtime files; no install scripts are run by Homi.
 4. Publish the immutable package as a GitHub release asset.
 5. Record the asset SHA-256, requested permissions, module API version, publisher, source, and release timestamp.
-6. Update the catalogue payload, sign its exact bytes with the offline directory key, and publish the envelope as a new immutable release asset.
-7. Keep the prior catalogue and release assets available for audit and recovery.
+6. Update the catalogue payload, sign its exact bytes with the offline directory key, and publish the envelope as a new immutable, versioned directory release.
+7. Replace the assets on the permanent `module-directory` release with the exact validated assets from that immutable release. Homi installations keep using `https://github.com/thecybermacgyver/homi/releases/download/module-directory/directory.json`; no installation configuration or Core restart is required when later modules are published.
+8. Keep every versioned catalogue and module release available for audit and recovery.
 
 Installation still uses the managed installer. The manager authenticates Core, downloads the immutable GitHub asset, enforces the archive size limit and safe extraction contract, independently recomputes the package digest, validates the signed entry against the manifest, preserves publisher ownership, applies migrations transactionally, and retains the prior applied artifact/version on failure. Core exits only after a successful installation so Docker restarts it and loads the newly installed runtime.
 
