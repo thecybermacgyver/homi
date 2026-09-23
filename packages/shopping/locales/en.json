@@ -1,8 +1,0 @@
-{
-  "module.name": "Shopping List",
-  "module.description": "A shared household shopping list.",
-  "page.title": "Shopping List",
-  "action.add": "Add item",
-  "action.check": "Check off item",
-  "action.uncheck": "Return item to list"
-}
