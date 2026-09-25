@@ -1,7 +1,7 @@
 import type { CalendarColor } from "./settings.js";
 
 export const HOMI_CALENDAR_MODULE_KEY = "calendar" as const;
-export const HOMI_CALENDAR_VERSION = "0.6.9" as const;
+export const HOMI_CALENDAR_VERSION = "0.6.10" as const;
 
 export type CalendarRecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
 
