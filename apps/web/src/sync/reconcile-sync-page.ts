@@ -162,23 +162,52 @@ export async function reconcileOneSyncPage(
   const actions: LocalCacheApplyAction[] = [];
   for (const change of page.changes) {
     const handler = handlers.get(handlerKey(change.moduleKey, change.entityType));
-    if (!handler) {
-      throw new SyncReconciliationError(
-        "SYNC_RECONCILIATION_UNSUPPORTED_CHANGE",
-        `No sync handler is registered for ${change.moduleKey}/${change.entityType}.`,
+    try {
+      if (!handler) {
+        throw new SyncReconciliationError(
+          "SYNC_RECONCILIATION_UNSUPPORTED_CHANGE",
+          `No sync handler is registered for ${change.moduleKey}/${change.entityType}.`,
+        );
+      }
+      const action = await handler.materialize(
+        change,
+        {
+          householdId: input.householdId,
+          clientId: input.clientId,
+        },
+        signal,
       );
+      checkCancellation(signal);
+      validateAction(change, action);
+      actions.push(action);
+    } catch (error) {
+      checkCancellation(signal);
+      const code =
+        error instanceof SyncReconciliationError
+          ? error.code
+          : error instanceof Error &&
+              "code" in error &&
+              typeof error.code === "string"
+            ? error.code
+            : "SYNC_CHANGE_MATERIALIZATION_FAILED";
+      actions.push(Object.freeze({
+        kind: "defer" as const,
+        moduleKey: change.moduleKey,
+        entityType: change.entityType,
+        entityId: change.entityId,
+        sequence: change.sequence,
+        operation: change.operation,
+        revision: change.revision,
+        changedByUserId: change.changedByUserId,
+        clientId: change.clientId,
+        changedAt: change.changedAt,
+        errorCode: code,
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "The module change could not be materialized.",
+      }));
     }
-    const action = await handler.materialize(
-      change,
-      {
-        householdId: input.householdId,
-        clientId: input.clientId,
-      },
-      signal,
-    );
-    checkCancellation(signal);
-    validateAction(change, action);
-    actions.push(action);
   }
 
   const applied = await applySyncActions(

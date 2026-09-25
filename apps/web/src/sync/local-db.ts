@@ -5,7 +5,8 @@ export type SyncMetaKey =
   | "activeOfflineContext"
   | `clientId:${string}`
   | `lastAppliedSequence:${string}:${string}`
-  | `mutationOrder:${string}:${string}`;
+  | `mutationOrder:${string}:${string}`
+  | `deferredChange:${string}:${string}:${string}`;
 
 export interface SyncMetaRow {
   key: SyncMetaKey;
@@ -88,7 +89,23 @@ export type LocalCacheApplyAction =
   | (LocalCacheIdentity & {
       kind: "delete";
       sequence: string;
+    })
+  | (LocalCacheIdentity & {
+      kind: "defer";
+      sequence: string;
+      operation: string;
+      revision: string;
+      changedByUserId: string | null;
+      clientId: string | null;
+      changedAt: string;
+      errorCode: string;
+      errorMessage: string;
     });
+
+export type DeferredSyncChange = Extract<
+  LocalCacheApplyAction,
+  { kind: "defer" }
+>;
 
 export interface ApplySyncActionsResult {
   lastAppliedSequence: string;
@@ -231,6 +248,17 @@ function lastAppliedSequenceKey(
   requireUuid(authSubject, "authSubject");
   requireUuid(householdId, "householdId");
   return `lastAppliedSequence:${authSubject}:${householdId}`;
+}
+
+function deferredChangeKey(
+  authSubject: string,
+  householdId: string,
+  sequence: string,
+): `deferredChange:${string}:${string}:${string}` {
+  requireUuid(authSubject, "authSubject");
+  requireUuid(householdId, "householdId");
+  requireNonNegativeIntegerString(sequence, "sequence");
+  return `deferredChange:${authSubject}:${householdId}:${sequence}`;
 }
 
 function mutationOrderKey(
@@ -536,6 +564,23 @@ export async function getCachedRecords(
     .toArray();
 }
 
+export async function getDeferredSyncChanges(
+  authSubject: string,
+  householdId: string,
+): Promise<DeferredSyncChange[]> {
+  requireUuid(authSubject, "authSubject");
+  requireUuid(householdId, "householdId");
+  const prefix = `deferredChange:${authSubject}:${householdId}:`;
+  const rows = await homiClientDb.meta
+    .filter((row) => row.key.startsWith(prefix))
+    .toArray();
+  const changes = rows.map((row) => JSON.parse(row.value) as DeferredSyncChange);
+  changes.sort((left, right) =>
+    compareIntegerStrings(left.sequence, right.sequence)
+  );
+  return changes;
+}
+
 export async function applySyncActions(
   authSubject: string,
   householdId: string,
@@ -580,7 +625,20 @@ export async function applySyncActions(
           entityType: action.entityType,
           entityId: action.entityId,
         });
-        if (action.kind === "delete") {
+        if (action.kind === "defer") {
+          requireNonEmpty(action.operation, "operation");
+          requireNonNegativeIntegerString(action.revision, "revision");
+          requireNonEmpty(action.errorCode, "errorCode");
+          await homiClientDb.meta.put({
+            key: deferredChangeKey(
+              authSubject,
+              householdId,
+              action.sequence,
+            ),
+            value: JSON.stringify(action),
+            updatedAt: now(),
+          });
+        } else if (action.kind === "delete") {
           await homiClientDb.cache.delete(key);
         } else {
           requireNonNegativeIntegerString(action.revision, "revision");
