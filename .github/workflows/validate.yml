@@ -28,6 +28,7 @@ jobs:
       - run: pnpm --filter @homi/core module-directory:validate
       - run: pnpm --filter @homi/core module-lifecycle:validate
       - run: pnpm --filter @homi/web offline:validate
+      - run: node scripts/validate-compose-maintenance-image.mjs
       - run: bash -n scripts/package-deployment.sh scripts/verify-deployment-source.sh
       - run: |
           test_dir="$(mktemp -d)"

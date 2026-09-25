@@ -22,6 +22,7 @@ services:
       start_period: 5s
 
   migrate:
+    image: homi-core
     profiles: ["maintenance"]
     build:
       context: .
@@ -35,6 +36,7 @@ services:
     restart: "no"
 
   bootstrap:
+    image: homi-core
     profiles: ["maintenance"]
     build:
       context: .
@@ -49,6 +51,7 @@ services:
     restart: "no"
 
   calendar-migrate:
+    image: homi-core
     profiles: ["maintenance"]
     build:
       context: .
@@ -62,6 +65,7 @@ services:
     restart: "no"
 
   module-admin:
+    image: homi-core
     profiles: ["maintenance"]
     build:
       context: .
@@ -112,6 +116,7 @@ services:
       start_period: 5s
 
   core:
+    image: homi-core
     build:
       context: .
       dockerfile: Dockerfile.core
