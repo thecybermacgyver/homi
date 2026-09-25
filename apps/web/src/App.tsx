@@ -476,33 +476,45 @@ export function App() {
 
     const load = async () => {
       try {
-        const descriptors = moduleManagementOnline
-          ? await fetchHomiModuleRuntime(
+        let loadedFromCache = !moduleManagementOnline;
+        let descriptors;
+        if (moduleManagementOnline) {
+          try {
+            descriptors = await fetchHomiModuleRuntime(
               {
                 householdId: moduleHouseholdId,
                 clientId: moduleClientId,
               },
               controller.signal,
-            )
-          : await getCachedHomiModuleRuntime(
+            );
+            await cacheHomiModuleRuntime(
+              moduleAuthSubject,
+              moduleHouseholdId,
+              descriptors,
+            );
+            await retireQueuedMutationsForMissingModules(
+              moduleAuthSubject,
+              moduleHouseholdId,
+              new Set(
+                descriptors.map((descriptor) => descriptor.moduleKey),
+              ),
+            );
+          } catch (error) {
+            if (controller.signal.aborted) throw error;
+            descriptors = await getCachedHomiModuleRuntime(
               moduleAuthSubject,
               moduleHouseholdId,
             );
-
-        if (moduleManagementOnline) {
-          await cacheHomiModuleRuntime(
+            loadedFromCache = true;
+          }
+        } else {
+          descriptors = await getCachedHomiModuleRuntime(
             moduleAuthSubject,
             moduleHouseholdId,
-            descriptors,
-          );
-          await retireQueuedMutationsForMissingModules(
-            moduleAuthSubject,
-            moduleHouseholdId,
-            new Set(
-              descriptors.map((descriptor) => descriptor.moduleKey),
-            ),
           );
         }
+        const moduleRuntimeOnline =
+          moduleManagementOnline && !loadedFromCache;
 
         const result = await loadHomiWebModules(
           descriptors,
@@ -512,7 +524,7 @@ export function App() {
             clientId: moduleClientId,
             locale: displayLocale,
             timeZone: displayTimeZone,
-            online: moduleManagementOnline,
+            online: moduleRuntimeOnline,
           },
         );
 
@@ -579,7 +591,7 @@ export function App() {
             ? null
             : `${moduleRuntimeGeneration}:${moduleRuntimeRefreshGeneration}`;
         if (
-          moduleManagementOnline &&
+          moduleRuntimeOnline &&
           syncGeneration &&
           firstSyncGeneration.current !== syncGeneration
         ) {
