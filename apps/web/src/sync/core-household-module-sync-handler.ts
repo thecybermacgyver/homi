@@ -104,8 +104,17 @@ export function createCoreHouseholdModuleSyncHandler(
         change.entityId,
       );
 
+      if (!snapshot) {
+        return Object.freeze({
+          kind: "delete" as const,
+          moduleKey: change.moduleKey,
+          entityType: change.entityType,
+          entityId: change.entityId,
+          sequence: change.sequence,
+        });
+      }
+
       if (
-        !snapshot ||
         compareNonNegativeIntegers(
           snapshot.revision,
           change.revision,
@@ -113,7 +122,7 @@ export function createCoreHouseholdModuleSyncHandler(
       ) {
         throw new CoreHouseholdModuleSyncHandlerError(
           "CORE_HOUSEHOLD_MODULE_SYNC_STALE_SNAPSHOT",
-          "The authoritative module snapshot is missing or older than the change being applied.",
+          "The authoritative module snapshot is older than the change being applied.",
         );
       }
 

@@ -2,8 +2,12 @@ import "fake-indexeddb/auto";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  applySyncActions,
   dismissModuleMutation,
   enqueueMutation,
+  getCachedRecord,
+  getDeferredSyncChanges,
+  getLastAppliedSequence,
   getModuleMutations,
   markMutationConflict,
 } from "./local-db.js";
@@ -117,4 +121,52 @@ test("module outbox view survives a database reopen and is scoped", async () => 
     await getModuleMutations(ACCOUNT_A, HOUSEHOLD_A, "shopping"),
     [],
   );
+});
+
+
+test("defers one module failure while applying the next module change", async () => {
+  await applySyncActions(ACCOUNT_A, HOUSEHOLD_A, "2", [
+    {
+      kind: "defer",
+      moduleKey: "broken-module",
+      entityType: "item",
+      entityId: "broken-item",
+      sequence: "1",
+      operation: "update",
+      revision: "4",
+      changedByUserId: null,
+      clientId: null,
+      changedAt: "2026-09-25T19:00:00.000Z",
+      errorCode: "BROKEN_MODULE",
+      errorMessage: "The module failed.",
+    },
+    {
+      kind: "put",
+      moduleKey: "calendar",
+      entityType: "event",
+      entityId: "healthy-event",
+      revision: "1",
+      sequence: "2",
+      data: { title: "Healthy event" },
+    },
+  ]);
+
+  assert.equal(
+    await getLastAppliedSequence(ACCOUNT_A, HOUSEHOLD_A),
+    "2",
+  );
+  assert.deepEqual(
+    (await getCachedRecord(ACCOUNT_A, HOUSEHOLD_A, {
+      moduleKey: "calendar",
+      entityType: "event",
+      entityId: "healthy-event",
+    }))?.data,
+    { title: "Healthy event" },
+  );
+  const [deferred] = await getDeferredSyncChanges(
+    ACCOUNT_A,
+    HOUSEHOLD_A,
+  );
+  assert.equal(deferred?.moduleKey, "broken-module");
+  assert.equal(deferred?.errorCode, "BROKEN_MODULE");
 });
