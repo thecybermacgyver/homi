@@ -7,6 +7,7 @@ const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 const PERMISSION = /^[a-z][a-z0-9.-]{1,127}$/;
 const GITHUB_HOSTS = new Set(["github.com", "objects.githubusercontent.com"]);
+const LEGACY_SCHEMA_1_GENERATED_AT = "2026-09-23T19:02:28.543950Z";
 
 export class HomiModuleDirectoryError extends Error {
   readonly code: string;
@@ -244,6 +245,13 @@ export function verifyHomiModuleDirectory(
     throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", "Directory schema version or entries are invalid.");
   }
   const schemaVersion = catalog.schemaVersion;
+  const generatedAt = timestamp(catalog.generatedAt, "generatedAt");
+  if (schemaVersion === 1 && generatedAt !== LEGACY_SCHEMA_1_GENERATED_AT) {
+    throw new HomiModuleDirectoryError(
+      "MODULE_DIRECTORY_LEGACY_SCHEMA_RETIRED",
+      "Only the pinned legacy schema-version 1 directory is accepted. New directory releases must use schema version 2 with explicit verification evidence.",
+    );
+  }
   const entries = catalog.entries.map((entry, index) =>
     parseEntry(entry, index, schemaVersion));
   const keys = entries.map((entry) => entry.moduleKey);
@@ -252,7 +260,7 @@ export function verifyHomiModuleDirectory(
   }
   return Object.freeze({
     schemaVersion,
-    generatedAt: timestamp(catalog.generatedAt, "generatedAt"),
+    generatedAt,
     entries: Object.freeze(entries),
     keyId,
   });

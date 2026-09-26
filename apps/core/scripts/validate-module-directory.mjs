@@ -10,7 +10,7 @@ const { privateKey, publicKey } = generateKeyPairSync("ed25519");
 const publicPem = publicKey.export({ type: "spki", format: "pem" });
 const payload = JSON.stringify({
   schemaVersion: 1,
-  generatedAt: "2026-09-21T18:00:00.000Z",
+  generatedAt: "2026-09-23T19:02:28.543950Z",
   entries: [{
     moduleKey: "calendar",
     name: "Calendar",
