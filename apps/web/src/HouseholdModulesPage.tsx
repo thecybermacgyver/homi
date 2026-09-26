@@ -94,6 +94,7 @@ export function HouseholdModulesPage({
   >([]);
   const [directoryFailure, setDirectoryFailure] =
     useState<string | null>(null);
+  const [showUnverified, setShowUnverified] = useState(false);
   const [installNotice, setInstallNotice] =
     useState<string | null>(null);
   const [busyPreferenceId, setBusyPreferenceId] =
@@ -313,6 +314,13 @@ export function HouseholdModulesPage({
       return;
     }
 
+    const unverified = entry.verification.status === "unverified";
+    if (unverified && !window.confirm(
+      `UNVERIFIED — USE AT YOUR OWN RISK\n\n${entry.name} has not passed Homi's required compatibility, offline, synchronization, privacy, conflict, and isolation tests. Install it only for development testing. Continue?`,
+    )) {
+      return;
+    }
+
     setBusyModuleKey(entry.moduleKey);
     setFailure(null);
     setInstallNotice(null);
@@ -321,6 +329,7 @@ export function HouseholdModulesPage({
         householdId,
         clientId,
         moduleKey: entry.moduleKey,
+        allowUnverified: unverified,
       });
       setInstallNotice(
         `${entry.name} ${result.version} was installed safely. ` +
@@ -444,7 +453,14 @@ export function HouseholdModulesPage({
     }
   }
 
+  const hasUnverifiedEntries = directoryEntries.some(
+    (entry) => entry.verification.status === "unverified",
+  );
   const directoryCandidates = directoryEntries.filter((entry) => {
+    if (entry.verification.status === "failed") return false;
+    if (entry.verification.status === "unverified" && !showUnverified) {
+      return false;
+    }
     const installed = modules.find(
       (module) => module.moduleKey === entry.moduleKey,
     );
@@ -499,6 +515,30 @@ export function HouseholdModulesPage({
         </Notice>
       )}
 
+      {hasUnverifiedEntries && canManage && online && (
+        <Notice
+          tone="warning"
+          title={showUnverified
+            ? "Developer mode: unverified modules visible"
+            : "Unverified modules are hidden"}
+          className="homi-platform-module-notice"
+        >
+          {showUnverified
+            ? "UNVERIFIED modules have not passed Homi's required tests. Existing security and isolation rules still apply."
+            : "Only releases that passed Homi verification appear in the normal install list."}
+          <div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowUnverified((current) => !current)}
+            >
+              {showUnverified
+                ? "Hide unverified modules"
+                : "Show unverified modules"}
+            </Button>
+          </div>
+        </Notice>
+      )}
+
       {directoryEntries.length > 0 &&
         directoryCandidates.length === 0 &&
         modules.length > 0 && (
@@ -538,12 +578,18 @@ export function HouseholdModulesPage({
                       <h3>{entry.name}</h3>
                       <p>{entry.description}</p>
                     </div>
-                    <Badge tone={entry.revoked ? "warning" : "neutral"}>
-                      {entry.revoked
+                    <Badge tone={
+                      entry.verification.status === "verified"
+                        ? "success"
+                        : "warning"
+                    }>
+                      {entry.verification.status === "revoked"
                         ? "Revoked"
-                        : updating
-                          ? "Update available"
-                          : "Available"}
+                        : entry.verification.status === "unverified"
+                          ? "UNVERIFIED — USE AT YOUR OWN RISK"
+                          : updating
+                            ? "Verified update"
+                            : "Verified"}
                     </Badge>
                   </div>
                   <div className="homi-platform-module-card__actions">

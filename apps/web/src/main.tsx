@@ -27,7 +27,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
       window.location.reload();
     });
     void navigator.serviceWorker
-      .register("/sw.js?v=13", {
+      .register("/sw.js?v=15", {
         scope: "/",
         updateViaCache: "none",
       })

@@ -2,6 +2,18 @@ const MODULE_KEY = /^[a-z][a-z0-9-]{1,63}$/;
 const VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/;
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 
+export type ModuleVerificationStatus =
+  | "verified"
+  | "unverified"
+  | "failed"
+  | "revoked";
+
+export interface ModuleVerification {
+  readonly status: ModuleVerificationStatus;
+  readonly testSuiteVersion: string | null;
+  readonly testedAt: string | null;
+}
+
 export interface ModuleDirectoryEntry {
   readonly moduleKey: string;
   readonly name: string;
@@ -13,6 +25,7 @@ export interface ModuleDirectoryEntry {
   readonly sourceUrl: string;
   readonly requestedPermissions: readonly string[];
   readonly publishedAt: string;
+  readonly verification: ModuleVerification;
   readonly revoked: boolean;
 }
 
@@ -134,6 +147,11 @@ function parseEntry(value: unknown): ModuleDirectoryEntry {
     !Array.isArray(value.requestedPermissions) ||
     !value.requestedPermissions.every(text) ||
     !text(value.publishedAt) ||
+    !object(value.verification) ||
+    !text(value.verification.status) ||
+    !["verified", "unverified", "failed", "revoked"].includes(value.verification.status) ||
+    (value.verification.testSuiteVersion !== null && !text(value.verification.testSuiteVersion)) ||
+    (value.verification.testedAt !== null && !text(value.verification.testedAt)) ||
     typeof value.revoked !== "boolean"
   ) {
     throw new ModuleDirectoryError(
@@ -155,6 +173,11 @@ function parseEntry(value: unknown): ModuleDirectoryEntry {
       [...value.requestedPermissions] as string[],
     ),
     publishedAt: value.publishedAt,
+    verification: Object.freeze({
+      status: value.verification.status as ModuleVerificationStatus,
+      testSuiteVersion: value.verification.testSuiteVersion as string | null,
+      testedAt: value.verification.testedAt as string | null,
+    }),
     revoked: value.revoked,
   });
 }
@@ -183,7 +206,7 @@ export async function fetchModuleDirectory(
       : undefined;
   if (
     !object(data) ||
-    data.schemaVersion !== 1 ||
+    (data.schemaVersion !== 1 && data.schemaVersion !== 2) ||
     !text(data.generatedAt) ||
     !Array.isArray(data.entries) ||
     !text(data.keyId)
@@ -250,6 +273,7 @@ export async function installDirectoryModule(
     readonly householdId: string;
     readonly clientId: string;
     readonly moduleKey: string;
+    readonly allowUnverified?: boolean;
   },
 ): Promise<ManagedModuleInstallResult> {
   if (!MODULE_KEY.test(input.moduleKey)) {
@@ -266,9 +290,13 @@ export async function installDirectoryModule(
     {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-Homi-Household-ID": input.householdId,
         "X-Homi-Client-ID": input.clientId,
       },
+      body: JSON.stringify({
+        allowUnverified: input.allowUnverified === true,
+      }),
     },
   );
 

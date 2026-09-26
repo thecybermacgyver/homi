@@ -1,4 +1,4 @@
-const SHELL_CACHE = "homi-shell-v14";
+const SHELL_CACHE = "homi-shell-v15";
 const STATIC_SEEDS = [
   "/manifest.webmanifest",
   "/brand/homi_icon_192.png",

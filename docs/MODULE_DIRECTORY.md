@@ -13,7 +13,7 @@ The outer document contains only:
 
 Core verifies the signature before parsing or returning any catalogue entry. Trusted keys are configured locally; a catalogue cannot add its own trusted key.
 
-Each entry pins a module key, publisher, compatible module API version, semantic version, permissions, HTTPS source URL, immutable GitHub release asset URL, and `sha256:` package digest. Revoked entries remain visible as revoked but must not be offered for installation.
+Each entry pins a module key, publisher, compatible module API version, semantic version, permissions, HTTPS source URL, immutable GitHub release asset URL, and `sha256:` package digest. Schema-version 2 entries also carry an explicit verification status (`verified`, `unverified`, `failed`, or `revoked`), the certification test-suite version, and the test timestamp. A `verified` entry is invalid without both pieces of test evidence. Failed releases are never shown or installable. Revoked releases remain visible as revoked but are not installable. Unverified releases are hidden from the normal catalogue; a household administrator must deliberately reveal developer-mode entries, accept the **UNVERIFIED — USE AT YOUR OWN RISK** warning, and send an explicit acknowledgement for that installation. Core enforces these states again server-side, so changing the browser cannot bypass them. Existing schema-version 1 entries are supported only as already-signed legacy verified releases.
 
 ## Core configuration
 

@@ -24,6 +24,7 @@ let canManage = false;
 let lastSetEnabled = null;
 let installedDirectoryEntry = null;
 let uninstalledModuleKey = null;
+let directoryVerificationStatus = "verified";
 
 const directoryEntry = Object.freeze({
   moduleKey: "starter",
@@ -37,6 +38,11 @@ const directoryEntry = Object.freeze({
   sourceUrl: "https://github.com/thecybermacgyver/homi",
   requestedPermissions: [],
   publishedAt: "2026-09-22T18:00:00.000Z",
+  verification: Object.freeze({
+    status: "verified",
+    testSuiteVersion: "homi-module-certification-1",
+    testedAt: "2026-09-22T17:30:00.000Z",
+  }),
   revoked: false,
 });
 
@@ -140,7 +146,17 @@ const app = buildApp({
       return {
         schemaVersion: 1,
         generatedAt: "2026-09-22T18:00:00.000Z",
-        entries: [directoryEntry],
+        entries: [directoryVerificationStatus === "verified"
+          ? directoryEntry
+          : {
+            ...directoryEntry,
+            verification: {
+              status: directoryVerificationStatus,
+              testSuiteVersion: null,
+              testedAt: null,
+            },
+            revoked: directoryVerificationStatus === "revoked",
+          }],
         keyId: "acceptance-key",
       };
     },
@@ -317,6 +333,57 @@ try {
   assert.equal(enabled.json().data.enabled, true);
   assert.equal(enabled.json().data.revision, "1");
 
+  directoryVerificationStatus = "unverified";
+  installedDirectoryEntry = null;
+  const unverifiedDenied = await app.inject({
+    method: "POST",
+    url: "/api/v1/core/module-directory/starter/install",
+    headers,
+    payload: { allowUnverified: false },
+  });
+  assert.equal(unverifiedDenied.statusCode, 409);
+  assert.equal(
+    unverifiedDenied.json().error.code,
+    "MODULE_DIRECTORY_ENTRY_UNVERIFIED",
+  );
+  assert.equal(installedDirectoryEntry, null);
+
+  const unverifiedAccepted = await app.inject({
+    method: "POST",
+    url: "/api/v1/core/module-directory/starter/install",
+    headers,
+    payload: { allowUnverified: true },
+  });
+  assert.equal(unverifiedAccepted.statusCode, 200);
+  assert.equal(
+    installedDirectoryEntry.verification.status,
+    "unverified",
+  );
+
+  directoryVerificationStatus = "failed";
+  installedDirectoryEntry = null;
+  const failedDirectory = await app.inject({
+    method: "GET",
+    url: "/api/v1/core/module-directory",
+    headers,
+  });
+  assert.equal(failedDirectory.statusCode, 200);
+  assert.deepEqual(failedDirectory.json().data.entries, []);
+
+  const failedDenied = await app.inject({
+    method: "POST",
+    url: "/api/v1/core/module-directory/starter/install",
+    headers,
+    payload: { allowUnverified: true },
+  });
+  assert.equal(failedDenied.statusCode, 409);
+  assert.equal(
+    failedDenied.json().error.code,
+    "MODULE_DIRECTORY_ENTRY_FAILED",
+  );
+  assert.equal(installedDirectoryEntry, null);
+
+  directoryVerificationStatus = "verified";
   const installed = await app.inject({
     method: "POST",
     url: "/api/v1/core/module-directory/starter/install",
