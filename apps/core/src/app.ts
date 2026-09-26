@@ -574,7 +574,14 @@ export function buildApp(
       });
     }
     const directory = await dependencies.moduleDirectory.list();
-    return { data: directory };
+    return {
+      data: {
+        ...directory,
+        entries: directory.entries.filter(
+          (entry) => entry.verification.status !== "failed",
+        ),
+      },
+    };
   });
 
   app.post(
@@ -614,10 +621,32 @@ export function buildApp(
           { statusCode: 404, code: "MODULE_DIRECTORY_ENTRY_NOT_FOUND" },
         );
       }
-      if (entry.revoked) {
+      const verificationStatus = entry.verification.status;
+      if (verificationStatus === "failed" || verificationStatus === "revoked") {
         throw Object.assign(
-          new Error("This module release has been revoked."),
-          { statusCode: 409, code: "MODULE_DIRECTORY_ENTRY_REVOKED" },
+          new Error(
+            verificationStatus === "revoked"
+              ? "This module release has been revoked."
+              : "This module release failed Homi verification.",
+          ),
+          {
+            statusCode: 409,
+            code: verificationStatus === "revoked"
+              ? "MODULE_DIRECTORY_ENTRY_REVOKED"
+              : "MODULE_DIRECTORY_ENTRY_FAILED",
+          },
+        );
+      }
+      const body = request.body;
+      const allowUnverified =
+        typeof body === "object" && body !== null && !Array.isArray(body) &&
+        (body as Record<string, unknown>).allowUnverified === true;
+      if (verificationStatus === "unverified" && !allowUnverified) {
+        throw Object.assign(
+          new Error(
+            "This module release is unverified. An administrator must explicitly accept the unverified-module warning.",
+          ),
+          { statusCode: 409, code: "MODULE_DIRECTORY_ENTRY_UNVERIFIED" },
         );
       }
 

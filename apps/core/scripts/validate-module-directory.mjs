@@ -92,7 +92,85 @@ assert.throws(
     error.code === "MODULE_DIRECTORY_UNTRUSTED_URL",
 );
 
+const v1Entry = JSON.parse(payload).entries[0];
+const { revoked: _legacyRevoked, ...v2BaseEntry } = v1Entry;
+const v2Payload = JSON.stringify({
+  schemaVersion: 2,
+  generatedAt: "2026-09-26T12:00:00.000Z",
+  entries: [{
+    ...v2BaseEntry,
+    verification: {
+      status: "verified",
+      testSuiteVersion: "homi-module-certification-1",
+      testedAt: "2026-09-26T11:30:00.000Z",
+    },
+  }],
+});
+const v2Envelope = {
+  payload: v2Payload,
+  signature: {
+    ...envelope.signature,
+    value: sign(null, Buffer.from(v2Payload), privateKey).toString("base64"),
+  },
+};
+const verifiedV2 = verifyHomiModuleDirectory(v2Envelope, trusted);
+assert.equal(verifiedV2.schemaVersion, 2);
+assert.equal(verifiedV2.entries[0]?.verification.status, "verified");
+assert.equal(
+  verifiedV2.entries[0]?.verification.testSuiteVersion,
+  "homi-module-certification-1",
+);
+
+const unverifiedPayload = JSON.stringify({
+  ...JSON.parse(v2Payload),
+  entries: [{
+    ...JSON.parse(v2Payload).entries[0],
+    verification: {
+      status: "unverified",
+      testSuiteVersion: null,
+      testedAt: null,
+    },
+  }],
+});
+const unverifiedEnvelope = {
+  payload: unverifiedPayload,
+  signature: {
+    ...envelope.signature,
+    value: sign(null, Buffer.from(unverifiedPayload), privateKey).toString("base64"),
+  },
+};
+assert.equal(
+  verifyHomiModuleDirectory(unverifiedEnvelope, trusted)
+    .entries[0]?.verification.status,
+  "unverified",
+);
+
+const missingEvidencePayload = JSON.stringify({
+  ...JSON.parse(v2Payload),
+  entries: [{
+    ...JSON.parse(v2Payload).entries[0],
+    verification: {
+      status: "verified",
+      testSuiteVersion: null,
+      testedAt: null,
+    },
+  }],
+});
+const missingEvidenceEnvelope = {
+  payload: missingEvidencePayload,
+  signature: {
+    ...envelope.signature,
+    value: sign(null, Buffer.from(missingEvidencePayload), privateKey).toString("base64"),
+  },
+};
+assert.throws(
+  () => verifyHomiModuleDirectory(missingEvidenceEnvelope, trusted),
+  (error) => error instanceof HomiModuleDirectoryError &&
+    error.code === "MODULE_DIRECTORY_INVALID",
+);
+
 console.log(
   "PASS_MODULE_DIRECTORY_TRUST " +
-  "ed25519=yes digest-pinned=yes github-release-only=yes tamper-rejected=yes",
+  "ed25519=yes digest-pinned=yes github-release-only=yes tamper-rejected=yes " +
+  "certification-v2=yes verified-evidence-required=yes unverified-explicit=yes",
 );

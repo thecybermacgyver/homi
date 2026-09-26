@@ -18,6 +18,18 @@ export class HomiModuleDirectoryError extends Error {
   }
 }
 
+export type HomiModuleVerificationStatus =
+  | "verified"
+  | "unverified"
+  | "failed"
+  | "revoked";
+
+export interface HomiModuleVerification {
+  readonly status: HomiModuleVerificationStatus;
+  readonly testSuiteVersion: string | null;
+  readonly testedAt: string | null;
+}
+
 export interface HomiModuleDirectoryEntry {
   readonly moduleKey: string;
   readonly name: string;
@@ -30,11 +42,12 @@ export interface HomiModuleDirectoryEntry {
   readonly sourceUrl: string;
   readonly requestedPermissions: readonly string[];
   readonly publishedAt: string;
+  readonly verification: HomiModuleVerification;
   readonly revoked: boolean;
 }
 
 export interface HomiVerifiedModuleDirectory {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 1 | 2;
   readonly generatedAt: string;
   readonly entries: readonly HomiModuleDirectoryEntry[];
   readonly keyId: string;
@@ -104,13 +117,23 @@ function url(value: unknown, field: string, artifact: boolean): string {
   return parsed.toString();
 }
 
-function parseEntry(value: unknown, index: number): HomiModuleDirectoryEntry {
+function parseEntry(
+  value: unknown,
+  index: number,
+  schemaVersion: 1 | 2,
+): HomiModuleDirectoryEntry {
   const input = object(value, `entries[${index}]`);
-  exactKeys(input, `entries[${index}]`, [
-    "moduleKey", "name", "publisher", "description", "latestVersion",
-    "moduleApiVersion", "artifactUrl", "packageDigest", "sourceUrl",
-    "requestedPermissions", "publishedAt", "revoked",
-  ]);
+  exactKeys(input, `entries[${index}]`, schemaVersion === 1
+    ? [
+      "moduleKey", "name", "publisher", "description", "latestVersion",
+      "moduleApiVersion", "artifactUrl", "packageDigest", "sourceUrl",
+      "requestedPermissions", "publishedAt", "revoked",
+    ]
+    : [
+      "moduleKey", "name", "publisher", "description", "latestVersion",
+      "moduleApiVersion", "artifactUrl", "packageDigest", "sourceUrl",
+      "requestedPermissions", "publishedAt", "verification",
+    ]);
   if (!Number.isSafeInteger(input.moduleApiVersion) || input.moduleApiVersion !== HOMI_MODULE_API_VERSION) {
     throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INCOMPATIBLE", `entries[${index}].moduleApiVersion is not supported.`);
   }
@@ -124,8 +147,38 @@ function parseEntry(value: unknown, index: number): HomiModuleDirectoryEntry {
     throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", `entries[${index}].requestedPermissions contains duplicates.`);
   }
 
-  if (typeof input.revoked !== "boolean") {
-    throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", `entries[${index}].revoked must be boolean.`);
+  let verification: HomiModuleVerification;
+  if (schemaVersion === 1) {
+    if (typeof input.revoked !== "boolean") {
+      throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", `entries[${index}].revoked must be boolean.`);
+    }
+    verification = Object.freeze({
+      status: input.revoked ? "revoked" : "verified",
+      testSuiteVersion: null,
+      testedAt: null,
+    });
+  } else {
+    const rawVerification = object(input.verification, `entries[${index}].verification`);
+    exactKeys(rawVerification, `entries[${index}].verification`, [
+      "status", "testSuiteVersion", "testedAt",
+    ]);
+    const status = string(rawVerification.status, `entries[${index}].verification.status`);
+    if (!["verified", "unverified", "failed", "revoked"].includes(status)) {
+      throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", `entries[${index}].verification.status is invalid.`);
+    }
+    const hasEvidence = rawVerification.testSuiteVersion !== null && rawVerification.testedAt !== null;
+    if (status === "verified" && !hasEvidence) {
+      throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", `entries[${index}] verified releases require test evidence.`);
+    }
+    verification = Object.freeze({
+      status: status as HomiModuleVerificationStatus,
+      testSuiteVersion: rawVerification.testSuiteVersion === null
+        ? null
+        : string(rawVerification.testSuiteVersion, `entries[${index}].verification.testSuiteVersion`),
+      testedAt: rawVerification.testedAt === null
+        ? null
+        : timestamp(rawVerification.testedAt, `entries[${index}].verification.testedAt`),
+    });
   }
   return Object.freeze({
     moduleKey: string(input.moduleKey, `entries[${index}].moduleKey`, KEY),
@@ -139,7 +192,8 @@ function parseEntry(value: unknown, index: number): HomiModuleDirectoryEntry {
     sourceUrl: url(input.sourceUrl, `entries[${index}].sourceUrl`, false),
     requestedPermissions: Object.freeze(permissions),
     publishedAt: timestamp(input.publishedAt, `entries[${index}].publishedAt`),
-    revoked: input.revoked,
+    verification,
+    revoked: verification.status === "revoked",
   });
 }
 
@@ -186,16 +240,18 @@ export function verifyHomiModuleDirectory(
   }
   const catalog = object(decoded, "payload");
   exactKeys(catalog, "payload", ["schemaVersion", "generatedAt", "entries"]);
-  if (catalog.schemaVersion !== 1 || !Array.isArray(catalog.entries)) {
+  if ((catalog.schemaVersion !== 1 && catalog.schemaVersion !== 2) || !Array.isArray(catalog.entries)) {
     throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", "Directory schema version or entries are invalid.");
   }
-  const entries = catalog.entries.map(parseEntry);
+  const schemaVersion = catalog.schemaVersion;
+  const entries = catalog.entries.map((entry, index) =>
+    parseEntry(entry, index, schemaVersion));
   const keys = entries.map((entry) => entry.moduleKey);
   if (new Set(keys).size !== keys.length) {
     throw new HomiModuleDirectoryError("MODULE_DIRECTORY_INVALID", "Directory contains duplicate module keys.");
   }
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion,
     generatedAt: timestamp(catalog.generatedAt, "generatedAt"),
     entries: Object.freeze(entries),
     keyId,
