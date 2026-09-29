@@ -1,3 +1,10 @@
+import {
+  HOMI_FAMILY_BOARD_COLUMNS,
+  HOMI_FAMILY_BOARD_MAX_CARD_ROWS,
+  type HomiFamilyBoardCardDimensions,
+  type HomiModuleFamilyBoardSizeManifest,
+} from "./family-board-grid.js";
+
 export const HOMI_MODULE_MANIFEST_SCHEMA_VERSION = 1 as const;
 
 export type HomiCoreCapability =
@@ -77,6 +84,8 @@ export interface HomiModuleFamilyBoardManifest {
   slot: HomiFamilyBoardSlot;
   // Card styles each member may choose between. The first is the default.
   styles?: readonly HomiModuleFamilyBoardStyleManifest[];
+  // Default and allowed card size in wide-layout grid units.
+  size?: HomiModuleFamilyBoardSizeManifest;
 }
 
 export interface HomiModuleExtensionManifest {
@@ -500,6 +509,69 @@ function parseFamilyBoardStyles(
   }));
 }
 
+function parseCardDimensions(
+  value: unknown,
+  field: string,
+): HomiFamilyBoardCardDimensions {
+  const input = record(value, field);
+  assertKnownKeys(input, field, ["w", "h"]);
+  const w = input.w;
+  const h = input.h;
+  if (
+    !Number.isSafeInteger(w) ||
+    (w as number) < 1 ||
+    (w as number) > HOMI_FAMILY_BOARD_COLUMNS.wide
+  ) {
+    throw new HomiModuleManifestError(
+      `${field}.w must be a whole number from 1 to ${HOMI_FAMILY_BOARD_COLUMNS.wide}.`,
+    );
+  }
+  if (
+    !Number.isSafeInteger(h) ||
+    (h as number) < 1 ||
+    (h as number) > HOMI_FAMILY_BOARD_MAX_CARD_ROWS
+  ) {
+    throw new HomiModuleManifestError(
+      `${field}.h must be a whole number from 1 to ${HOMI_FAMILY_BOARD_MAX_CARD_ROWS}.`,
+    );
+  }
+  return Object.freeze({ w: w as number, h: h as number });
+}
+
+function parseFamilyBoardSize(
+  value: unknown,
+  field: string,
+): HomiModuleFamilyBoardSizeManifest {
+  const input = record(value, field);
+  assertKnownKeys(input, field, ["default", "min", "max"]);
+  const size = parseCardDimensions(input.default, `${field}.default`);
+  const min =
+    input.min === undefined
+      ? undefined
+      : parseCardDimensions(input.min, `${field}.min`);
+  const max =
+    input.max === undefined
+      ? undefined
+      : parseCardDimensions(input.max, `${field}.max`);
+  const fits = (
+    small: HomiFamilyBoardCardDimensions,
+    large: HomiFamilyBoardCardDimensions,
+  ) => small.w <= large.w && small.h <= large.h;
+  if (
+    (min !== undefined && !fits(min, size)) ||
+    (max !== undefined && !fits(size, max))
+  ) {
+    throw new HomiModuleManifestError(
+      `${field}.default must lie between ${field}.min and ${field}.max.`,
+    );
+  }
+  return Object.freeze({
+    default: size,
+    ...(min === undefined ? {} : { min }),
+    ...(max === undefined ? {} : { max }),
+  });
+}
+
 function parseExtensions(value: unknown): HomiModuleExtensionManifest {
   const input = record(value, "extensions");
   assertKnownKeys(
@@ -520,7 +592,7 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
     assertKnownKeys(
       item,
       `extensions.familyBoard[${index}]`,
-      ["surfaceId", "label", "slot", "styles"],
+      ["surfaceId", "label", "slot", "styles", "size"],
     );
 
     const surfaceId = text(
@@ -560,11 +632,20 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
             `extensions.familyBoard[${index}].styles`,
           );
 
+    const size =
+      item.size === undefined
+        ? undefined
+        : parseFamilyBoardSize(
+            item.size,
+            `extensions.familyBoard[${index}].size`,
+          );
+
     return Object.freeze({
       surfaceId,
       label,
       slot,
       ...(styles === undefined ? {} : { styles }),
+      ...(size === undefined ? {} : { size }),
     });
   });
 

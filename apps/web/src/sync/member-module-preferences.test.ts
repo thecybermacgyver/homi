@@ -24,6 +24,8 @@ function preference(overrides: Record<string, unknown> = {}) {
     displayOrder: 0,
     cardStyle: "items",
     cardStyles: styles,
+    phoneLayout: null,
+    wideLayout: null,
     revision: "1",
     ...overrides,
   };
@@ -109,5 +111,84 @@ test("a queued card style change applies immediately while offline", async () =>
       cardStyle: "Not Valid",
     }),
     /card style identifier/,
+  );
+});
+
+test("server preferences carry separate phone and wide placements", async () => {
+  const value = preference({
+    phoneLayout: { x: 0, y: 3, w: 4, h: 5 },
+    wideLayout: { x: 4, y: 0, w: 4, h: 5 },
+  });
+  const [parsed] = await withResponse(
+    { data: { preferences: [value] } },
+    () => fetchMemberModulePreferences(identity),
+  );
+  assert.deepEqual(parsed!.phoneLayout, { x: 0, y: 3, w: 4, h: 5 });
+  assert.deepEqual(parsed!.wideLayout, { x: 4, y: 0, w: 4, h: 5 });
+
+  for (const invalid of [
+    preference({ phoneLayout: { x: 4, y: 0, w: 4, h: 5 } }),
+    preference({ wideLayout: { x: 0, y: 0, w: 2, h: 13 } }),
+    preference({ wideLayout: { x: 0, y: 0, w: 2 } }),
+  ]) {
+    await assert.rejects(
+      withResponse({ data: { preferences: [invalid] } }, () =>
+        fetchMemberModulePreferences(identity)),
+      /invalid data/,
+    );
+  }
+});
+
+test("preferences cached before card layouts existed read as unplaced", async () => {
+  const authSubject = crypto.randomUUID();
+  const householdId = crypto.randomUUID();
+  const { phoneLayout: _phone, wideLayout: _wide, ...legacy } =
+    preference({ cardStyle: "store-counts" });
+  await seedCachedRecord(authSubject, {
+    householdId,
+    moduleKey: "core",
+    entityType: "member-module-preference",
+    entityId: legacy.id,
+    revision: legacy.revision,
+    data: legacy,
+  });
+  const [cached] = await getEffectiveMemberModulePreferences(authSubject, householdId);
+  assert.equal(cached!.cardStyle, "store-counts");
+  assert.equal(cached!.phoneLayout, null);
+  assert.equal(cached!.wideLayout, null);
+});
+
+test("a queued placement applies immediately and can be cleared", async () => {
+  const authSubject = crypto.randomUUID();
+  const householdId = crypto.randomUUID();
+  const value = preference({ phoneLayout: { x: 0, y: 0, w: 4, h: 4 } });
+  await seedCachedRecord(authSubject, {
+    householdId,
+    moduleKey: "core",
+    entityType: "member-module-preference",
+    entityId: value.id,
+    revision: value.revision,
+    data: value,
+  });
+  const [current] = await getEffectiveMemberModulePreferences(authSubject, householdId);
+  await queueMemberModulePreferenceUpdate(authSubject, householdId, current!, {
+    wideLayout: { x: 2, y: 1, w: 3, h: 4 },
+  });
+  let [effective] = await getEffectiveMemberModulePreferences(authSubject, householdId);
+  assert.deepEqual(effective!.wideLayout, { x: 2, y: 1, w: 3, h: 4 });
+  assert.deepEqual(effective!.phoneLayout, { x: 0, y: 0, w: 4, h: 4 });
+
+  await queueMemberModulePreferenceUpdate(authSubject, householdId, current!, {
+    phoneLayout: null,
+  });
+  [effective] = await getEffectiveMemberModulePreferences(authSubject, householdId);
+  assert.equal(effective!.phoneLayout, null);
+  assert.deepEqual(effective!.wideLayout, { x: 2, y: 1, w: 3, h: 4 });
+
+  await assert.rejects(
+    queueMemberModulePreferenceUpdate(authSubject, householdId, current!, {
+      phoneLayout: { x: 1, y: 0, w: 4, h: 4 },
+    }),
+    /card placement on the phone board/,
   );
 });

@@ -536,11 +536,179 @@
   border-color: rgba(34, 31, 31, 0.42);
 }
 
+/* Cards sit on a grid of equal columns (8 wide, 4 on a phone) and
+   fixed-height rows. Each card's cell comes from the member's saved layout,
+   so empty cells stay empty and the gaps between cards stay even. */
 .homi-family-board__grid {
+  --homi-board-row: 56px;
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-flow: row;
+  grid-template-columns: repeat(var(--homi-board-columns, 8), minmax(0, 1fr));
+  grid-auto-rows: var(--homi-board-row);
   gap: 16px;
+}
+
+.homi-family-board__grid--phone {
+  --homi-board-row: 52px;
+  gap: 12px;
+}
+
+.homi-family-board__cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  container-type: size;
+}
+
+/* Small cards give their space to content: a tighter header, no module
+   name under the label, and less padding. */
+@container (max-height: 150px) {
+  .homi-family-board__cell .homi-family-card {
+    padding: 12px 14px;
+  }
+
+  .homi-family-board__cell .homi-family-card__header {
+    margin-bottom: 6px;
+  }
+
+  .homi-family-board__cell .homi-family-card__header p {
+    display: none;
+  }
+}
+
+@container (max-width: 200px) {
+  .homi-family-board__cell .homi-family-card {
+    padding: 12px 14px;
+  }
+
+  .homi-family-board__cell .homi-family-card__header h2 {
+    font-size: 1.02rem;
+  }
+
+  .homi-family-board__cell .homi-family-card__sparkle {
+    display: none;
+  }
+}
+
+.homi-family-board__content {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+}
+
+.homi-family-board__cell .homi-family-card {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.homi-family-board__grid.is-editing {
+  min-height: calc(var(--homi-board-row) * 6);
+  padding-bottom: calc(var(--homi-board-row) * 2);
+}
+
+.homi-family-board__grid.is-editing .homi-family-card {
+  overflow: hidden;
+}
+
+.homi-family-board__editor {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border: 2px dashed rgba(34, 31, 31, 0.36);
+  border-radius: 18px;
+  background: rgba(249, 247, 241, 0.18);
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.homi-family-board__editor:focus-visible {
+  outline: 3px solid var(--board-espresso);
+  outline-offset: 2px;
+}
+
+.homi-family-board__cell.is-dragging {
+  z-index: 5;
+}
+
+.homi-family-board__cell.is-dragging .homi-family-board__editor {
+  cursor: grabbing;
+  border-color: var(--board-espresso);
+}
+
+.homi-family-board__cell.is-dragging .homi-family-card {
+  box-shadow:
+    0 10px 18px rgba(34, 31, 31, 0.18),
+    0 22px 40px rgba(34, 31, 31, 0.18);
+}
+
+/* The grip sits on the card's top edge so it never covers the title. */
+.homi-family-board__grip {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  min-width: 48px;
+  min-height: 24px;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  color: var(--card-cream);
+  background: rgba(62, 45, 39, 0.78);
+  font-size: 1rem;
+  line-height: 1;
+  touch-action: none;
+}
+
+.homi-family-board__resize {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 0 0 18px 0;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 0 48%,
+      rgba(62, 45, 39, 0.78) 48% 100%
+    );
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.homi-family-board__drop-target {
+  border: 2px dashed rgba(249, 247, 241, 0.86);
+  border-radius: 18px;
+  background: rgba(249, 247, 241, 0.2);
+}
+
+.homi-family-board__arrange {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.homi-family-board__arrange-hint {
+  max-width: 26rem;
+  color: var(--card-cream);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.homi-family-board__arrange .homi-ui-button--secondary,
+.homi-family-board__arrange .homi-ui-button--quiet {
+  background: rgba(249, 247, 241, 0.72);
 }
 
 .homi-family-card {
@@ -853,55 +1021,11 @@
   .homi-family-board__admin-nav {
     display: flex;
   }
-
-  .homi-family-board__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .homi-family-card--meals {
-    min-height: 380px;
-  }
-
-  .homi-family-card--noticeboard {
-    min-height: 300px;
-  }
-
-  .homi-family-card--schedule {
-    min-height: 210px;
-  }
 }
 
 @media (min-width: 1120px) {
   .homi-family-board {
     min-height: calc(100vh - 32px);
-  }
-
-  .homi-family-board__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: start;
-  }
-
-  .homi-family-card--weather {
-    min-height: 260px;
-    align-self: start;
-  }
-
-  .homi-family-card--meals,
-  .homi-family-card--noticeboard {
-    min-height: 380px;
-  }
-
-  .homi-family-card--grocery {
-    min-height: 280px;
-    align-self: start;
-  }
-
-  .homi-family-card--chores {
-    min-height: 232px;
-  }
-
-  .homi-family-card--schedule {
-    min-height: 232px;
   }
 }
 
@@ -952,11 +1076,9 @@
     font-size: 1.22rem;
   }
 
-  .homi-family-card--weather,
-  .homi-family-card--grocery,
-  .homi-family-card--chores,
-  .homi-family-card--schedule {
-    min-height: 0;
+  .homi-family-board__arrange-hint {
+    flex-basis: 100%;
+    font-size: 0.74rem;
   }
 }
 
@@ -1015,10 +1137,6 @@
     border-radius: 8px;
     font-size: 0.62rem;
     background: rgba(249, 247, 241, 0.42);
-  }
-
-  .homi-family-card {
-    min-height: 232px;
   }
 }
 

@@ -38,8 +38,9 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, Modules, Settings, Search, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.10`, Chequebook `0.1.14`, and Shopping List `0.3.0`
+- Calendar `0.6.11`, Chequebook `0.1.15`, and Shopping List `0.3.1`
 - per-member Family Board card styles, chosen on the Modules page (for example Shopping's list or counts by store)
+- a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
 - self-service password change, and administrator password reset with a required new password at next sign-in
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
 - editable household Chequebook categories and bidirectional recurring Calendar/Chequebook entries

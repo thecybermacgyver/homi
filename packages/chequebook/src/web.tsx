@@ -4372,47 +4372,122 @@ async function boardState(
   };
 }
 
-function BalanceBoard({
-  context,
-  actions,
-}: HomiWebModuleSurfaceProps) {
+// Family Board cards: Homi shows the card title and opens Chequebook when
+// the card is tapped, so each card shows only its figure. Card cells are CSS
+// size containers, so the figure scales with the size the member chose.
+const boardCss = `
+.cheq-board { display: grid; align-content: center; gap: 4px; min-height: 100%; }
+.cheq-board-figure { font-size: clamp(1.5rem, 17cqi, 3rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cheq-board-figure.is-positive { color: var(--homi-sage-strong, #3f6b4b); }
+.cheq-board-figure.is-negative { color: var(--homi-danger, #b3261e); }
+.cheq-board-figure.is-pending { color: var(--homi-text-muted); }
+.cheq-board-caption { color: var(--homi-text-muted); font-size: 0.82rem; font-weight: 700; line-height: 1.25; }
+@container (max-height: 150px) {
+  .cheq-board-caption.is-optional { display: none; }
+}
+`;
+
+function useBoardState(
+  context: HomiWebModuleSurfaceProps["context"],
+  actions: HomiWebModuleSurfaceProps["actions"],
+) {
   const [state, setState] =
     useState<Awaited<
       ReturnType<typeof boardState>
     >>(null);
-
   const householdId = context?.householdId ?? "";
-  const locale = context?.locale ?? "en";
-
+  const online = context?.online ?? false;
   useEffect(() => {
-    void boardState(actions).then(
-      setState,
-    );
-  }, [actions, householdId]);
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        actions.navigate(
-          "/modules/chequebook",
-        )
+    let active = true;
+    void (async () => {
+      const local = await boardState(actions);
+      if (local || !online || !context) {
+        if (active) setState(local);
+        return;
       }
-    >
-      <strong>Current balance</strong>
-      <div className="cheq-number">
-        {state
-          ? formatMoney(
-              state.summary.currentBalance,
-              state.settings.currency,
-              locale,
-            )
-          : "—"}
+      // A device that has not opened Chequebook yet has nothing cached, so
+      // read the figures from the server instead of showing a dash.
+      try {
+        const setup = await apiData<SetupSnapshot | null>(
+          context,
+          "/api/v1/modules/chequebook/setup",
+        );
+        if (!setup?.settings) return;
+        const summary = await apiData<ChequebookMonthlySummary>(
+          context,
+          `/api/v1/modules/chequebook/summary?month=${encodeURIComponent(
+            monthKey(),
+          )}&asOf=${today()}`,
+        );
+        if (active) setState({ settings: setup.settings, summary });
+      } catch {
+        // Offline or not set up: the card keeps its placeholder.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [actions, householdId, online]);
+  return state;
+}
+
+function BoardFigure({
+  amount,
+  currency,
+  locale,
+  tone,
+  caption,
+  optionalCaption,
+}: {
+  amount: string | null;
+  currency: string | null;
+  locale: string;
+  tone: "signed" | "neutral";
+  caption?: string;
+  optionalCaption?: string;
+}) {
+  const value = amount === null ? null : Number(amount);
+  const toneClass =
+    value === null
+      ? "is-pending"
+      : tone === "neutral"
+        ? ""
+        : value < 0
+          ? "is-negative"
+          : "is-positive";
+  return (
+    <div className="cheq-board">
+      <style>{boardCss}</style>
+      <div className={`cheq-board-figure ${toneClass}`}>
+        {amount === null || currency === null
+          ? "—"
+          : formatMoney(amount, currency, locale)}
       </div>
-      <span className="cheq-muted">
-        Open Chequebook
-      </span>
-    </button>
+      {caption && (
+        <span className="cheq-board-caption">{caption}</span>
+      )}
+      {optionalCaption && (
+        <span className="cheq-board-caption is-optional">
+          {optionalCaption}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function BalanceBoard({
+  context,
+  actions,
+}: HomiWebModuleSurfaceProps) {
+  const state = useBoardState(context, actions);
+  return (
+    <BoardFigure
+      amount={state?.summary.currentBalance ?? null}
+      currency={state?.settings.currency ?? null}
+      locale={context?.locale ?? "en"}
+      tone="signed"
+      {...(state ? {} : { optionalCaption: "Open Chequebook to load" })}
+    />
   );
 }
 
@@ -4420,50 +4495,26 @@ function SpendingBoard({
   context,
   actions,
 }: HomiWebModuleSurfaceProps) {
-  const [state, setState] =
-    useState<Awaited<
-      ReturnType<typeof boardState>
-    >>(null);
-
-  const householdId = context?.householdId ?? "";
+  const state = useBoardState(context, actions);
   const locale = context?.locale ?? "en";
-
-  useEffect(() => {
-    void boardState(actions).then(
-      setState,
-    );
-  }, [actions, householdId]);
-
   return (
-    <button
-      type="button"
-      onClick={() =>
-        actions.navigate(
-          "/modules/chequebook",
-        )
-      }
-    >
-      <strong>Spent this month</strong>
-      <div className="cheq-number">
-        {state
-          ? formatMoney(
-              state.summary.expenses,
-              state.settings.currency,
-              locale,
-            )
-          : "—"}
-      </div>
-      <span className="cheq-muted">
-        Income{" "}
-        {state
-          ? formatMoney(
-              state.summary.income,
-              state.settings.currency,
-              locale,
-            )
-          : "—"}
-      </span>
-    </button>
+    <BoardFigure
+      amount={state?.summary.expenses ?? null}
+      currency={state?.settings.currency ?? null}
+      locale={locale}
+      tone="neutral"
+      {...(state
+        ? {
+            caption:
+              "Income " +
+              formatMoney(
+                state.summary.income,
+                state.settings.currency,
+                locale,
+              ),
+          }
+        : { optionalCaption: "Open Chequebook to load" })}
+    />
   );
 }
 
@@ -4471,43 +4522,19 @@ function ForecastBoard({
   context,
   actions,
 }: HomiWebModuleSurfaceProps) {
-  const [state, setState] =
-    useState<Awaited<
-      ReturnType<typeof boardState>
-    >>(null);
-
-  const householdId = context?.householdId ?? "";
-  const locale = context?.locale ?? "en";
-
-  useEffect(() => {
-    void boardState(actions).then(
-      setState,
-    );
-  }, [actions, householdId]);
-
+  const state = useBoardState(context, actions);
   return (
-    <button
-      type="button"
-      onClick={() =>
-        actions.navigate(
-          "/modules/chequebook",
-        )
+    <BoardFigure
+      amount={state?.summary.forecastBalance ?? null}
+      currency={state?.settings.currency ?? null}
+      locale={context?.locale ?? "en"}
+      tone="signed"
+      optionalCaption={
+        state
+          ? "After pending recurring items"
+          : "Open Chequebook to load"
       }
-    >
-      <strong>Cash-flow forecast</strong>
-      <div className="cheq-number">
-        {state
-          ? formatMoney(
-              state.summary.forecastBalance,
-              state.settings.currency,
-              locale,
-            )
-          : "—"}
-      </div>
-      <span className="cheq-muted">
-        After pending recurring items
-      </span>
-    </button>
+    />
   );
 }
 

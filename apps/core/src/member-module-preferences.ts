@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import type { HomiDatabase } from "@homi/db";
 import {
-  parseHomiModuleManifest,
+  isHomiFamilyBoardPlacement,
+  resolveHomiFamilyBoardCardLimits,
+  type HomiFamilyBoardLayout,
+  type HomiFamilyBoardPlacement,
+  type HomiModuleFamilyBoardSizeManifest,
   type HomiRequestContext,
 } from "@homi/module-sdk";
 
@@ -16,6 +20,8 @@ export interface HomiMemberModulePreference {
   readonly displayOrder: number;
   readonly cardStyle: string | null;
   readonly cardStyles: readonly HomiMemberCardStyle[];
+  readonly phoneLayout: HomiFamilyBoardPlacement | null;
+  readonly wideLayout: HomiFamilyBoardPlacement | null;
   readonly revision: bigint;
 }
 
@@ -28,6 +34,9 @@ export interface HomiMemberModulePreferencePayload {
   readonly visible?: boolean;
   readonly displayOrder?: number;
   readonly cardStyle?: string;
+  // null clears the saved placement so Homi packs the card again.
+  readonly phoneLayout?: HomiFamilyBoardPlacement | null;
+  readonly wideLayout?: HomiFamilyBoardPlacement | null;
 }
 
 export interface HomiMemberModulePreferenceMutationInput {
@@ -46,6 +55,8 @@ export interface HomiMemberModulePreferenceMutationServerState {
   readonly displayOrder: number;
   readonly cardStyle: string | null;
   readonly cardStyles: readonly HomiMemberCardStyle[];
+  readonly phoneLayout: HomiFamilyBoardPlacement | null;
+  readonly wideLayout: HomiFamilyBoardPlacement | null;
   readonly revision: string;
 }
 
@@ -91,6 +102,8 @@ interface CatalogRow {
   displayOrder: number | null;
   cardStyle: string | null;
   styles: unknown;
+  phoneLayout: unknown;
+  wideLayout: unknown;
   revision: string | null;
 }
 
@@ -104,6 +117,9 @@ interface StoredPreferenceRow {
   displayOrder: number;
   cardStyle: string | null;
   styles: unknown;
+  size?: unknown;
+  phoneLayout: unknown;
+  wideLayout: unknown;
   revision: string;
 }
 
@@ -182,6 +198,39 @@ function effectiveCardStyle(
     : styles[0]!.id;
 }
 
+// A placement that no longer fits the board is dropped so Homi packs the card.
+function placement(
+  value: unknown,
+  layout: HomiFamilyBoardLayout,
+): HomiFamilyBoardPlacement | null {
+  return isHomiFamilyBoardPlacement(value, layout)
+    ? Object.freeze({ x: value.x, y: value.y, w: value.w, h: value.h })
+    : null;
+}
+
+// Sizes come from the installed manifest, which the SDK validated on install.
+function declaredSize(
+  value: unknown,
+): HomiModuleFamilyBoardSizeManifest | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as HomiModuleFamilyBoardSizeManifest)
+    : undefined;
+}
+
+function withinCardLimits(
+  value: HomiFamilyBoardPlacement,
+  size: unknown,
+  layout: HomiFamilyBoardLayout,
+): boolean {
+  const limits = resolveHomiFamilyBoardCardLimits(declaredSize(size), layout);
+  return (
+    value.w >= limits.min.w &&
+    value.w <= limits.max.w &&
+    value.h >= limits.min.h &&
+    value.h <= limits.max.h
+  );
+}
+
 function snapshot(
   row: StoredPreferenceRow,
 ): HomiMemberModulePreference {
@@ -196,6 +245,8 @@ function snapshot(
     displayOrder: row.displayOrder,
     cardStyle: effectiveCardStyle(row.cardStyle, styles),
     cardStyles: styles,
+    phoneLayout: placement(row.phoneLayout, "phone"),
+    wideLayout: placement(row.wideLayout, "wide"),
     revision: BigInt(row.revision),
   });
 }
@@ -225,6 +276,9 @@ function mutationResult(
             // Receipts stored before card styles existed lack these fields.
             cardStyle: state.cardStyle ?? null,
             cardStyles: state.cardStyles ?? [],
+            // Receipts stored before card layouts existed lack these fields.
+            phoneLayout: state.phoneLayout ?? null,
+            wideLayout: state.wideLayout ?? null,
             revision: state.revision,
           }),
     replayed,
@@ -248,6 +302,8 @@ async function catalogRows(
       p.display_order AS "displayOrder",
       p.card_style AS "cardStyle",
       contribution.value -> 'styles' AS styles,
+      p.phone_layout AS "phoneLayout",
+      p.wide_layout AS "wideLayout",
       p.revision::text AS revision
     FROM core.household_modules AS hm
     JOIN core.modules AS m
@@ -344,6 +400,8 @@ async function ensurePreferences(
           displayOrder: row.displayOrder,
           cardStyle: row.cardStyle,
           styles: row.styles,
+          phoneLayout: row.phoneLayout,
+          wideLayout: row.wideLayout,
           revision: row.revision,
         });
       }),
@@ -385,10 +443,26 @@ function validatePayload(
       "cardStyle must be a card style identifier.",
     );
   }
+  for (const layout of ["phone", "wide"] as const) {
+    const value = input.payload[`${layout}Layout`];
+    if (
+      value !== undefined &&
+      value !== null &&
+      !isHomiFamilyBoardPlacement(value, layout)
+    ) {
+      throw new HomiMemberModulePreferenceError(
+        400,
+        "MODULE_PREFERENCE_LAYOUT_INVALID",
+        `${layout}Layout must be a card placement on the ${layout} board.`,
+      );
+    }
+  }
   if (
     input.payload.visible === undefined &&
     input.payload.displayOrder === undefined &&
-    input.payload.cardStyle === undefined
+    input.payload.cardStyle === undefined &&
+    input.payload.phoneLayout === undefined &&
+    input.payload.wideLayout === undefined
   ) {
     throw new HomiMemberModulePreferenceError(
       400,
@@ -526,6 +600,19 @@ export function createHomiMemberModulePreferenceService(
               WHERE contribution.value ->> 'surfaceId' = p.surface_id
               LIMIT 1
             ) AS styles,
+            (
+              SELECT contribution.value -> 'size'
+              FROM jsonb_array_elements(
+                COALESCE(
+                  m.manifest -> 'extensions' -> 'familyBoard',
+                  '[]'::jsonb
+                )
+              ) AS contribution(value)
+              WHERE contribution.value ->> 'surfaceId' = p.surface_id
+              LIMIT 1
+            ) AS size,
+            p.phone_layout AS "phoneLayout",
+            p.wide_layout AS "wideLayout",
             p.revision::text AS revision
           FROM core.household_member_module_preferences AS p
           JOIN core.modules AS m
@@ -547,10 +634,22 @@ export function createHomiMemberModulePreferenceService(
           !cardStyles(current.styles).some(
             (style) => style.id === input.payload.cardStyle,
           );
-        if (!current || undeclaredStyle) {
-          const errorCode = current
-            ? "MODULE_PREFERENCE_CARD_STYLE_UNDECLARED"
-            : "MODULE_PREFERENCE_NOT_FOUND";
+        const layoutOutOfBounds =
+          current !== undefined &&
+          (["phone", "wide"] as const).some((layout) => {
+            const value = input.payload[`${layout}Layout`];
+            return (
+              value !== undefined &&
+              value !== null &&
+              !withinCardLimits(value, current.size, layout)
+            );
+          });
+        if (!current || undeclaredStyle || layoutOutOfBounds) {
+          const errorCode = !current
+            ? "MODULE_PREFERENCE_NOT_FOUND"
+            : undeclaredStyle
+              ? "MODULE_PREFERENCE_CARD_STYLE_UNDECLARED"
+              : "MODULE_PREFERENCE_LAYOUT_OUT_OF_BOUNDS";
           const rejectedResult = await tx.execute(sql`
             UPDATE core.sync_mutations
             SET
@@ -622,6 +721,20 @@ export function createHomiMemberModulePreferenceService(
           input.payload.displayOrder ?? current.displayOrder;
         const nextCardStyle =
           input.payload.cardStyle ?? current.cardStyle;
+        const currentPhoneLayout = placement(current.phoneLayout, "phone");
+        const currentWideLayout = placement(current.wideLayout, "wide");
+        const nextPhoneLayout =
+          input.payload.phoneLayout === undefined
+            ? currentPhoneLayout
+            : input.payload.phoneLayout;
+        const nextWideLayout =
+          input.payload.wideLayout === undefined
+            ? currentWideLayout
+            : input.payload.wideLayout;
+        const phoneLayoutJson =
+          nextPhoneLayout === null ? null : JSON.stringify(nextPhoneLayout);
+        const wideLayoutJson =
+          nextWideLayout === null ? null : JSON.stringify(nextWideLayout);
 
         const updatedResult = await tx.execute(sql`
           UPDATE core.household_member_module_preferences
@@ -629,6 +742,8 @@ export function createHomiMemberModulePreferenceService(
             visible = ${nextVisible},
             display_order = ${nextDisplayOrder},
             card_style = ${nextCardStyle},
+            phone_layout = CAST(${phoneLayoutJson} AS jsonb),
+            wide_layout = CAST(${wideLayoutJson} AS jsonb),
             revision = revision + 1,
             updated_at = now()
           WHERE id = CAST(${current.id} AS uuid)
@@ -656,6 +771,8 @@ export function createHomiMemberModulePreferenceService(
           displayOrder: nextDisplayOrder,
           cardStyle: effectiveCardStyle(nextCardStyle, styles),
           cardStyles: styles,
+          phoneLayout: nextPhoneLayout,
+          wideLayout: nextWideLayout,
           revision: updated.revision,
         });
         const auditMetadata = JSON.stringify({
@@ -665,12 +782,16 @@ export function createHomiMemberModulePreferenceService(
             visible: current.visible,
             displayOrder: current.displayOrder,
             cardStyle: current.cardStyle,
+            phoneLayout: currentPhoneLayout,
+            wideLayout: currentWideLayout,
             revision: current.revision,
           },
           after: {
             visible: nextVisible,
             displayOrder: nextDisplayOrder,
             cardStyle: nextCardStyle,
+            phoneLayout: nextPhoneLayout,
+            wideLayout: nextWideLayout,
             revision: updated.revision,
           },
         });

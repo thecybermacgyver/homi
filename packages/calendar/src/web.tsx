@@ -3306,23 +3306,106 @@ function useSummary(
   };
 }
 
+// Family Board cards adapt to the size each member gives them. Homi makes
+// every card cell a CSS size container, so these rules use @container.
+const boardCss = `
+.cal-board { display: grid; gap: 8px; min-height: 0; }
+.cal-board-headline { display: flex; align-items: baseline; gap: 8px; }
+.cal-board-count { font-size: clamp(1.8rem, 16cqi, 2.6rem); font-weight: 850; line-height: 1; }
+.cal-board-caption { color: var(--homi-text-muted); font-weight: 700; }
+.cal-board-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cal-board-list li { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.cal-board-list li > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-board-when { font-size: 0.82rem; font-weight: 800; color: var(--homi-text-muted); }
+.cal-board-what { font-weight: 650; }
+.cal-board-what::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cal-dot, var(--homi-primary)); vertical-align: 1px; }
+.cal-board-day { font-size: 0.72rem; font-weight: 850; letter-spacing: 0.04em; text-transform: uppercase; color: var(--homi-text-muted); margin-top: 4px; }
+.cal-board-empty { color: var(--homi-text-muted); }
+.cal-board-more { color: var(--homi-text-muted); font-size: 0.8rem; font-weight: 700; }
+.cal-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; }
+.cal-month-name { font-weight: 850; margin-bottom: 4px; }
+.cal-month-head { font-size: 0.66rem; font-weight: 850; color: var(--homi-text-muted); padding-bottom: 2px; }
+.cal-month-day { position: relative; display: grid; place-items: center; aspect-ratio: 1; max-height: 34px; font-size: 0.74rem; font-weight: 700; border-radius: 50%; }
+.cal-month-day.has-events::after { content: ""; position: absolute; bottom: 12%; width: 4px; height: 4px; border-radius: 50%; background: var(--homi-primary); }
+.cal-month-day.is-today { color: var(--homi-surface); background: var(--homi-primary); font-weight: 900; }
+.cal-month-day.is-today::after { background: var(--homi-surface); }
+@container (max-height: 150px) {
+  .cal-board-today .cal-board-list { display: none; }
+  .cal-board-next { display: block; }
+}
+@container (min-height: 151px) {
+  .cal-board-next { display: none; }
+}
+.cal-board-next { color: var(--homi-text-muted); font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-height: 230px) {
+  .cal-month-name { display: none; }
+  .cal-month-day { max-height: 22px; font-size: 0.66rem; }
+}
+`;
+
+function BoardStyle() {
+  return <style>{boardCss}</style>;
+}
+
+function occurrenceColor(occurrence: CalendarOccurrence): CSSProperties {
+  return {
+    ["--cal-dot" as string]:
+      CALENDAR_COLORS[occurrence.event.color] ?? CALENDAR_COLORS.blue,
+  };
+}
+
+function relativeDayLabel(
+  date: string,
+  today: string,
+  locale: string,
+): string {
+  if (date === today) return "Today";
+  if (date === addDays(today, 1)) return "Tomorrow";
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T12:00:00Z`));
+}
+
 function TodayCountCard({
   context,
   actions,
 }: HomiWebModuleSurfaceProps) {
   const { todayEvents } = useSummary(context, actions);
+  const next = todayEvents.find(
+    (item) =>
+      item.event.allDay ||
+      new Date(item.event.endsAt ?? item.event.startsAt!).getTime() >
+        Date.now(),
+  );
   return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <strong style={{ fontSize: "2.1rem" }}>
-        {todayEvents.length}
-      </strong>
-      <span>
-        {todayEvents.length === 1 ? "event today" : "events today"}
-      </span>
-      {todayEvents[0] && (
-        <small style={{ color: "var(--board-muted)" }}>
-          Next: {todayEvents[0].event.title}
-        </small>
+    <div className="cal-board cal-board-today">
+      <BoardStyle />
+      <div className="cal-board-headline">
+        <span className="cal-board-count">{todayEvents.length}</span>
+        <span className="cal-board-caption">
+          {todayEvents.length === 1 ? "event today" : "events today"}
+        </span>
+      </div>
+      {next && (
+        <span className="cal-board-next">
+          Next: {formatOccurrence(next, context.locale, context.timeZone)}{" "}
+          {next.event.title}
+        </span>
+      )}
+      {todayEvents.length > 0 && (
+        <ul className="cal-board-list">
+          {todayEvents.map((item) => (
+            <li key={item.occurrenceId} style={occurrenceColor(item)}>
+              <span className="cal-board-when">
+                {formatOccurrence(item, context.locale, context.timeZone)}
+              </span>
+              <span className="cal-board-what">{item.event.title}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -3332,28 +3415,45 @@ function ComingWeekCard({
   context,
   actions,
 }: HomiWebModuleSurfaceProps) {
-  const { weekEvents } = useSummary(context, actions);
+  const { weekEvents, today } = useSummary(context, actions);
+  const shown = weekEvents.slice(0, 12);
+  const days = new Map<string, CalendarOccurrence[]>();
+  for (const item of shown) {
+    days.set(item.occurrenceDate, [
+      ...(days.get(item.occurrenceDate) ?? []),
+      item,
+    ]);
+  }
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className="cal-board">
+      <BoardStyle />
       {weekEvents.length === 0 ? (
-        <span>No events in the next seven days.</span>
+        <span className="cal-board-empty">
+          No events in the next seven days.
+        </span>
       ) : (
-        weekEvents.slice(0, 4).map((item) => (
-          <div
-            key={item.occurrenceId}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "72px minmax(0, 1fr)",
-              gap: 8,
-            }}
-          >
-            <strong>{item.occurrenceDate.slice(5)}</strong>
-            <span>{item.event.title}</span>
-          </div>
+        [...days].map(([date, items]) => (
+          <section key={date} className="cal-board">
+            <div className="cal-board-day">
+              {relativeDayLabel(date, today, context.locale)}
+            </div>
+            <ul className="cal-board-list">
+              {items.map((item) => (
+                <li key={item.occurrenceId} style={occurrenceColor(item)}>
+                  <span className="cal-board-when">
+                    {formatOccurrence(item, context.locale, context.timeZone)}
+                  </span>
+                  <span className="cal-board-what">{item.event.title}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))
       )}
-      {weekEvents.length > 4 && (
-        <small>+{weekEvents.length - 4} more</small>
+      {weekEvents.length > shown.length && (
+        <span className="cal-board-more">
+          +{weekEvents.length - shown.length} more this week
+        </span>
       )}
     </div>
   );
@@ -3378,35 +3478,54 @@ function MiniMonthCard({
       (counts.get(item.occurrenceDate) ?? 0) + 1,
     );
   }
+  const weekdays = Array.from({ length: 7 }, (_, index) =>
+    new Intl.DateTimeFormat(context.locale, {
+      weekday: "narrow",
+      timeZone: "UTC",
+    }).format(new Date(Date.UTC(2023, 0, 1 + index))),
+  );
   return (
-    <div style={{ ...gridStyle, gap: 3 }}>
-      {Array.from({ length: first }).map((_, index) => (
-        <span key={`blank-${index}`} />
-      ))}
-      {Array.from({ length: days }).map((_, index) => {
-        const day = index + 1;
-        const key = `${start.slice(0, 8)}${String(day).padStart(2, "0")}`;
-        const count = counts.get(key) ?? 0;
-        return (
-          <span
-            key={key}
-            style={{
-              minHeight: 28,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 8,
-              fontSize: "0.72rem",
-              fontWeight: key === today ? 900 : 700,
-              background:
-                count > 0
-                  ? "var(--homi-primary-soft)"
-                  : "transparent",
-            }}
-          >
-            {day}
+    <div>
+      <BoardStyle />
+      <div className="cal-month-name">
+        {new Intl.DateTimeFormat(context.locale, {
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC",
+        }).format(new Date(`${start}T12:00:00Z`))}
+      </div>
+      <div className="cal-month">
+        {weekdays.map((weekday, index) => (
+          <span key={`head-${index}`} className="cal-month-head">
+            {weekday}
           </span>
-        );
-      })}
+        ))}
+        {Array.from({ length: first }).map((_, index) => (
+          <span key={`blank-${index}`} />
+        ))}
+        {Array.from({ length: days }).map((_, index) => {
+          const day = index + 1;
+          const key = `${start.slice(0, 8)}${String(day).padStart(2, "0")}`;
+          const count = counts.get(key) ?? 0;
+          return (
+            <span
+              key={key}
+              className={[
+                "cal-month-day",
+                count > 0 ? "has-events" : "",
+                key === today ? "is-today" : "",
+              ].join(" ")}
+              aria-label={
+                count > 0
+                  ? `${day}: ${count} ${count === 1 ? "event" : "events"}`
+                  : String(day)
+              }
+            >
+              {day}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

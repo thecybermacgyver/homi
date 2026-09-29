@@ -122,6 +122,45 @@ that member's devices. The card surface receives
 current module version no longer declares falls back to the default. Modules do
 not store or synchronise card presentation themselves.
 
+### Family Board card sizes
+
+The Family Board is a grid: 8 columns on screens at least 720 px wide, 4 on
+phones, and fixed-height rows (56 px wide, 52 px on phones) with even gaps.
+Each member arranges their cards separately for the wide and phone layouts
+("Arrange cards" on the Dashboard): drag a card to move it and drag its corner
+to resize it. On a phone, the card's grip moves it, so the rest of the card
+still scrolls the page. Cards stay exactly where the member leaves them, and so
+do the empty spaces. Homi packs a card only when the member has not placed it
+yet. That includes a newly enabled card, which goes below the arrangement.
+A card may declare its size in wide-layout grid units:
+
+```json
+{
+  "surfaceId": "current-balance",
+  "label": "Current balance",
+  "slot": "noticeboard",
+  "size": {
+    "default": { "w": 2, "h": 2 },
+    "min": { "w": 2, "h": 2 },
+    "max": { "w": 4, "h": 3 }
+  }
+}
+```
+
+`w` is 1–8 columns and `h` is 1–12 rows, and `default` must lie within `min`
+and `max`. Omitted limits default to `min` 2×2 (or `default`, if smaller)
+and `max` 8×12. A card with no `size` starts half the board wide and four
+rows tall. On phones, a default wider than two columns fills the phone's
+width, and widths are capped at four columns. Core stores placements with
+the member's other card preferences and rejects sizes outside the card's
+limits. When a module update changes the limits, existing placements are
+fitted to the new ones. Content that does not fit the member's chosen size
+scrolls inside the card, so design surfaces to read well at the default size.
+Each card's grid cell is a CSS size container, so a surface can adapt to the
+size the member chose with `@container` queries (for example, show only a
+headline number when the card is two rows tall) rather than reading its size
+from props.
+
 Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Modules must not create competing fixed-position Search or Add buttons.
 
 ## Setup and settings

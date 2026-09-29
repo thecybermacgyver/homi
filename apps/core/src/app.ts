@@ -136,6 +136,8 @@ function serializeMemberModulePreference(
     displayOrder: preference.displayOrder,
     cardStyle: preference.cardStyle,
     cardStyles: preference.cardStyles,
+    phoneLayout: preference.phoneLayout,
+    wideLayout: preference.wideLayout,
     revision: preference.revision.toString(),
   };
 }

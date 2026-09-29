@@ -127,6 +127,9 @@ export const householdMemberModulePreferences = core.table(
     displayOrder: integer("display_order").notNull(),
     // NULL uses the card's default (first declared) style.
     cardStyle: text("card_style"),
+    // Saved {x,y,w,h} grid placements. NULL lets Homi pack the card.
+    phoneLayout: jsonb("phone_layout"),
+    wideLayout: jsonb("wide_layout"),
     revision: revisionColumn(),
     createdAt: createdAtColumn(),
     updatedAt: updatedAtColumn(),

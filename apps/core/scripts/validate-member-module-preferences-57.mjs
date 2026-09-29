@@ -38,6 +38,7 @@ const MUTATION_CONFLICT = "79797979-7979-4979-8979-797979797979";
 const MUTATION_STYLE = "7a7a7a7a-7a7a-47a7-87a7-7a7a7a7a7a7a";
 const MUTATION_STYLE_UNDECLARED = "7b7b7b7b-7b7b-47b7-87b7-7b7b7b7b7b7b";
 const MUTATION_STYLE_UNSTYLED = "7c7c7c7c-7c7c-47c7-87c7-7c7c7c7c7c7c";
+const MUTATION_LAYOUT = "7d7d7d7d-7d7d-47d7-87d7-7d7d7d7d7d7d";
 
 function context(userId, membershipId, personId, clientId) {
   return Object.freeze({
@@ -133,6 +134,11 @@ try {
       { id: "list", label: "List" },
       { id: "counts", label: "Counts" },
     ],
+    size: {
+      default: { w: 2, h: 2 },
+      min: { w: 2, h: 2 },
+      max: { w: 4, h: 4 },
+    },
   });
   parseHomiModuleManifest(first);
   const second = manifest("starter-two", "Starter Two", "mod_starter_two");
@@ -396,6 +402,115 @@ try {
   assert.equal(raw.rows[0]?.recipientUserId, USER_A);
   assert.equal(Number(raw.rows[0]?.count ?? -1), 3);
 
+  // Phone and wide placements are private, independent, replayable, cleared
+  // by null, and held to the board and the card's declared size limits.
+  assert.equal(aAfterSummary.phoneLayout, null);
+  assert.equal(aAfterSummary.wideLayout, null);
+  const layoutInput = {
+    clientMutationId: MUTATION_LAYOUT,
+    entityId: aSummary.id,
+    baseRevision: aAfterSummary.revision,
+    payload: {
+      phoneLayout: { x: 0, y: 2, w: 4, h: 3 },
+      wideLayout: { x: 6, y: 0, w: 2, h: 4 },
+    },
+  };
+  const placed = await preferences.applyMutation(contextA, layoutInput);
+  assert.equal(placed.status, "applied");
+  assert.deepEqual(placed.serverState?.phoneLayout, { x: 0, y: 2, w: 4, h: 3 });
+  assert.deepEqual(placed.serverState?.wideLayout, { x: 6, y: 0, w: 2, h: 4 });
+  assert.equal(placed.serverState?.cardStyle, "counts");
+  const placedReplay = await preferences.applyMutation(contextA, layoutInput);
+  assert.equal(placedReplay.replayed, true);
+  assert.deepEqual(placedReplay.serverState?.wideLayout, { x: 6, y: 0, w: 2, h: 4 });
+
+  const cleared = await preferences.applyMutation(contextA, {
+    clientMutationId: crypto.randomUUID(),
+    entityId: aSummary.id,
+    baseRevision: BigInt(placed.serverRevision),
+    payload: { phoneLayout: null },
+  });
+  assert.equal(cleared.status, "applied");
+  assert.equal(cleared.serverState?.phoneLayout, null);
+  assert.deepEqual(cleared.serverState?.wideLayout, { x: 6, y: 0, w: 2, h: 4 });
+
+  const tooLarge = await preferences.applyMutation(contextA, {
+    clientMutationId: crypto.randomUUID(),
+    entityId: aSummary.id,
+    baseRevision: BigInt(cleared.serverRevision),
+    payload: { wideLayout: { x: 0, y: 0, w: 5, h: 2 } },
+  });
+  assert.equal(tooLarge.status, "rejected");
+  assert.equal(tooLarge.errorCode, "MODULE_PREFERENCE_LAYOUT_OUT_OF_BOUNDS");
+  for (const payload of [
+    { phoneLayout: { x: 1, y: 0, w: 4, h: 3 } },
+    { wideLayout: { x: 0, y: 0, w: 2, h: 13 } },
+    { wideLayout: { x: 0, y: 0, w: 2, h: 2, z: 1 } },
+    { wideLayout: { x: 0.5, y: 0, w: 2, h: 2 } },
+  ]) {
+    await assert.rejects(
+      () => preferences.applyMutation(contextA, {
+        clientMutationId: crypto.randomUUID(),
+        entityId: aSummary.id,
+        baseRevision: BigInt(cleared.serverRevision),
+        payload,
+      }),
+      (error) =>
+        error instanceof HomiMemberModulePreferenceError &&
+        error.code === "MODULE_PREFERENCE_LAYOUT_INVALID",
+    );
+  }
+  // A card that declares no size may span the whole wide board.
+  const undeclaredSize = await preferences.applyMutation(contextA, {
+    clientMutationId: crypto.randomUUID(),
+    entityId: aOne.id,
+    baseRevision: 2n,
+    payload: { wideLayout: { x: 0, y: 4, w: 8, h: 12 } },
+  });
+  assert.equal(undeclaredSize.status, "applied");
+
+  const aPlaced = (await preferences.list(contextA)).find(
+    (item) => item.id === aSummary.id,
+  );
+  const bUnplaced = (await preferences.list(contextB)).find(
+    (item) => item.id === bSummary.id,
+  );
+  assert.equal(aPlaced?.phoneLayout, null);
+  assert.deepEqual(aPlaced?.wideLayout, { x: 6, y: 0, w: 2, h: 4 });
+  assert.equal(bUnplaced?.wideLayout, null);
+  assert.equal(
+    (await sync.getChanges(contextB, 0n, 100)).changes.filter(
+      (change) => change.entityType === "member-module-preference",
+    ).length,
+    0,
+  );
+
+  const constraint = new Client({ connectionString: migratorUrl });
+  await constraint.connect();
+  try {
+    await constraint.query("SET ROLE homi_owner");
+    await assert.rejects(
+      () => constraint.query(
+        `UPDATE core.household_member_module_preferences
+           SET phone_layout = '{"x":3,"y":0,"w":2,"h":1}'::jsonb
+           WHERE id = $1::uuid`,
+        [aSummary.id],
+      ),
+      /ck_core_member_module_preferences_phone_layout/,
+    );
+    await assert.rejects(
+      () => constraint.query(
+        `UPDATE core.household_member_module_preferences
+           SET wide_layout = '{"x":0,"y":0,"w":2,"h":2,"z":1}'::jsonb
+           WHERE id = $1::uuid`,
+        [aSummary.id],
+      ),
+      /ck_core_member_module_preferences_wide_layout/,
+    );
+  } finally {
+    await constraint.end();
+  }
+
   // A module update that stops offering a stored style falls back to the
   // card's new default instead of leaving the member without a style.
   const updater = new Client({ connectionString: migratorUrl });
@@ -437,7 +552,8 @@ try {
       "private-sync=isolated " +
       "replay=verified " +
       "conflict=verified " +
-      "card-styles=private,validated,replayable,fallback",
+      "card-styles=private,validated,replayable,fallback " +
+      "card-layouts=phone-and-wide,private,bounded,replayable,clearable",
   );
 } finally {
   await database.close();

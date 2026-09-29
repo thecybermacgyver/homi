@@ -3,7 +3,7 @@
   "moduleKey": "chequebook",
   "name": "Chequebook",
   "publisher": "Homi",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "moduleApiVersion": 1,
   "description": "Household chequebook, cash-flow forecasting, recurring bills and income, category budgets, reconciliation, analytics, and Calendar-linked financial events.",
   "entrypoints": {
@@ -107,17 +107,59 @@
       {
         "surfaceId": "current-balance",
         "label": "Current balance",
-        "slot": "noticeboard"
+        "slot": "noticeboard",
+        "size": {
+          "default": {
+            "w": 2,
+            "h": 2
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 4,
+            "h": 3
+          }
+        }
       },
       {
         "surfaceId": "monthly-spend",
         "label": "Spent this month",
-        "slot": "noticeboard"
+        "slot": "noticeboard",
+        "size": {
+          "default": {
+            "w": 2,
+            "h": 2
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 4,
+            "h": 3
+          }
+        }
       },
       {
         "surfaceId": "cash-flow-forecast",
         "label": "Cash-flow forecast",
-        "slot": "noticeboard"
+        "slot": "noticeboard",
+        "size": {
+          "default": {
+            "w": 2,
+            "h": 2
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 4,
+            "h": 3
+          }
+        }
       }
     ],
     "householdSettings": true,

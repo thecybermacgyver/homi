@@ -8,6 +8,19 @@ export {
 } from "./request-context.js";
 
 export {
+  HOMI_FAMILY_BOARD_COLUMNS,
+  HOMI_FAMILY_BOARD_MAX_CARD_ROWS,
+  HOMI_FAMILY_BOARD_MAX_ROW,
+  isHomiFamilyBoardPlacement,
+  resolveHomiFamilyBoardCardLimits,
+  type HomiFamilyBoardCardDimensions,
+  type HomiFamilyBoardCardLimits,
+  type HomiFamilyBoardLayout,
+  type HomiFamilyBoardPlacement,
+  type HomiModuleFamilyBoardSizeManifest,
+} from "./family-board-grid.js";
+
+export {
   HOMI_MODULE_MANIFEST_SCHEMA_VERSION,
   HomiModuleCompatibilityError,
   HomiModuleManifestError,

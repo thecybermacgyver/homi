@@ -1,5 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { fromNodeHeaders } from "better-auth/node";
+import {
+  isHomiFamilyBoardPlacement,
+  type HomiFamilyBoardPlacement,
+} from "@homi/module-sdk";
 import type { HomiAppDependencies } from "./app.js";
 import type {
   HomiHouseholdSyncPayload,
@@ -180,7 +184,13 @@ function parseMemberModulePreferencePayload(
   }
 
   const input = value as Record<string, unknown>;
-  const allowed = new Set(["visible", "displayOrder", "cardStyle"]);
+  const allowed = new Set([
+    "visible",
+    "displayOrder",
+    "cardStyle",
+    "phoneLayout",
+    "wideLayout",
+  ]);
   for (const key of Object.keys(input)) {
     if (!allowed.has(key)) {
       validationError(`Unknown payload field '${key}'.`);
@@ -191,6 +201,8 @@ function parseMemberModulePreferencePayload(
     visible?: boolean;
     displayOrder?: number;
     cardStyle?: string;
+    phoneLayout?: HomiFamilyBoardPlacement | null;
+    wideLayout?: HomiFamilyBoardPlacement | null;
   } = {};
   if (input.visible !== undefined) {
     if (typeof input.visible !== "boolean") {
@@ -219,9 +231,27 @@ function parseMemberModulePreferencePayload(
     }
     payload.cardStyle = input.cardStyle;
   }
+  for (const layout of ["phone", "wide"] as const) {
+    const key = `${layout}Layout` as const;
+    const placement = input[key];
+    if (placement === undefined) continue;
+    if (placement !== null && !isHomiFamilyBoardPlacement(placement, layout)) {
+      validationError(
+        `payload.${key} must be null or a card placement on the ${layout} board.`,
+      );
+    }
+    payload[key] = placement === null
+      ? null
+      : {
+          x: placement.x,
+          y: placement.y,
+          w: placement.w,
+          h: placement.h,
+        };
+  }
   if (Object.keys(payload).length === 0) {
     validationError(
-      "payload must contain visible, displayOrder, or cardStyle.",
+      "payload must contain visible, displayOrder, cardStyle, phoneLayout, or wideLayout.",
     );
   }
   return payload;

@@ -44,6 +44,8 @@ const css = `
 .shopping-count span:first-child {overflow-wrap:anywhere;min-width:0}
 .shopping-count-total {font-size:1.25rem}
 .shopping-count-value {font-variant-numeric:tabular-nums}
+@container (max-height:260px) {.shopping-board-footer {display:none} .shopping-board .shopping-row {min-height:34px} .shopping-board .shopping-row .homi-ui-check {font-size:1rem} .shopping-count {min-height:32px;font-size:1rem}}
+@container (max-width:200px) {.shopping-count {gap:.5rem;font-size:.95rem}}
 `;
 
 async function getData(path: string, props: HomiWebModuleSurfaceProps, signal?: AbortSignal): Promise<unknown> {

@@ -49,9 +49,19 @@ import {
 } from "./AccountSettings.js";
 import { HouseholdModulesPage } from "./HouseholdModulesPage.js";
 import {
+  FamilyBoardGrid,
+  useFamilyBoardLayout,
+} from "./FamilyBoardGrid.js";
+import {
+  sameFamilyBoardPlacement,
+  type FamilyBoardArrangement,
+} from "./family-board-layout.js";
+import type { HomiFamilyBoardLayout } from "@homi/module-sdk";
+import {
   cacheMemberModulePreferences,
   fetchMemberModulePreferences,
   getEffectiveMemberModulePreferences,
+  queueMemberModulePreferenceUpdate,
   type MemberModulePreferenceSnapshot,
 } from "./sync/member-module-preferences.js";
 import {
@@ -103,6 +113,13 @@ const FAMILY_BOARD_PRESENTATION: Record<
     className: "homi-family-card--schedule",
   },
 });
+
+function familyBoardCardKey(contribution: {
+  readonly module: { readonly descriptor: { readonly moduleKey: string } };
+  readonly surfaceId: string;
+}): string {
+  return `${contribution.module.descriptor.moduleKey}:${contribution.surfaceId}`;
+}
 
 function useRuntimeSnapshot(runtime: AppSyncRuntime) {
   return useSyncExternalStore(
@@ -177,6 +194,11 @@ export function App() {
   >([]);
   const [modulePreferenceFailure, setModulePreferenceFailure] =
     useState<string | null>(null);
+  const [arrangingBoard, setArrangingBoard] = useState(false);
+  const boardLayout = useFamilyBoardLayout();
+  useEffect(() => {
+    if (activeView !== "home") setArrangingBoard(false);
+  }, [activeView]);
   const [moduleContextActions, setModuleContextActions] = useState<{
     readonly moduleKey: string;
     readonly actions: HomiWebModuleContextActions;
@@ -758,8 +780,10 @@ export function App() {
 
           return [{
             module,
+            preference,
             label: contribution.label,
             slot: contribution.slot,
+            size: contribution.size,
             surfaceId: contribution.surfaceId,
             surface:
               module.definition.familyBoard?.[
@@ -1133,6 +1157,87 @@ export function App() {
     };
   }
 
+  async function queueBoardPlacements(
+    changes: readonly {
+      readonly preference: MemberModulePreferenceSnapshot;
+      readonly patch: Parameters<typeof queueMemberModulePreferenceUpdate>[3];
+    }[],
+  ): Promise<void> {
+    if (!moduleAuthSubject || !moduleHouseholdId || changes.length === 0) {
+      return;
+    }
+    try {
+      for (const change of changes) {
+        await queueMemberModulePreferenceUpdate(
+          moduleAuthSubject,
+          moduleHouseholdId,
+          change.preference,
+          change.patch,
+        );
+      }
+      setMemberModulePreferences(
+        await getEffectiveMemberModulePreferences(
+          moduleAuthSubject,
+          moduleHouseholdId,
+        ),
+      );
+      setModulePreferenceFailure(null);
+      if (moduleManagementOnline) {
+        await runtime.syncNow();
+        setMemberModulePreferences(
+          await getEffectiveMemberModulePreferences(
+            moduleAuthSubject,
+            moduleHouseholdId,
+          ),
+        );
+      }
+    } catch (error) {
+      setModulePreferenceFailure(readableFailure(error));
+    }
+  }
+
+  // Every card on the board is saved where it is shown, so cards Homi packed
+  // stay put once the member starts arranging.
+  function saveBoardArrangement(
+    layout: HomiFamilyBoardLayout,
+    arrangement: FamilyBoardArrangement,
+  ): Promise<void> {
+    const key = layout === "wide" ? "wideLayout" : "phoneLayout";
+    return queueBoardPlacements(
+      familyBoardContributions.flatMap((contribution) => {
+        const preference = contribution.preference;
+        const placement = arrangement.get(familyBoardCardKey(contribution));
+        if (
+          !preference ||
+          !placement ||
+          sameFamilyBoardPlacement(preference[key], placement)
+        ) {
+          return [];
+        }
+        return [{ preference, patch: { [key]: placement } }];
+      }),
+    );
+  }
+
+  function resetBoardArrangement(layout: HomiFamilyBoardLayout): void {
+    const key = layout === "wide" ? "wideLayout" : "phoneLayout";
+    const screen = layout === "wide" ? "wide-screen" : "phone";
+    if (
+      !window.confirm(
+        `Put every card back in Homi's order on your ${screen} layout?`,
+      )
+    ) {
+      return;
+    }
+    void queueBoardPlacements(
+      memberModulePreferences.flatMap((preference) =>
+        preference[key] === null
+          ? []
+          : [{ preference, patch: { [key]: null } }],
+      ),
+    );
+  }
+
   function renderFamilyBoardContribution(
     contribution: (typeof familyBoardContributions)[number],
   ): ReactNode {
@@ -1378,6 +1483,32 @@ export function App() {
                   Family Board
                 </span>
               </div>
+              {familyBoardContributions.length > 0 && (
+                <div className="homi-family-board__arrange">
+                  {arrangingBoard && (
+                    <>
+                      <span className="homi-family-board__arrange-hint">
+                        {boardLayout === "wide"
+                          ? "Arranging your wide-screen layout. Drag a card to move it; drag its corner to resize."
+                          : "Arranging your phone layout. Drag a card by its handle; drag its corner to resize."}
+                      </span>
+                      <Button
+                        variant="quiet"
+                        onClick={() => resetBoardArrangement(boardLayout)}
+                      >
+                        Reset layout
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant={arrangingBoard ? "primary" : "secondary"}
+                    aria-pressed={arrangingBoard}
+                    onClick={() => setArrangingBoard((value) => !value)}
+                  >
+                    {arrangingBoard ? "Done" : "Arrange cards"}
+                  </Button>
+                </div>
+              )}
             </header>
 
             {modulePreferenceFailure && (
@@ -1390,20 +1521,30 @@ export function App() {
               </Notice>
             )}
 
-            <div className="homi-family-board__grid">
-              {familyBoardContributions.length === 0 ? (
+            {familyBoardContributions.length === 0 ? (
+              <div className="homi-family-board__empty">
                 <article className="homi-family-card">
                   <EmptyState
                     title="Your Family Board is ready"
                     description="Open Modules to choose which available module cards you want to see here."
                   />
                 </article>
-              ) : (
-                familyBoardContributions.map(
-                  renderFamilyBoardContribution,
-                )
-              )}
-            </div>
+              </div>
+            ) : (
+              <FamilyBoardGrid
+                layout={boardLayout}
+                editing={arrangingBoard}
+                onSave={saveBoardArrangement}
+                items={familyBoardContributions.map((contribution) => ({
+                  key: familyBoardCardKey(contribution),
+                  label: contribution.label,
+                  size: contribution.size,
+                  phoneLayout: contribution.preference?.phoneLayout ?? null,
+                  wideLayout: contribution.preference?.wideLayout ?? null,
+                  content: renderFamilyBoardContribution(contribution),
+                }))}
+              />
+            )}
           </section>
         )}
 

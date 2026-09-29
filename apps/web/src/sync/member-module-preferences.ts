@@ -1,4 +1,9 @@
 import {
+  isHomiFamilyBoardPlacement,
+  type HomiFamilyBoardLayout,
+  type HomiFamilyBoardPlacement,
+} from "@homi/module-sdk";
+import {
   deleteCachedRecord,
   enqueueMutation,
   getCachedRecords,
@@ -29,6 +34,9 @@ export interface MemberModulePreferenceSnapshot {
   // Null when the card declares no styles; otherwise the effective style.
   readonly cardStyle: string | null;
   readonly cardStyles: readonly MemberCardStyle[];
+  // Null when the member has not placed the card on that board.
+  readonly phoneLayout: HomiFamilyBoardPlacement | null;
+  readonly wideLayout: HomiFamilyBoardPlacement | null;
   readonly revision: string;
 }
 
@@ -36,6 +44,8 @@ export interface MemberModulePreferencePatch {
   readonly visible?: boolean;
   readonly displayOrder?: number;
   readonly cardStyle?: string;
+  readonly phoneLayout?: HomiFamilyBoardPlacement | null;
+  readonly wideLayout?: HomiFamilyBoardPlacement | null;
 }
 export class MemberModulePreferencesError extends Error {
   readonly status: number | undefined;
@@ -94,14 +104,39 @@ function parseCardStyles(value: unknown): readonly MemberCardStyle[] | null {
   return Object.freeze(styles);
 }
 
-// Records cached before card styles existed are read as unstyled until the
-// next authoritative refresh replaces them.
+// Records cached before card styles or layouts existed are read as unstyled
+// and unplaced until the next authoritative refresh replaces them.
 function upgradeCachedPreference(value: unknown): unknown {
-  return isObject(value) &&
-    !Object.hasOwn(value, "cardStyle") &&
-    !Object.hasOwn(value, "cardStyles")
-    ? { ...value, cardStyle: null, cardStyles: [] }
-    : value;
+  if (!isObject(value)) return value;
+  let upgraded = value;
+  if (
+    !Object.hasOwn(upgraded, "cardStyle") &&
+    !Object.hasOwn(upgraded, "cardStyles")
+  ) {
+    upgraded = { ...upgraded, cardStyle: null, cardStyles: [] };
+  }
+  if (
+    !Object.hasOwn(upgraded, "phoneLayout") &&
+    !Object.hasOwn(upgraded, "wideLayout")
+  ) {
+    upgraded = { ...upgraded, phoneLayout: null, wideLayout: null };
+  }
+  return upgraded;
+}
+
+function isLayoutValue(
+  value: unknown,
+  layout: HomiFamilyBoardLayout,
+): value is HomiFamilyBoardPlacement | null {
+  return value === null || isHomiFamilyBoardPlacement(value, layout);
+}
+
+function copyLayout(
+  value: HomiFamilyBoardPlacement | null,
+): HomiFamilyBoardPlacement | null {
+  return value === null
+    ? null
+    : Object.freeze({ x: value.x, y: value.y, w: value.w, h: value.h });
 }
 
 function parsePreference(
@@ -121,6 +156,8 @@ function parsePreference(
       "displayOrder",
       "cardStyle",
       "cardStyles",
+      "phoneLayout",
+      "wideLayout",
       "revision",
     ]) ||
     typeof value.id !== "string" ||
@@ -140,6 +177,8 @@ function parsePreference(
     (cardStyles.length === 0
       ? value.cardStyle !== null
       : !cardStyles.some((style) => style.id === value.cardStyle)) ||
+    !isLayoutValue(value.phoneLayout, "phone") ||
+    !isLayoutValue(value.wideLayout, "wide") ||
     typeof value.revision !== "string" ||
     !POSITIVE.test(value.revision)
   ) {
@@ -156,6 +195,8 @@ function parsePreference(
     displayOrder: value.displayOrder,
     cardStyle: value.cardStyle as string | null,
     cardStyles,
+    phoneLayout: copyLayout(value.phoneLayout),
+    wideLayout: copyLayout(value.wideLayout),
     revision: value.revision,
   });
 }
@@ -175,10 +216,12 @@ function validateIdentity(
   }
 }
 
+type PatchValue = boolean | number | string | HomiFamilyBoardPlacement | null;
+
 function validatePatch(
   patch: MemberModulePreferencePatch,
-): Record<string, boolean | number | string> {
-  const output: Record<string, boolean | number | string> = {};
+): Record<string, PatchValue> {
+  const output: Record<string, PatchValue> = {};
   if (patch.visible !== undefined) {
     if (typeof patch.visible !== "boolean") {
       throw new MemberModulePreferencesError(
@@ -212,6 +255,18 @@ function validatePatch(
       );
     }
     output.cardStyle = patch.cardStyle;
+  }
+  for (const layout of ["phone", "wide"] as const) {
+    const key = `${layout}Layout` as const;
+    const value = patch[key];
+    if (value === undefined) continue;
+    if (!isLayoutValue(value, layout)) {
+      throw new MemberModulePreferencesError(
+        "MEMBER_MODULE_PREFERENCES_INVALID_INPUT",
+        `${key} must be null or a card placement on the ${layout} board.`,
+      );
+    }
+    output[key] = copyLayout(value);
   }
   if (Object.keys(output).length === 0) {
     throw new MemberModulePreferencesError(
@@ -459,6 +514,16 @@ export async function getEffectiveMemberModulePreferences(
       )
         ? mutation.payload.cardStyle
         : current.cardStyle;
+    const phoneLayout =
+      Object.hasOwn(mutation.payload, "phoneLayout") &&
+      isLayoutValue(mutation.payload.phoneLayout, "phone")
+        ? copyLayout(mutation.payload.phoneLayout)
+        : current.phoneLayout;
+    const wideLayout =
+      Object.hasOwn(mutation.payload, "wideLayout") &&
+      isLayoutValue(mutation.payload.wideLayout, "wide")
+        ? copyLayout(mutation.payload.wideLayout)
+        : current.wideLayout;
 
     byId.set(
       current.id,
@@ -467,6 +532,8 @@ export async function getEffectiveMemberModulePreferences(
         visible,
         displayOrder,
         cardStyle,
+        phoneLayout,
+        wideLayout,
       }),
     );
   }

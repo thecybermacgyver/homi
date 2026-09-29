@@ -5,6 +5,8 @@ import {
   HomiModuleCompatibilityError,
   HomiModuleManifestError,
   assertHomiModuleCompatibility,
+  isHomiFamilyBoardPlacement,
+  resolveHomiFamilyBoardCardLimits,
   defineHomiServerModule,
   parseHomiModuleManifest,
 } from "../dist/index.js";
@@ -247,5 +249,71 @@ rejectsManifest(
   },
   /invalid format/,
 );
+
+const sizedHomeCard = copy(template);
+sizedHomeCard.extensions.familyBoard[0].size = {
+  default: { w: 3, h: 4 },
+  min: { w: 2, h: 2 },
+  max: { w: 6, h: 8 },
+};
+const declaredSize =
+  parseHomiModuleManifest(sizedHomeCard).extensions.familyBoard[0].size;
+assert.deepEqual(declaredSize, {
+  default: { w: 3, h: 4 },
+  min: { w: 2, h: 2 },
+  max: { w: 6, h: 8 },
+});
+assert.deepEqual(resolveHomiFamilyBoardCardLimits(declaredSize, "wide"), {
+  default: { w: 3, h: 4 },
+  min: { w: 2, h: 2 },
+  max: { w: 6, h: 8 },
+});
+assert.deepEqual(resolveHomiFamilyBoardCardLimits(declaredSize, "phone"), {
+  default: { w: 4, h: 4 },
+  min: { w: 2, h: 2 },
+  max: { w: 4, h: 8 },
+});
+assert.deepEqual(resolveHomiFamilyBoardCardLimits(undefined, "wide"), {
+  default: { w: 4, h: 4 },
+  min: { w: 2, h: 2 },
+  max: { w: 8, h: 12 },
+});
+assert.deepEqual(
+  resolveHomiFamilyBoardCardLimits({ default: { w: 2, h: 2 } }, "phone").default,
+  { w: 2, h: 2 },
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].size = { default: { w: 9, h: 2 } };
+  },
+  /\.w must be a whole number from 1 to 8/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].size = { default: { w: 2, h: 0 } };
+  },
+  /\.h must be a whole number from 1 to 12/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].size = {
+      default: { w: 2, h: 2 },
+      min: { w: 3, h: 2 },
+    };
+  },
+  /must lie between/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].size = { default: { w: 2, h: 2, d: 1 } };
+  },
+  /unknown field 'd'/,
+);
+
+assert.equal(isHomiFamilyBoardPlacement({ x: 4, y: 0, w: 4, h: 3 }, "wide"), true);
+assert.equal(isHomiFamilyBoardPlacement({ x: 4, y: 0, w: 4, h: 3 }, "phone"), false);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1.5, h: 3 }, "wide"), false);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1, h: 13 }, "wide"), false);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1 }, "wide"), false);
 
 console.log("PASS_MODULE_SDK_MANIFEST_COMPATIBILITY_CONTRACT");
