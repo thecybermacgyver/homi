@@ -920,6 +920,9 @@ export function App() {
             payload: { ...input.payload },
           },
         );
+        // The host owns automatic delivery. Persist first so offline writes
+        // succeed even when the following background sync cannot reach Core.
+        void runtime.syncNow().catch(() => undefined);
         return Object.freeze({
           clientMutationId: queued.clientMutationId,
         });
@@ -1155,7 +1158,8 @@ export function App() {
         <header className="homi-family-card__header">
           <div>
             <h2>{contribution.label}</h2>
-            <p>{module.descriptor.manifest.name}</p>
+            {module.descriptor.manifest.name !== contribution.label &&
+              <p>{module.descriptor.manifest.name}</p>}
           </div>
           <span
             className="homi-family-card__sparkle"

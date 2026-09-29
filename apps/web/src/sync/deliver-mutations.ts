@@ -3,7 +3,7 @@ import {
   markMutationApplied,
   markMutationConflict,
   markMutationRejected,
-  markMutationSending,
+  claimQueuedMutation,
   returnMutationToQueue,
   type MutationResultSnapshot,
   type QueuedMutation,
@@ -239,7 +239,8 @@ export async function deliverQueuedMutationBatch(
   let deferred = 0;
   let stop: MutationDeliveryStop | null = null;
 
-  for (const mutation of queued) {
+  for (const queuedMutation of queued) {
+    let mutation = queuedMutation;
     if (signal?.aborted) {
       stop = cancellation();
       break;
@@ -260,13 +261,12 @@ export async function deliverQueuedMutationBatch(
         status: null,
         requestId: null,
       });
-      break;
+      continue;
     }
 
-    await markMutationSending(
-      input.authSubject,
-      mutation.clientMutationId,
-    );
+    const claimed = await claimQueuedMutation(input.authSubject, mutation.clientMutationId);
+    if (!claimed) { deferred += 1; continue; }
+    mutation = claimed;
     attempted += 1;
 
     let result: MutationSubmissionResult;
@@ -279,7 +279,7 @@ export async function deliverQueuedMutationBatch(
       );
     } catch (error) {
       const detail = signal?.aborted ? cancellation() : failure(error);
-      if (terminalSubmissionError(detail.code, detail.status) || mutation.attempts >= 3) {
+      if (terminalSubmissionError(detail.code, detail.status)) {
         await markMutationRejected(
           input.authSubject,
           mutation.clientMutationId,
@@ -300,7 +300,8 @@ export async function deliverQueuedMutationBatch(
         );
         deferred += 1;
         stop = detail;
-        break;
+        if (signal?.aborted) break;
+        continue;
       }
     }
 
@@ -318,7 +319,7 @@ export async function deliverQueuedMutationBatch(
         status: null,
         requestId: null,
       });
-      break;
+      continue;
     }
 
     const durableResult = snapshot(result);
@@ -336,13 +337,9 @@ export async function deliverQueuedMutationBatch(
         durableResult,
       );
       conflicts += 1;
-      stop = Object.freeze({
-        code: result.errorCode ?? "MUTATION_CONFLICT",
-        message: "Mutation delivery stopped at a conflict.",
-        status: null,
-        requestId: null,
-      });
-      break;
+      // Dependent writes are blocked by storage; unrelated entities/modules
+      // continue, and the terminal receipt remains available for review.
+      continue;
     } else if (result.status === "rejected") {
       await markMutationRejected(
         input.authSubject,
@@ -366,7 +363,7 @@ export async function deliverQueuedMutationBatch(
         status: null,
         requestId: null,
       });
-      break;
+      continue;
     }
 
     if (signal?.aborted) {

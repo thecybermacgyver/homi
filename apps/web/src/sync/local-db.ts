@@ -50,6 +50,7 @@ export interface QueuedMutation {
   authSubject: string;
   householdId: string;
   queueOrder: number;
+  dependsOnMutationId?: string;
   moduleKey: string;
   entityType: string;
   entityId: string;
@@ -685,7 +686,11 @@ export async function applySyncActions(
           "Stored mutation change sequence",
         );
         if (compareIntegerStrings(mutation.changeSequence, nextSequence) <= 0) {
-          completedMutationIds.push(mutation.clientMutationId);
+          const dependent = await homiClientDb.mutations.filter(row =>
+            row.authSubject === authSubject && row.householdId === householdId &&
+            row.dependsOnMutationId === mutation.clientMutationId &&
+            (row.status === "queued" || row.status === "sending")).first();
+          if (!dependent) completedMutationIds.push(mutation.clientMutationId);
         }
       }
       if (completedMutationIds.length > 0) {
@@ -739,11 +744,19 @@ export async function enqueueMutation(
         throw new Error("Mutation order exceeded the safe integer range");
       }
       const timestamp = now();
+      const prior = (await homiClientDb.mutations
+        .where("[authSubject+householdId]")
+        .equals([authSubject, input.householdId])
+        .filter(row => row.moduleKey === input.moduleKey &&
+          row.entityType === input.entityType && row.entityId === input.entityId &&
+          (row.status === "queued" || row.status === "sending"))
+        .toArray()).sort((a,b) => b.queueOrder - a.queueOrder)[0];
       const mutation: QueuedMutation = {
         clientMutationId: crypto.randomUUID(),
         authSubject,
         householdId: input.householdId,
         queueOrder,
+        ...(prior ? { dependsOnMutationId: prior.clientMutationId } : {}),
         moduleKey: input.moduleKey,
         entityType: input.entityType,
         entityId: input.entityId,
@@ -886,6 +899,19 @@ export async function dismissModuleMutation(
         "Only conflict or rejected mutations may be dismissed",
       );
     }
+    const descendants = new Set([clientMutationId]);
+    const rows = await homiClientDb.mutations
+      .where("[authSubject+householdId]").equals([authSubject, householdId]).toArray();
+    for (const row of rows.sort((a,b) => a.queueOrder-b.queueOrder)) {
+      if (row.dependsOnMutationId && descendants.has(row.dependsOnMutationId)) {
+        descendants.add(row.clientMutationId);
+        if (row.status === "queued" && row.attempts === 0) {
+          await homiClientDb.mutations.put({...row,status:"rejected",
+            lastErrorCode:"MUTATION_DEPENDENCY_FAILED",updatedAt:now(),
+            serverRevision:mutation.serverRevision ?? null,serverState:mutation.serverState ?? null});
+        }
+      }
+    }
     await homiClientDb.mutations.delete(clientMutationId);
   });
 }
@@ -943,6 +969,41 @@ function ownedMutationCollection(
     .and((mutation) => mutation.authSubject === authSubject);
 }
 
+// Claim and prepare inside one IndexedDB transaction. Only a never-dispatched
+// dependent write may acquire its predecessor's actual server revision. Retries
+// keep the exact request that might already have reached the server.
+export async function claimQueuedMutation(
+  authSubject: string,
+  clientMutationId: string,
+): Promise<QueuedMutation | null> {
+  requireUuid(authSubject, "authSubject");
+  requireUuid(clientMutationId, "clientMutationId");
+  return homiClientDb.transaction("rw", homiClientDb.mutations, async () => {
+    const row = await homiClientDb.mutations.get(clientMutationId);
+    if (!row || row.authSubject !== authSubject || row.status !== "queued") return null;
+    if (row.dependsOnMutationId && row.attempts === 0) {
+      const prior = await homiClientDb.mutations.get(row.dependsOnMutationId);
+      if (!prior || prior.authSubject !== row.authSubject ||
+        prior.householdId !== row.householdId || prior.moduleKey !== row.moduleKey ||
+        prior.entityType !== row.entityType || prior.entityId !== row.entityId ||
+        prior.status === "conflict" || prior.status === "rejected") {
+        await homiClientDb.mutations.put({...row, status:"rejected",
+          lastErrorCode:"MUTATION_DEPENDENCY_FAILED", updatedAt:now(),
+          serverState:prior?.serverState ?? null, serverRevision:prior?.serverRevision ?? null});
+        return null;
+      }
+      if (prior.status !== "applied") return null;
+      if (!prior.serverRevision) throw new Error("Applied dependency has no server revision");
+      requireNonNegativeIntegerString(prior.serverRevision, "dependency server revision");
+      row.baseRevision = prior.serverRevision;
+    }
+    const claimed: QueuedMutation = {...row,status:"sending",attempts:row.attempts+1,updatedAt:now()};
+    delete claimed.lastErrorCode;
+    await homiClientDb.mutations.put(claimed);
+    return claimed;
+  });
+}
+
 export async function markMutationSending(
   authSubject: string,
   clientMutationId: string,
@@ -996,28 +1057,31 @@ async function storeTerminalMutationResult(
   status: "applied" | "conflict" | "rejected",
   result: MutationResultSnapshot,
 ): Promise<void> {
-  const timestamp = now();
-
-  const updated = await ownedMutationCollection(
-    authSubject,
-    clientMutationId,
-  ).modify((mutation) => {
-    mutation.status = status;
-    mutation.updatedAt = timestamp;
-    mutation.serverRevision = result.serverRevision;
-    mutation.changeSequence = result.changeSequence;
-    mutation.serverState = result.serverState;
-
-    if (result.errorCode === null) {
-      delete mutation.lastErrorCode;
-    } else {
-      mutation.lastErrorCode = result.errorCode;
+  await homiClientDb.transaction("rw", homiClientDb.mutations, async () => {
+    const row = await homiClientDb.mutations.get(clientMutationId);
+    if (!row || row.authSubject !== authSubject) throw new Error(`Unknown mutation ${clientMutationId}`);
+    const updated: QueuedMutation = {...row,status,updatedAt:now(),
+      serverRevision:result.serverRevision,changeSequence:result.changeSequence,serverState:result.serverState};
+    if (result.errorCode === null) delete updated.lastErrorCode;
+    else updated.lastErrorCode = result.errorCode;
+    await homiClientDb.mutations.put(updated);
+    if (status === "applied") return;
+    // A failed predecessor cannot be skipped: later edits were authored against
+    // its local result. Preserve their payloads for review, never auto-rebase them.
+    const descendants = new Set([clientMutationId]);
+    const rows = await homiClientDb.mutations.where("[authSubject+householdId]")
+      .equals([authSubject,row.householdId]).toArray();
+    for (const dependent of rows.sort((a,b) => a.queueOrder-b.queueOrder)) {
+      if (dependent.dependsOnMutationId && descendants.has(dependent.dependsOnMutationId)) {
+        descendants.add(dependent.clientMutationId);
+        if (dependent.status === "queued" && dependent.attempts === 0) {
+          await homiClientDb.mutations.put({...dependent,status:"rejected",updatedAt:now(),
+            lastErrorCode:"MUTATION_DEPENDENCY_FAILED",serverRevision:result.serverRevision,
+            serverState:result.serverState,changeSequence:null});
+        }
+      }
     }
   });
-
-  if (updated === 0) {
-    throw new Error(`Unknown mutation ${clientMutationId}`);
-  }
 }
 
 export async function markMutationApplied(

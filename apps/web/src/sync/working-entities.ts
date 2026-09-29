@@ -40,18 +40,22 @@ export function projectWorkingEntities(
     ) {
       continue;
     }
+    const current = working.get(mutation.entityId);
+    // An already-applied receipt must not roll a fresher pull snapshot backward.
+    if (mutation.status === "applied" && current && mutation.serverRevision &&
+      BigInt(current.revision) > BigInt(mutation.serverRevision)) continue;
     if (mutation.operation === "delete") {
       working.delete(mutation.entityId);
       continue;
     }
 
-    const current = working.get(mutation.entityId);
     const data = {
       householdId: mutation.householdId,
       createdAt: mutation.createdAt,
       updatedAt: mutation.updatedAt,
       ...objectData(current?.data),
       ...mutation.payload,
+      ...(mutation.status === "applied" ? objectData(mutation.serverState) : {}),
       id: mutation.entityId,
       revision: mutation.serverRevision ?? mutation.baseRevision,
     };

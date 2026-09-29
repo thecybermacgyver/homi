@@ -116,6 +116,23 @@ A manifest may declare synchronized entity types and the operations they support
 
 The manifest declaration does not replace implementation. A synchronized module must still use Homi's stable mutation identity, revision, conflict, queue, change-log, and account/household isolation contracts.
 
+### Durable working view and sequential edits
+
+Use `actions.listWorkingEntities(entityType)` for the visible working state and
+`listMutations()` for pending/conflict/rejection receipts. A locally created
+entity may have revision `"0"` and lack server-generated fields until delivery.
+Modules validate that local shape separately from authoritative API responses.
+All writes use `enqueueMutation`; Core starts delivery automatically and owns
+foreground/reconnect synchronization.
+
+Core records dependencies between pending writes to the same account, household,
+module, entity type, and entity ID. Before first dispatch, it assigns a dependent
+write the predecessor's **actual** returned revision. It never guesses a revision
+increment and never rewrites a request once a send has been attempted. A failed
+predecessor blocks dependent writes with retained reviewable payloads; unrelated
+entities/modules continue. Reconciliation retains receipts needed by undelivered
+dependents. `dismissMutation` cannot release dependent edits for silent delivery.
+
 ## Cross-module integration
 
 Modules do not use direct cross-module SQL or private imports.
