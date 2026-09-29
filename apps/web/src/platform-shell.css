@@ -179,6 +179,55 @@
   gap: 6px;
 }
 
+.homi-platform-setting-row.homi-platform-members {
+  display: grid;
+  align-items: stretch;
+}
+
+.homi-platform-members__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.homi-platform-members__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--homi-border);
+  border-radius: 12px;
+  background: var(--homi-surface-strong);
+}
+
+.homi-platform-members__row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.homi-platform-members__row span {
+  color: var(--homi-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.homi-platform-members__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.homi-platform-members__password {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+
 @media (min-width: 720px) {
   .homi-platform-auth__card {
     padding: 38px;
@@ -318,6 +367,25 @@
   justify-content: flex-start;
   flex-wrap: wrap;
   padding-top: 8px;
+}
+
+.homi-platform-module-card__card-style {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--homi-border);
+}
+
+.homi-platform-module-card__card-style > span {
+  color: var(--homi-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.homi-platform-module-card__card-style > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .homi-platform-module-caption {

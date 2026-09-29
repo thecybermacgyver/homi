@@ -2,6 +2,7 @@ import { createHomiDatabase } from "@homi/db";
 import { buildApp } from "./app.js";
 import { createHomiAuth } from "./auth.js";
 import { createHomiAuthorization } from "./authorization.js";
+import { createHomiAccountService } from "./accounts.js";
 import { createHomiClientService } from "./client.js";
 import { createHomiRequestContextResolver } from "./context.js";
 import { createHomiHouseholdService } from "./household.js";
@@ -140,6 +141,7 @@ const app = buildApp({
   household,
   householdModules,
   memberModulePreferences,
+  accounts: createHomiAccountService(database.db, auth),
   client,
   sync,
   moduleSync,

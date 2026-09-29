@@ -35,6 +35,9 @@ const MODULE_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const MUTATION_A = "77777777-7777-4777-8777-777777777777";
 const MUTATION_B = "78787878-7878-4878-8878-787878787878";
 const MUTATION_CONFLICT = "79797979-7979-4979-8979-797979797979";
+const MUTATION_STYLE = "7a7a7a7a-7a7a-47a7-87a7-7a7a7a7a7a7a";
+const MUTATION_STYLE_UNDECLARED = "7b7b7b7b-7b7b-47b7-87b7-7b7b7b7b7b7b";
+const MUTATION_STYLE_UNSTYLED = "7c7c7c7c-7c7c-47c7-87c7-7c7c7c7c7c7c";
 
 function context(userId, membershipId, personId, clientId) {
   return Object.freeze({
@@ -126,6 +129,10 @@ try {
     surfaceId: "starter-summary",
     label: "Quick summary",
     slot: "noticeboard",
+    styles: [
+      { id: "list", label: "List" },
+      { id: "counts", label: "Counts" },
+    ],
   });
   parseHomiModuleManifest(first);
   const second = manifest("starter-two", "Starter Two", "mod_starter_two");
@@ -207,6 +214,10 @@ try {
   assert(aOne && aSummary && bOne && bSummary);
   assert.equal(aOne.label, "Family notes");
   assert.equal(aSummary.label, "Quick summary");
+  assert.equal(aOne.cardStyle, null);
+  assert.deepEqual(aOne.cardStyles, []);
+  assert.equal(aSummary.cardStyle, "list");
+  assert.deepEqual(aSummary.cardStyles.map((style) => style.id), ["list", "counts"]);
 
   const firstMutation = await preferences.applyMutation(
     contextA,
@@ -265,6 +276,49 @@ try {
   );
   assert.equal(secondMutation.status, "applied");
 
+  const styleInput = {
+    clientMutationId: MUTATION_STYLE,
+    entityId: aSummary.id,
+    baseRevision: BigInt(secondMutation.serverRevision),
+    payload: { cardStyle: "counts" },
+  };
+  const styled = await preferences.applyMutation(contextA, styleInput);
+  assert.equal(styled.status, "applied");
+  assert.equal(styled.serverState?.cardStyle, "counts");
+  assert.deepEqual(styled.serverState?.cardStyles.map((style) => style.id), ["list", "counts"]);
+  assert.equal(styled.serverState?.displayOrder, 0);
+  const styledReplay = await preferences.applyMutation(contextA, styleInput);
+  assert.equal(styledReplay.replayed, true);
+  assert.equal(styledReplay.serverState?.cardStyle, "counts");
+
+  const undeclared = await preferences.applyMutation(contextA, {
+    clientMutationId: MUTATION_STYLE_UNDECLARED,
+    entityId: aSummary.id,
+    baseRevision: BigInt(styled.serverRevision),
+    payload: { cardStyle: "grid" },
+  });
+  assert.equal(undeclared.status, "rejected");
+  assert.equal(undeclared.errorCode, "MODULE_PREFERENCE_CARD_STYLE_UNDECLARED");
+  const unstyled = await preferences.applyMutation(contextA, {
+    clientMutationId: MUTATION_STYLE_UNSTYLED,
+    entityId: aOne.id,
+    baseRevision: 2n,
+    payload: { cardStyle: "list" },
+  });
+  assert.equal(unstyled.status, "rejected");
+  assert.equal(unstyled.errorCode, "MODULE_PREFERENCE_CARD_STYLE_UNDECLARED");
+  await assert.rejects(
+    () => preferences.applyMutation(contextA, {
+      clientMutationId: crypto.randomUUID(),
+      entityId: aSummary.id,
+      baseRevision: BigInt(styled.serverRevision),
+      payload: { cardStyle: "Not Valid" },
+    }),
+    (error) =>
+      error instanceof HomiMemberModulePreferenceError &&
+      error.code === "MODULE_PREFERENCE_CARD_STYLE_INVALID",
+  );
+
   const conflict = await preferences.applyMutation(
     contextA,
     {
@@ -311,9 +365,12 @@ try {
   assert.equal(aAfterOne.displayOrder, 1);
   assert.equal(aAfterSummary.visible, true);
   assert.equal(aAfterSummary.displayOrder, 0);
+  assert.equal(aAfterSummary.cardStyle, "counts");
+  assert.equal(aAfterOne.cardStyle, null);
 
   assert.equal(bAfterOne.visible, true);
   assert.equal(bAfterSummary.visible, true);
+  assert.equal(bAfterSummary.cardStyle, "list");
   assert.notEqual(bAfterOne.id, aAfterOne.id);
   assert.notEqual(bAfterSummary.id, aAfterSummary.id);
 
@@ -325,7 +382,7 @@ try {
   const privateB = feedB.changes.filter(
     (change) => change.entityType === "member-module-preference",
   );
-  assert.equal(privateA.length, 2);
+  assert.equal(privateA.length, 3);
   assert.equal(privateB.length, 0);
   const raw = await database.db.execute(
     `SELECT
@@ -337,7 +394,40 @@ try {
   );
   assert.equal(raw.rows.length, 1);
   assert.equal(raw.rows[0]?.recipientUserId, USER_A);
-  assert.equal(Number(raw.rows[0]?.count ?? -1), 2);
+  assert.equal(Number(raw.rows[0]?.count ?? -1), 3);
+
+  // A module update that stops offering a stored style falls back to the
+  // card's new default instead of leaving the member without a style.
+  const updater = new Client({ connectionString: migratorUrl });
+  await updater.connect();
+  try {
+    await updater.query("SET ROLE homi_owner");
+    const updated = manifest("starter-one", "Starter One", "mod_starter_one");
+    updated.extensions.familyBoard.push({
+      surfaceId: "starter-summary",
+      label: "Quick summary",
+      slot: "noticeboard",
+      styles: [
+        { id: "grid", label: "Grid" },
+        { id: "list", label: "List" },
+      ],
+    });
+    parseHomiModuleManifest(updated);
+    await updater.query(
+      "UPDATE core.modules SET manifest = $2::jsonb WHERE id = $1::uuid",
+      [MODULE_A, JSON.stringify(updated)],
+    );
+  } finally {
+    await updater.end();
+  }
+  const aFallback = (await preferences.list(contextA)).find(
+    (item) => item.surfaceId === "starter-summary",
+  );
+  const bKept = (await preferences.list(contextB)).find(
+    (item) => item.surfaceId === "starter-summary",
+  );
+  assert.equal(aFallback?.cardStyle, "grid");
+  assert.equal(bKept?.cardStyle, "grid");
 
   console.log(
     "PASS_57_MEMBER_MODULE_PREFERENCES " +
@@ -346,7 +436,8 @@ try {
       "member-layouts=independent " +
       "private-sync=isolated " +
       "replay=verified " +
-      "conflict=verified",
+      "conflict=verified " +
+      "card-styles=private,validated,replayable,fallback",
   );
 } finally {
   await database.close();

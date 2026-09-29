@@ -1,14 +1,22 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { sql } from "drizzle-orm";
+import { Client } from "pg";
 import { createHomiDatabase } from "@homi/db";
 import {
   HomiHouseholdModuleError,
   createHomiHouseholdModuleService,
 } from "../dist/household-modules.js";
+import { installHomiModule } from "../dist/module-installer.js";
 
 const databaseUrl = process.env.HOMI_TEST_DATABASE_URL;
-if (!databaseUrl) {
-  throw new Error("HOMI_TEST_DATABASE_URL is required.");
+const migratorUrl = process.env.HOMI_TEST_MIGRATOR_DATABASE_URL;
+if (!databaseUrl || !migratorUrl) {
+  throw new Error(
+    "HOMI_TEST_DATABASE_URL and HOMI_TEST_MIGRATOR_DATABASE_URL are required.",
+  );
 }
 
 const USER_ID = "11111111-1111-4111-8111-111111111111";
@@ -24,6 +32,7 @@ const SECOND_PERSON_ID =
 const CLIENT_ID = "55555555-5555-4555-8555-555555555555";
 const ITEM_ID = "99999999-9999-4999-8999-999999999999";
 const REQUEST_ID = "77777777-7777-4777-8777-777777777777";
+const CLIENT_INSTANCE_ID = "66666666-6666-4666-8666-666666666666";
 
 const context = Object.freeze({
   requestId: REQUEST_ID,
@@ -43,6 +52,56 @@ const secondContext = Object.freeze({
   membershipId: SECOND_MEMBERSHIP_ID,
   householdPersonId: SECOND_PERSON_ID,
 });
+
+// Fixture: the public Starter template installed through the real installer,
+// and this user's household, so only a migrated Core database is required.
+const installRoot = await mkdtemp(
+  join(
+    fileURLToPath(new URL("../", import.meta.url)),
+    ".homi-modules-household-service-",
+  ),
+);
+const installed = await installHomiModule({
+  packageDirectory: fileURLToPath(
+    new URL("../../../templates/homi-module-template/", import.meta.url),
+  ),
+  installRoot,
+  databaseUrl: migratorUrl,
+});
+assert.ok(["installed", "already-installed"].includes(installed.status));
+const owner = new Client({ connectionString: migratorUrl });
+await owner.connect();
+try {
+  await owner.query("SET ROLE homi_owner");
+  await owner.query(
+    `INSERT INTO core.users (id, auth_subject, display_name, preferred_locale, time_zone)
+     VALUES ($1::uuid, 'household-service-user', 'Service User', 'en-CA', 'America/Toronto')`,
+    [USER_ID],
+  );
+  await owner.query(
+    `INSERT INTO core.households (id, name, default_locale, time_zone, created_by_user_id)
+     VALUES ($1::uuid, 'Service Home', 'en-CA', 'America/Toronto', $2::uuid)`,
+    [HOUSEHOLD_ID, USER_ID],
+  );
+  await owner.query(
+    `INSERT INTO core.household_memberships (id, household_id, user_id, status)
+     VALUES ($1::uuid, $2::uuid, $3::uuid, 'active')`,
+    [MEMBERSHIP_ID, HOUSEHOLD_ID, USER_ID],
+  );
+  await owner.query(
+    `INSERT INTO core.household_people (id, household_id, linked_membership_id, display_name, status)
+     VALUES ($1::uuid, $2::uuid, $3::uuid, 'Service User', 'active')`,
+    [PERSON_ID, HOUSEHOLD_ID, MEMBERSHIP_ID],
+  );
+  await owner.query(
+    `INSERT INTO core.clients (id, user_id, client_instance_id, label, platform, app_version)
+     VALUES ($1::uuid, $2::uuid, $3::uuid, 'Service Client', 'test', '5.5')`,
+    [CLIENT_ID, USER_ID, CLIENT_INSTANCE_ID],
+  );
+  await owner.query("RESET ROLE");
+} finally {
+  await owner.end();
+}
 
 const configuredHouseholds = new Set();
 
@@ -266,4 +325,5 @@ try {
   );
 } finally {
   await database.close();
+  await rm(installRoot, { recursive: true, force: true });
 }

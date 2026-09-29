@@ -21,6 +21,7 @@ export {
   type HomiModuleExtensionManifest,
   type HomiModuleLocalizationManifest,
   type HomiModuleFamilyBoardManifest,
+  type HomiModuleFamilyBoardStyleManifest,
   type HomiModuleManifest,
   type HomiModuleNavigationManifest,
   type HomiModuleSettingsManifest,
@@ -85,5 +86,6 @@ export {
   type HomiWebModuleSettingsSurfaces,
   type HomiWebModuleSurface,
   type HomiWebModuleSurfaceProps,
+  type HomiWebModuleCardPresentation,
   type HomiWebModuleSyncContributions,
 } from "./module-definition.js";

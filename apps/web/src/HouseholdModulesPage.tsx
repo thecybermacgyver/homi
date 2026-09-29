@@ -390,7 +390,7 @@ export function HouseholdModulesPage({
 
   async function changePreference(
     preference: MemberModulePreferenceSnapshot,
-    patch: { visible?: boolean; displayOrder?: number },
+    patch: { visible?: boolean; displayOrder?: number; cardStyle?: string },
   ): Promise<void> {
     if (busyPreferenceId !== null) return;
     setBusyPreferenceId(preference.id);
@@ -759,6 +759,40 @@ export function HouseholdModulesPage({
                               </>
                             )}
                           </div>
+                          {preference.cardStyles.length > 0 && (
+                            <div
+                              className="homi-platform-module-card__card-style"
+                              role="group"
+                              aria-label={`${preference.label} card style`}
+                            >
+                              <span>Card style</span>
+                              <div>
+                                {preference.cardStyles.map((style) => (
+                                  <Button
+                                    key={style.id}
+                                    variant={
+                                      preference.cardStyle === style.id
+                                        ? "secondary"
+                                        : "quiet"
+                                    }
+                                    aria-pressed={
+                                      preference.cardStyle === style.id
+                                    }
+                                    disabled={busyPreferenceId !== null}
+                                    onClick={() => {
+                                      if (preference.cardStyle !== style.id) {
+                                        void changePreference(preference, {
+                                          cardStyle: style.id,
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    {style.label}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

@@ -36,6 +36,9 @@ export interface LocalCacheRecord {
   sequence: string;
   data: unknown;
   updatedAt: string;
+  // Set when this revision is the result of this device's own applied write,
+  // recording the revision that write replaced. Any later put clears it.
+  localWriteBaseRevision?: string;
 }
 
 export type QueuedMutationStatus =
@@ -693,6 +696,23 @@ export async function applySyncActions(
           if (!dependent) completedMutationIds.push(mutation.clientMutationId);
         }
       }
+      for (const mutation of applied) {
+        if (!completedMutationIds.includes(mutation.clientMutationId)) continue;
+        const key = cacheRecordKey({
+          authSubject,
+          householdId,
+          moduleKey: mutation.moduleKey,
+          entityType: mutation.entityType,
+          entityId: mutation.entityId,
+        });
+        const cached = await homiClientDb.cache.get(key);
+        if (cached && cached.revision === mutation.serverRevision) {
+          await homiClientDb.cache.put({
+            ...cached,
+            localWriteBaseRevision: mutation.baseRevision,
+          });
+        }
+      }
       if (completedMutationIds.length > 0) {
         await homiClientDb.mutations.bulkDelete(completedMutationIds);
       }
@@ -731,6 +751,7 @@ export async function enqueueMutation(
   return homiClientDb.transaction(
     "rw",
     homiClientDb.meta,
+    homiClientDb.cache,
     homiClientDb.mutations,
     async () => {
       const orderKey = mutationOrderKey(authSubject, input.householdId);
@@ -744,13 +765,17 @@ export async function enqueueMutation(
         throw new Error("Mutation order exceeded the safe integer range");
       }
       const timestamp = now();
-      const prior = (await homiClientDb.mutations
+      const sameEntity = (await homiClientDb.mutations
         .where("[authSubject+householdId]")
         .equals([authSubject, input.householdId])
         .filter(row => row.moduleKey === input.moduleKey &&
-          row.entityType === input.entityType && row.entityId === input.entityId &&
-          (row.status === "queued" || row.status === "sending"))
-        .toArray()).sort((a,b) => b.queueOrder - a.queueOrder)[0];
+          row.entityType === input.entityType && row.entityId === input.entityId)
+        .toArray()).sort((a,b) => a.queueOrder - b.queueOrder);
+      const prior = sameEntity.filter(row =>
+        row.status === "queued" || row.status === "sending").at(-1);
+      const baseRevision = prior
+        ? input.baseRevision
+        : await ownWriteRevision(authSubject, input, sameEntity);
       const mutation: QueuedMutation = {
         clientMutationId: crypto.randomUUID(),
         authSubject,
@@ -761,7 +786,7 @@ export async function enqueueMutation(
         entityType: input.entityType,
         entityId: input.entityId,
         operation: input.operation,
-        baseRevision: input.baseRevision,
+        baseRevision,
         payload: input.payload,
         status: "queued",
         attempts: 0,
@@ -778,6 +803,50 @@ export async function enqueueMutation(
       return mutation;
     },
   );
+}
+
+// A caller can still hold the revision its view had before this device's own
+// write was delivered (for example ticking an item moments after adding it).
+// Like a dependent pending write, the new write continues from that own
+// write's actual server revision. Changes from any other device or member are
+// never skipped: they leave the cache without this device's lineage, so the
+// server still reports the conflict.
+async function ownWriteRevision(
+  authSubject: string,
+  input: {
+    householdId: string;
+    moduleKey: string;
+    entityType: string;
+    entityId: string;
+    baseRevision: string;
+  },
+  sameEntity: readonly QueuedMutation[],
+): Promise<string> {
+  let revision = input.baseRevision;
+  for (const receipt of sameEntity) {
+    if (
+      receipt.status === "applied" &&
+      receipt.baseRevision === revision &&
+      receipt.serverRevision &&
+      compareIntegerStrings(receipt.serverRevision, revision) > 0
+    ) {
+      revision = receipt.serverRevision;
+    }
+  }
+  const cached = await homiClientDb.cache.get(cacheRecordKey({
+    authSubject,
+    householdId: input.householdId,
+    moduleKey: input.moduleKey,
+    entityType: input.entityType,
+    entityId: input.entityId,
+  }));
+  if (
+    cached?.localWriteBaseRevision === revision &&
+    compareIntegerStrings(cached.revision, revision) > 0
+  ) {
+    revision = cached.revision;
+  }
+  return revision;
 }
 
 export async function getQueuedMutations(
@@ -1147,14 +1216,16 @@ export async function recoverInterruptedMutations(
 ): Promise<number> {
   requireUuid(authSubject, "authSubject");
 
+  // Module conflicts and rejections stay until the member reviews or dismisses
+  // them, and retrying writes are never discarded. Core's own entities have no
+  // review surface and already hold the authoritative server state.
   const stale = await homiClientDb.mutations
     .where("authSubject")
     .equals(authSubject)
     .and(
       (mutation) =>
-        mutation.status === "rejected" ||
-        mutation.status === "conflict" ||
-        mutation.attempts >= 3,
+        mutation.moduleKey === "core" &&
+        (mutation.status === "rejected" || mutation.status === "conflict"),
     )
     .primaryKeys();
   if (stale.length > 0) {

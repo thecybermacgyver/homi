@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { register } from "node:module";
+import { readFileSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -11,12 +13,19 @@ import { createHomiHouseholdModuleService } from "../dist/household-modules.js";
 import { createHomiMemberModulePreferenceService } from "../dist/member-module-preferences.js";
 import { createHomiModuleSyncService } from "../dist/module-sync.js";
 
+// Load the shipped web artifact with the shell's runtime bridges resolved.
+register("./module-runtime-loader.mjs", import.meta.url);
+
 const migratorUrl = process.env.HOMI_TEST_MIGRATOR_DATABASE_URL;
 const appUrl = process.env.HOMI_TEST_APP_DATABASE_URL;
 if (!migratorUrl || !appUrl) throw new Error("HOMI_TEST_MIGRATOR_DATABASE_URL and HOMI_TEST_APP_DATABASE_URL are required.");
 
 const packageDirectory = fileURLToPath(new URL("../../../packages/chequebook/", import.meta.url));
 const coreRoot = fileURLToPath(new URL("../", import.meta.url));
+// Validate the Chequebook package as it is in this repository.
+const CHEQUEBOOK_VERSION = JSON.parse(
+  readFileSync(join(packageDirectory, "homi.module.json"), "utf8"),
+).version;
 const installRoot = await mkdtemp(join(coreRoot, ".homi-modules-chequebook01-"));
 const USER = "11111111-1111-4111-8111-111111111111";
 const HOUSEHOLD = "22222222-2222-4222-8222-222222222222";
@@ -54,7 +63,7 @@ try {
   const installed = await installHomiModule({ packageDirectory, installRoot, databaseUrl: migratorUrl });
   assert.equal(installed.status, "installed");
   assert.equal(installed.moduleKey, "chequebook");
-  assert.equal(installed.version, "0.1.11");
+  assert.equal(installed.version, CHEQUEBOOK_VERSION);
   assert.deepEqual(installed.appliedMigrations, ["0000_chequebook_initial.sql"]);
 
   await ownerQuery(

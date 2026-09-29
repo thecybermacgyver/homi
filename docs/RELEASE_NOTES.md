@@ -1,12 +1,12 @@
 # Homi first public pre-1.0 release
 
-Status: first public pre-1.0 release.
+Status: release candidate. These notes describe the intended first public release; they are not a publication announcement.
 
 ## Included
 
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
-- Calendar 0.6.9.
-- Chequebook 0.1.12.
+- Calendar 0.6.7 release candidate.
+- Chequebook 0.1.11.
 - Public `@homi/module-sdk`, `@homi/ui`, and the starter module template.
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement and per-member Dashboard visibility/order.
@@ -24,13 +24,14 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 
 - Homi is pre-1.0. Public module APIs are versioned, but breaking changes may still occur before 1.0 and will be documented.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
-- The first public catalogue contains the first-party Calendar and Chequebook packages. The reusable starter template remains in source; no demo module is published.
+- The first public catalogue contains only first-party Calendar and Chequebook packages plus the starter/demo package.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.
 - Module installation and lifecycle changes require a household administrator; ordinary members control only their own Dashboard visibility and card order.
+- Repository publication remains blocked until the release checklist passes and the owner explicitly approves visibility.
 
 ## Validation status
 
-The release passed clean installation, first-account bootstrap, dependency and security review, authenticated accessibility, multi-device synchronization, offline reconnect, PWA update, backup restoration, full module lifecycle and rollback, and CI. Exact evidence is recorded in [the public-release checklist](RELEASE_CHECKLIST.md). Private operator domains and deployment configuration are not part of the public release.
+The release candidate has passed clean installation, first-account bootstrap, dependency/security review, backup restoration, full module lifecycle/rollback, and GitHub CI. Remaining evidence is tracked in [the public-release checklist](RELEASE_CHECKLIST.md), including authenticated accessibility, multi-device synchronization, offline reconnect, PWA update, and final public asset checks.
 
 ## Actual application screens
 

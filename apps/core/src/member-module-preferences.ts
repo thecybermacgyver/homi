@@ -14,12 +14,20 @@ export interface HomiMemberModulePreference {
   readonly label: string;
   readonly visible: boolean;
   readonly displayOrder: number;
+  readonly cardStyle: string | null;
+  readonly cardStyles: readonly HomiMemberCardStyle[];
   readonly revision: bigint;
+}
+
+export interface HomiMemberCardStyle {
+  readonly id: string;
+  readonly label: string;
 }
 
 export interface HomiMemberModulePreferencePayload {
   readonly visible?: boolean;
   readonly displayOrder?: number;
+  readonly cardStyle?: string;
 }
 
 export interface HomiMemberModulePreferenceMutationInput {
@@ -36,6 +44,8 @@ export interface HomiMemberModulePreferenceMutationServerState {
   readonly label: string;
   readonly visible: boolean;
   readonly displayOrder: number;
+  readonly cardStyle: string | null;
+  readonly cardStyles: readonly HomiMemberCardStyle[];
   readonly revision: string;
 }
 
@@ -79,6 +89,8 @@ interface CatalogRow {
   preferenceId: string | null;
   visible: boolean | null;
   displayOrder: number | null;
+  cardStyle: string | null;
+  styles: unknown;
   revision: string | null;
 }
 
@@ -90,6 +102,8 @@ interface StoredPreferenceRow {
   label: string;
   visible: boolean;
   displayOrder: number;
+  cardStyle: string | null;
+  styles: unknown;
   revision: string;
 }
 
@@ -144,9 +158,34 @@ function requestHash(
     })))
     .digest("hex");
 }
+// Styles come from the installed manifest, which the SDK validated on install.
+function cardStyles(value: unknown): readonly HomiMemberCardStyle[] {
+  if (!Array.isArray(value)) return Object.freeze([]);
+  return Object.freeze(value.flatMap((style: unknown) => {
+    if (typeof style !== "object" || style === null) return [];
+    const { id, label } = style as Record<string, unknown>;
+    return typeof id === "string" && typeof label === "string"
+      ? [Object.freeze({ id, label })]
+      : [];
+  }));
+}
+
+// A stored style the current module version no longer offers falls back to
+// the default, so a module update never leaves a card without a style.
+function effectiveCardStyle(
+  stored: string | null,
+  styles: readonly HomiMemberCardStyle[],
+): string | null {
+  if (styles.length === 0) return null;
+  return styles.some((style) => style.id === stored)
+    ? stored
+    : styles[0]!.id;
+}
+
 function snapshot(
   row: StoredPreferenceRow,
 ): HomiMemberModulePreference {
+  const styles = cardStyles(row.styles);
   return Object.freeze({
     id: row.id,
     moduleId: row.moduleId,
@@ -155,6 +194,8 @@ function snapshot(
     label: row.label,
     visible: row.visible,
     displayOrder: row.displayOrder,
+    cardStyle: effectiveCardStyle(row.cardStyle, styles),
+    cardStyles: styles,
     revision: BigInt(row.revision),
   });
 }
@@ -181,6 +222,9 @@ function mutationResult(
             label: state.label,
             visible: state.visible,
             displayOrder: state.displayOrder,
+            // Receipts stored before card styles existed lack these fields.
+            cardStyle: state.cardStyle ?? null,
+            cardStyles: state.cardStyles ?? [],
             revision: state.revision,
           }),
     replayed,
@@ -202,6 +246,8 @@ async function catalogRows(
       p.id AS "preferenceId",
       p.visible,
       p.display_order AS "displayOrder",
+      p.card_style AS "cardStyle",
+      contribution.value -> 'styles' AS styles,
       p.revision::text AS revision
     FROM core.household_modules AS hm
     JOIN core.modules AS m
@@ -296,6 +342,8 @@ async function ensurePreferences(
           label: row.label,
           visible: row.visible,
           displayOrder: row.displayOrder,
+          cardStyle: row.cardStyle,
+          styles: row.styles,
           revision: row.revision,
         });
       }),
@@ -328,8 +376,19 @@ function validatePayload(
     );
   }
   if (
+    input.payload.cardStyle !== undefined &&
+    !/^[a-z][a-z0-9-]{0,63}$/.test(input.payload.cardStyle)
+  ) {
+    throw new HomiMemberModulePreferenceError(
+      400,
+      "MODULE_PREFERENCE_CARD_STYLE_INVALID",
+      "cardStyle must be a card style identifier.",
+    );
+  }
+  if (
     input.payload.visible === undefined &&
-    input.payload.displayOrder === undefined
+    input.payload.displayOrder === undefined &&
+    input.payload.cardStyle === undefined
   ) {
     throw new HomiMemberModulePreferenceError(
       400,
@@ -455,6 +514,18 @@ export function createHomiMemberModulePreferenceService(
             ) AS label,
             p.visible,
             p.display_order AS "displayOrder",
+            p.card_style AS "cardStyle",
+            (
+              SELECT contribution.value -> 'styles'
+              FROM jsonb_array_elements(
+                COALESCE(
+                  m.manifest -> 'extensions' -> 'familyBoard',
+                  '[]'::jsonb
+                )
+              ) AS contribution(value)
+              WHERE contribution.value ->> 'surfaceId' = p.surface_id
+              LIMIT 1
+            ) AS styles,
             p.revision::text AS revision
           FROM core.household_member_module_preferences AS p
           JOIN core.modules AS m
@@ -470,12 +541,21 @@ export function createHomiMemberModulePreferenceService(
         const current =
           currentResult.rows[0] as StoredPreferenceRow | undefined;
 
-        if (!current) {
+        const undeclaredStyle =
+          current !== undefined &&
+          input.payload.cardStyle !== undefined &&
+          !cardStyles(current.styles).some(
+            (style) => style.id === input.payload.cardStyle,
+          );
+        if (!current || undeclaredStyle) {
+          const errorCode = current
+            ? "MODULE_PREFERENCE_CARD_STYLE_UNDECLARED"
+            : "MODULE_PREFERENCE_NOT_FOUND";
           const rejectedResult = await tx.execute(sql`
             UPDATE core.sync_mutations
             SET
               status = 'rejected',
-              error_code = 'MODULE_PREFERENCE_NOT_FOUND'
+              error_code = ${errorCode}
             WHERE client_id = CAST(${clientId} AS uuid)
               AND client_mutation_id =
                 CAST(${input.clientMutationId} AS uuid)
@@ -540,12 +620,15 @@ export function createHomiMemberModulePreferenceService(
           input.payload.visible ?? current.visible;
         const nextDisplayOrder =
           input.payload.displayOrder ?? current.displayOrder;
+        const nextCardStyle =
+          input.payload.cardStyle ?? current.cardStyle;
 
         const updatedResult = await tx.execute(sql`
           UPDATE core.household_member_module_preferences
           SET
             visible = ${nextVisible},
             display_order = ${nextDisplayOrder},
+            card_style = ${nextCardStyle},
             revision = revision + 1,
             updated_at = now()
           WHERE id = CAST(${current.id} AS uuid)
@@ -562,6 +645,7 @@ export function createHomiMemberModulePreferenceService(
           );
         }
 
+        const styles = cardStyles(current.styles);
         const serverState = JSON.stringify({
           id: current.id,
           moduleId: current.moduleId,
@@ -570,6 +654,8 @@ export function createHomiMemberModulePreferenceService(
           label: current.label,
           visible: nextVisible,
           displayOrder: nextDisplayOrder,
+          cardStyle: effectiveCardStyle(nextCardStyle, styles),
+          cardStyles: styles,
           revision: updated.revision,
         });
         const auditMetadata = JSON.stringify({
@@ -578,11 +664,13 @@ export function createHomiMemberModulePreferenceService(
           before: {
             visible: current.visible,
             displayOrder: current.displayOrder,
+            cardStyle: current.cardStyle,
             revision: current.revision,
           },
           after: {
             visible: nextVisible,
             displayOrder: nextDisplayOrder,
+            cardStyle: nextCardStyle,
             revision: updated.revision,
           },
         });

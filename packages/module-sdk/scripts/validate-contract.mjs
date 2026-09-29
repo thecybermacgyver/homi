@@ -198,4 +198,54 @@ rejectsManifest(
   /moduleKey has an invalid format/,
 );
 
+assert.equal(
+  Object.hasOwn(parsed.extensions.familyBoard[0], "styles"),
+  false,
+);
+const styledHomeCard = copy(template);
+styledHomeCard.extensions.familyBoard[0].styles = [
+  { id: "items", label: "List" },
+  { id: "store-counts", label: "Counts by store" },
+];
+assert.deepEqual(
+  parseHomiModuleManifest(styledHomeCard).extensions.familyBoard[0].styles,
+  [
+    { id: "items", label: "List" },
+    { id: "store-counts", label: "Counts by store" },
+  ],
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].styles = [{ id: "items", label: "List" }];
+  },
+  /between 2 and 6 card styles/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].styles = [
+      { id: "items", label: "List" },
+      { id: "items", label: "Again" },
+    ];
+  },
+  /style IDs must be unique/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].styles = [
+      { id: "items", label: "List", icon: "x" },
+      { id: "counts", label: "Counts" },
+    ];
+  },
+  /unknown field 'icon'/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].styles = [
+      { id: "Items", label: "List" },
+      { id: "counts", label: "Counts" },
+    ];
+  },
+  /invalid format/,
+);
+
 console.log("PASS_MODULE_SDK_MANIFEST_COMPATIBILITY_CONTRACT");

@@ -2,16 +2,16 @@
 
 Roadmap corrected 2026-09-18 by explicit product-direction decision: Homi itself must be a complete empty platform, design system, and module host before feature-module development is treated as the active roadmap. Do not renumber these corrected Master Steps without a later explicit decision.
 
-Publication decision 2026-09-23: Homi is licensed under AGPL-3.0 and released from a clean public snapshot. Private deployment domains, credentials, data, backup records, and internal engineering history remain private.
+Publication decision 2026-09-21: Homi is licensed under AGPL-3.0. Keep the GitHub repository private until the final readiness gates pass and more modules are built; public visibility still requires explicit approval at that later checkpoint.
 
 1. Product framing — COMPLETE
 2. UX targets — COMPLETE
 3. Smallest Core — COMPLETE
 4. Synchronization — COMPLETE
 5. Homi application shell, design system, and module platform — COMPLETE
-6. First-party Calendar module — COMPLETE; Calendar 0.6.9 is validated and deployed through the managed module lifecycle
-7. Calendar multi-device test — COMPLETE
-8. Expand first-party/community modules — COMPLETE for the first public release; Chequebook 0.1.12 and Calendar 0.6.9 are validated, installed, enabled, and connected through gated public broker contracts; Core-owned contextual Search/Add, generic missing-capability status, and the signed private-GitHub directory with isolated backup-first admin installation are implemented
+6. First-party Calendar module — COMPLETE; Calendar 0.6.5 is validated locally and deployed in production through the managed module lifecycle
+7. Calendar multi-device test — PENDING
+8. Expand first-party/community modules — IN PROGRESS; Chequebook 0.1.11 and Calendar 0.6.5 are validated, installed, enabled, and connected through gated public broker contracts; Core-owned contextual Search/Add, generic missing-capability status, and the signed private-GitHub directory with isolated backup-first admin installation are implemented
 
 ## Master Step 5 — Homi platform progress
 
@@ -33,7 +33,7 @@ The customized OpenFamily installation is an explicit functional parity floor fo
 
 ## Master Step 8 — First-party/community module expansion — IN PROGRESS
 
-The signed GitHub module directory is now wired into the Modules page and the isolated internal manager. Admins can install/update a verified immutable release independently of household enablement; the manager creates a database-and-artifact recovery set first, and the existing installer provides transactional rollback. Production deployment and end-to-end acceptance of this path pass. The first public-release gates—module lifecycle, multi-device synchronization, offline/PWA behavior, security, accessibility, clean installation, recovery, and owner approval—are complete. Additional modules continue as post-release expansion.
+The signed private-GitHub module directory is now wired into the Modules page and the isolated internal manager. Admins can install/update a verified immutable release independently of household enablement; the manager creates a database-and-artifact recovery set first, and the existing installer provides transactional rollback. Production deployment and end-to-end acceptance of this path pass. Remaining Step 8 release gates include building additional modules, multi-device Calendar acceptance, security/accessibility review, and explicit user approval before making GitHub public.
 
 Chequebook 0.1.1 is the first Step 8 module slice. It is an independently packaged managed module covering accounts/opening balances, income/expenses/transfers, cleared and reconciled state, recurring items, forecasts, category limits/alerts/analytics, Calendar broker linkage, three Family Board cards, and offline synchronization adapters. The permanent real PostgreSQL gate passes install, setup, mutation replay/conflict behavior, recurring/budget/forecast behavior, disable/re-enable preservation, Home cards, and the web contract. Production backups were validated before installation and again before 0.1.1 at `20260920-203331`; the current managed artifact digest is `sha256:385ddc0ff45b002efbb7b96e7c688b82ab0641d53bd8a78f103a8128596c3fb3`; the module is installed and enabled for `the household` at revision 1; and promoted Core image `sha256:49be37232253df0eb902a8d1acc58a6befad1c948be8bcb708c173ab09bb4eae` is healthy. User-owned initial setup is complete. Version 0.1.1 places recurrence selection directly in Add/Edit Transaction with daily, weekly, monthly, yearly, interval, and optional end-date controls while retaining the Recurring management tab; real PostgreSQL acceptance proves transaction recurrence attachment/detachment.
 

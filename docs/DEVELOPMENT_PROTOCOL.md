@@ -71,6 +71,25 @@ A Git commit becomes authoritative only after its intended behavior is validated
 
 A later experimental commit does not erase an earlier proven state. If an experiment is premature or wrong, remove or revert it cleanly.
 
+### Database-backed Core validators
+
+`apps/core/scripts/validate-*.mjs` scripts that read `HOMI_TEST_*` URLs run
+against real PostgreSQL. Each creates its own fixture and must start from a
+fresh database with only Core migrations applied (`packages/db` migrate), so
+run each one on its own new database; never against a real household database.
+Build the workspace first (`pnpm -r build`) so the template and module
+artifacts they install exist. They are not in CI, so run them whenever Core
+lifecycle, sync, installer, or module-contract code changes:
+
+- `HOMI_TEST_MIGRATOR_DATABASE_URL` and `HOMI_TEST_APP_DATABASE_URL` for all;
+  `HOMI_TEST_DATABASE_URL` (app role) for household-module-service;
+  `HOMI_TEST_MODULES_DIRECTORY` (empty directory) for module-runtime-56 and
+  module-runtime-assets-56, which runs module-runtime-56 first on a fresh fixture.
+
+Validators derive module versions and sync cardinality from the packages in the
+repository and schedule time-dependent fixtures relative to the run date, so
+they do not go stale as modules are released.
+
 ## Synchronization-specific rules
 
 - Server remains authoritative.
@@ -89,7 +108,7 @@ Laptop development repository:
 `~/Homi`
 
 Server repository:
-`/srv/homi`
+`~/Homi`
 
 Server currently runs Homi through Docker Compose.
 

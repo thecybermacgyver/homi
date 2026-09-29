@@ -5,7 +5,7 @@ import { defineHomiWebModule, HOMI_MODULE_API_VERSION, type HomiHouseholdPerson,
 import { BottomSheet, Button, Checkbox, FormField, Select, TextField } from "@homi/ui";
 import { AISLES, SHOPPING_MODULE_KEY, normalized } from "./constants.js";
 import { parseShoppingItem, parseShoppingWorkingItem, shoppingItemChangeHandler, shoppingItemMutationAdapter } from "./sync.js";
-import { payload, placement } from "./projection.js";
+import { payload, placement, storeCounts } from "./projection.js";
 import type { ShoppingItem } from "./types.js";
 
 const css = `
@@ -38,6 +38,12 @@ const css = `
 .shopping-board .shopping-row .homi-ui-check {font-size:1.15rem}
 .shopping-board button {touch-action:manipulation}
 .shopping-board-footer {margin-top:.75rem}
+.shopping-counts {list-style:none;margin:0;padding:0}
+.shopping-count {display:flex;justify-content:space-between;align-items:baseline;gap:1rem;min-height:40px;font-size:1.12rem;font-weight:600;border-bottom:1px solid var(--homi-border)}
+.shopping-count:last-child {border-bottom:0}
+.shopping-count span:first-child {overflow-wrap:anywhere;min-width:0}
+.shopping-count-total {font-size:1.25rem}
+.shopping-count-value {font-variant-numeric:tabular-nums}
 `;
 
 async function getData(path: string, props: HomiWebModuleSurfaceProps, signal?: AbortSignal): Promise<unknown> {
@@ -250,16 +256,23 @@ function ShoppingPage(props:HomiWebModuleSurfaceProps) {
 function ShoppingBoard(props:HomiWebModuleSurfaceProps) {
   const data=useShopping(props);
   const active=data.items.filter(item=>!item.checked);
+  // Each member chooses the card style on the Modules page; Homi passes it in.
+  const counts=props.presentation?.cardStyle==="store-counts";
   return <div className="shopping shopping-board" onClick={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
     <style>{css}</style>
-    <ul className="shopping-list">{active.slice(0,9).map(item=><li className="shopping-row" key={item.id}>
+    {counts?active.length>0&&<ul className="shopping-counts" aria-label="Items to buy by store">
+      <li className="shopping-count shopping-count-total"><span>All stores</span><span className="shopping-count-value">{active.length}</span></li>
+      {storeCounts(data.items).map(([store,count])=><li className="shopping-count" key={store}>
+        <span>{store}</span><span className="shopping-count-value">{count}</span>
+      </li>)}
+    </ul>:<ul className="shopping-list">{active.slice(0,9).map(item=><li className="shopping-row" key={item.id}>
       <Checkbox label={label(item)} checked={false} disabled={data.busy} onChange={()=>void data.toggle(item)}/>
-    </li>)}</ul>
+    </li>)}</ul>}
     {data.loaded&&active.length===0&&<p className="shopping-status">Nothing to pick up.</p>}
     {data.error&&<p className="shopping-error" role="alert">{data.error}</p>}
     {data.failures.length>0&&<p className="shopping-error" role="alert">Open your list to review a change.</p>}
     {data.pending>0&&!props.context.online&&<p className="shopping-status">Saved offline</p>}
-    <div className="shopping-board-footer"><Button variant="quiet" onClick={()=>props.actions.navigate("/modules/shopping")}>{active.length>9?"+ "+(active.length-9)+" more · Open list":"Open list"}</Button></div>
+    <div className="shopping-board-footer"><Button variant="quiet" onClick={()=>props.actions.navigate("/modules/shopping")}>{!counts&&active.length>9?"+ "+(active.length-9)+" more · Open list":"Open list"}</Button></div>
   </div>;
 }
 export function createHomiWebModule() {

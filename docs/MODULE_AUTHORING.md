@@ -98,6 +98,30 @@ Normal UI uses `@homi/ui` components and semantic tokens so first-party and comm
 
 Homi dynamically mounts enabled web modules from the authoritative installed-module registry. Navigation, setup/settings hosting, Homi-owned Family Board slot placement, and synchronization contribution registration are platform responsibilities; modules provide content and behavior through the public SDK rather than editing the Homi shell.
 
+### Family Board card styles
+
+A Family Board contribution may offer each member a choice of card styles:
+
+```json
+{
+  "surfaceId": "shopping-list",
+  "label": "Shopping List",
+  "slot": "noticeboard",
+  "styles": [
+    { "id": "items", "label": "List" },
+    { "id": "store-counts", "label": "Counts by store" }
+  ]
+}
+```
+
+Declare two to six styles; the first is the default. Core shows the choice in
+that card's "My Homi cards" row on the Modules page beside Show/Hide and ordering,
+stores it with the member's other card preferences, and synchronises it only to
+that member's devices. The card surface receives
+`props.presentation.cardStyle` and renders accordingly. A stored style the
+current module version no longer declares falls back to the default. Modules do
+not store or synchronise card presentation themselves.
+
 Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Modules must not create competing fixed-position Search or Add buttons.
 
 ## Setup and settings
@@ -132,6 +156,18 @@ increment and never rewrites a request once a send has been attempted. A failed
 predecessor blocks dependent writes with retained reviewable payloads; unrelated
 entities/modules continue. Reconciliation retains receipts needed by undelivered
 dependents. `dismissMutation` cannot release dependent edits for silent delivery.
+
+A module view may still show the revision it read before this device's own
+write was delivered, for example when a member ticks an item moments after
+adding it. When a new write's base revision is one that this device's own
+applied write replaced, Core continues from that write's actual server revision,
+exactly as for a pending dependency. Changes from any other device or member are
+never skipped and still produce a conflict.
+
+Conflict and rejection receipts for module entities remain in `listMutations()`
+until the member reviews them and the module calls `dismissMutation`; Core never
+purges them, and writes that are still retrying are never discarded. Every
+synchronised module therefore needs a way to present and dismiss them.
 
 ## Cross-module integration
 

@@ -91,6 +91,7 @@ export function createHomiRequestContextResolver(
           userTimeZone: users.timeZone,
           householdLocale: households.defaultLocale,
           householdTimeZone: households.timeZone,
+          passwordChangeRequired: users.passwordChangeRequired,
         })
         .from(users)
         .innerJoin(
@@ -135,6 +136,16 @@ export function createHomiRequestContextResolver(
           403,
           "HOUSEHOLD_ACCESS_DENIED",
           "The authenticated user does not have access to this household.",
+        );
+      }
+
+      // A temporary password set by an administrator grants nothing but the
+      // account endpoints until the member chooses a new password.
+      if (row.passwordChangeRequired) {
+        throw new HomiContextError(
+          403,
+          "PASSWORD_CHANGE_REQUIRED",
+          "Choose a new password before using Homi.",
         );
       }
 

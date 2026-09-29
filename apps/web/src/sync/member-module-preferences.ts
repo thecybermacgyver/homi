@@ -11,6 +11,12 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MODULE_KEY_PATTERN = /^[a-z][a-z0-9-]{1,63}$/;
 const POSITIVE = /^[1-9][0-9]*$/;
+const CARD_STYLE_PATTERN = /^[a-z][a-z0-9-]{0,63}$/;
+
+export interface MemberCardStyle {
+  readonly id: string;
+  readonly label: string;
+}
 
 export interface MemberModulePreferenceSnapshot {
   readonly id: string;
@@ -20,12 +26,16 @@ export interface MemberModulePreferenceSnapshot {
   readonly label: string;
   readonly visible: boolean;
   readonly displayOrder: number;
+  // Null when the card declares no styles; otherwise the effective style.
+  readonly cardStyle: string | null;
+  readonly cardStyles: readonly MemberCardStyle[];
   readonly revision: string;
 }
 
 export interface MemberModulePreferencePatch {
   readonly visible?: boolean;
   readonly displayOrder?: number;
+  readonly cardStyle?: string;
 }
 export class MemberModulePreferencesError extends Error {
   readonly status: number | undefined;
@@ -65,10 +75,41 @@ function exactKeys(
   );
 }
 
+function parseCardStyles(value: unknown): readonly MemberCardStyle[] | null {
+  if (!Array.isArray(value)) return null;
+  const styles: MemberCardStyle[] = [];
+  for (const style of value) {
+    if (
+      !isObject(style) ||
+      !exactKeys(style, ["id", "label"]) ||
+      typeof style.id !== "string" ||
+      !CARD_STYLE_PATTERN.test(style.id) ||
+      typeof style.label !== "string" ||
+      style.label.trim().length === 0
+    ) {
+      return null;
+    }
+    styles.push(Object.freeze({ id: style.id, label: style.label }));
+  }
+  return Object.freeze(styles);
+}
+
+// Records cached before card styles existed are read as unstyled until the
+// next authoritative refresh replaces them.
+function upgradeCachedPreference(value: unknown): unknown {
+  return isObject(value) &&
+    !Object.hasOwn(value, "cardStyle") &&
+    !Object.hasOwn(value, "cardStyles")
+    ? { ...value, cardStyle: null, cardStyles: [] }
+    : value;
+}
+
 function parsePreference(
   value: unknown,
 ): MemberModulePreferenceSnapshot | null {
+  const cardStyles = isObject(value) ? parseCardStyles(value.cardStyles) : null;
   if (
+    cardStyles === null ||
     !isObject(value) ||
     !exactKeys(value, [
       "id",
@@ -78,6 +119,8 @@ function parsePreference(
       "label",
       "visible",
       "displayOrder",
+      "cardStyle",
+      "cardStyles",
       "revision",
     ]) ||
     typeof value.id !== "string" ||
@@ -94,6 +137,9 @@ function parsePreference(
     typeof value.displayOrder !== "number" ||
     !Number.isSafeInteger(value.displayOrder) ||
     value.displayOrder < 0 ||
+    (cardStyles.length === 0
+      ? value.cardStyle !== null
+      : !cardStyles.some((style) => style.id === value.cardStyle)) ||
     typeof value.revision !== "string" ||
     !POSITIVE.test(value.revision)
   ) {
@@ -108,6 +154,8 @@ function parsePreference(
     label: value.label,
     visible: value.visible,
     displayOrder: value.displayOrder,
+    cardStyle: value.cardStyle as string | null,
+    cardStyles,
     revision: value.revision,
   });
 }
@@ -129,8 +177,8 @@ function validateIdentity(
 
 function validatePatch(
   patch: MemberModulePreferencePatch,
-): Record<string, boolean | number> {
-  const output: Record<string, boolean | number> = {};
+): Record<string, boolean | number | string> {
+  const output: Record<string, boolean | number | string> = {};
   if (patch.visible !== undefined) {
     if (typeof patch.visible !== "boolean") {
       throw new MemberModulePreferencesError(
@@ -152,6 +200,18 @@ function validatePatch(
       );
     }
     output.displayOrder = patch.displayOrder;
+  }
+  if (patch.cardStyle !== undefined) {
+    if (
+      typeof patch.cardStyle !== "string" ||
+      !CARD_STYLE_PATTERN.test(patch.cardStyle)
+    ) {
+      throw new MemberModulePreferencesError(
+        "MEMBER_MODULE_PREFERENCES_INVALID_INPUT",
+        "cardStyle must be a card style identifier.",
+      );
+    }
+    output.cardStyle = patch.cardStyle;
   }
   if (Object.keys(output).length === 0) {
     throw new MemberModulePreferencesError(
@@ -317,7 +377,7 @@ export async function getCachedMemberModulePreferences(
   const preferences: MemberModulePreferenceSnapshot[] = [];
   const invalidRows = [];
   for (const row of rows) {
-    const preference = parsePreference(row.data);
+    const preference = parsePreference(upgradeCachedPreference(row.data));
     if (
       !preference ||
       preference.id.toLowerCase() !== row.entityId.toLowerCase() ||
@@ -392,6 +452,13 @@ export async function getEffectiveMemberModulePreferences(
       mutation.payload.displayOrder >= 0
         ? mutation.payload.displayOrder
         : current.displayOrder;
+    const cardStyle =
+      typeof mutation.payload.cardStyle === "string" &&
+      current.cardStyles.some(
+        (style) => style.id === mutation.payload.cardStyle,
+      )
+        ? mutation.payload.cardStyle
+        : current.cardStyle;
 
     byId.set(
       current.id,
@@ -399,6 +466,7 @@ export async function getEffectiveMemberModulePreferences(
         ...current,
         visible,
         displayOrder,
+        cardStyle,
       }),
     );
   }

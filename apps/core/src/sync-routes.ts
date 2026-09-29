@@ -180,14 +180,18 @@ function parseMemberModulePreferencePayload(
   }
 
   const input = value as Record<string, unknown>;
-  const allowed = new Set(["visible", "displayOrder"]);
+  const allowed = new Set(["visible", "displayOrder", "cardStyle"]);
   for (const key of Object.keys(input)) {
     if (!allowed.has(key)) {
       validationError(`Unknown payload field '${key}'.`);
     }
   }
 
-  const payload: { visible?: boolean; displayOrder?: number } = {};
+  const payload: {
+    visible?: boolean;
+    displayOrder?: number;
+    cardStyle?: string;
+  } = {};
   if (input.visible !== undefined) {
     if (typeof input.visible !== "boolean") {
       validationError("payload.visible must be a boolean.");
@@ -206,9 +210,18 @@ function parseMemberModulePreferencePayload(
     }
     payload.displayOrder = input.displayOrder as number;
   }
+  if (input.cardStyle !== undefined) {
+    if (
+      typeof input.cardStyle !== "string" ||
+      !/^[a-z][a-z0-9-]{0,63}$/.test(input.cardStyle)
+    ) {
+      validationError("payload.cardStyle must be a card style identifier.");
+    }
+    payload.cardStyle = input.cardStyle;
+  }
   if (Object.keys(payload).length === 0) {
     validationError(
-      "payload must contain visible or displayOrder.",
+      "payload must contain visible, displayOrder, or cardStyle.",
     );
   }
   return payload;

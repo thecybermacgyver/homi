@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import Fastify from "fastify";
 import { Client } from "pg";
 import { createHomiDatabase } from "@homi/db";
+import { fileURLToPath } from "node:url";
+import { installHomiModule } from "../dist/module-installer.js";
 import { loadHomiServerModules } from "../dist/module-host.js";
 import {
   createHomiHouseholdModuleService,
@@ -51,6 +53,20 @@ const context = Object.freeze({
   locale: "en-CA",
   timeZone: "America/Toronto",
 });
+
+// The runtime under test is the public Starter template, installed through the
+// real installer so the fixture needs only a migrated Core database.
+const installedStarter = await installHomiModule({
+  packageDirectory: fileURLToPath(
+    new URL("../../../templates/homi-module-template/", import.meta.url),
+  ),
+  installRoot,
+  databaseUrl: migratorUrl,
+});
+assert.ok(
+  ["installed", "already-installed"].includes(installedStarter.status),
+  `Starter template installation returned ${installedStarter.status}.`,
+);
 
 const migrator = new Client({ connectionString: migratorUrl });
 await migrator.connect();

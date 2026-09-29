@@ -66,10 +66,17 @@ export type HomiFamilyBoardSlot =
   | "chore-board"
   | "family-schedule";
 
+export interface HomiModuleFamilyBoardStyleManifest {
+  id: string;
+  label: string;
+}
+
 export interface HomiModuleFamilyBoardManifest {
   surfaceId: string;
   label: string;
   slot: HomiFamilyBoardSlot;
+  // Card styles each member may choose between. The first is the default.
+  styles?: readonly HomiModuleFamilyBoardStyleManifest[];
 }
 
 export interface HomiModuleExtensionManifest {
@@ -464,6 +471,35 @@ function parseBroker(value: unknown): HomiModuleBrokerManifest {
   });
 }
 
+function parseFamilyBoardStyles(
+  value: unknown,
+  field: string,
+): readonly HomiModuleFamilyBoardStyleManifest[] {
+  const items = array(value, field);
+  if (items.length < 2 || items.length > 6) {
+    throw new HomiModuleManifestError(
+      `${field} must declare between 2 and 6 card styles.`,
+    );
+  }
+  const ids = new Set<string>();
+  return Object.freeze(items.map((value, index) => {
+    const style = record(value, `${field}[${index}]`);
+    assertKnownKeys(style, `${field}[${index}]`, ["id", "label"]);
+    const id = text(style.id, `${field}[${index}].id`, IDENTIFIER);
+    const label = text(style.label, `${field}[${index}].label`);
+    if (label.length > 40) {
+      throw new HomiModuleManifestError(
+        `${field}[${index}].label must be at most 40 characters.`,
+      );
+    }
+    if (ids.has(id)) {
+      throw new HomiModuleManifestError(`${field} style IDs must be unique.`);
+    }
+    ids.add(id);
+    return Object.freeze({ id, label });
+  }));
+}
+
 function parseExtensions(value: unknown): HomiModuleExtensionManifest {
   const input = record(value, "extensions");
   assertKnownKeys(
@@ -484,7 +520,7 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
     assertKnownKeys(
       item,
       `extensions.familyBoard[${index}]`,
-      ["surfaceId", "label", "slot"],
+      ["surfaceId", "label", "slot", "styles"],
     );
 
     const surfaceId = text(
@@ -516,10 +552,19 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
     }
     surfaceIds.add(surfaceId);
 
+    const styles =
+      item.styles === undefined
+        ? undefined
+        : parseFamilyBoardStyles(
+            item.styles,
+            `extensions.familyBoard[${index}].styles`,
+          );
+
     return Object.freeze({
       surfaceId,
       label,
       slot,
+      ...(styles === undefined ? {} : { styles }),
     });
   });
 

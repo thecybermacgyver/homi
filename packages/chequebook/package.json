@@ -1,6 +1,6 @@
 {
   "name": "@homi/chequebook",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "private": true,
   "type": "module",
   "exports": {
@@ -24,7 +24,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "manifest:validate": "node scripts/validate-manifest.mjs",
     "isolation:validate": "node scripts/validate-template.mjs",
-    "contract:validate": "pnpm manifest:validate && pnpm isolation:validate"
+    "contract:validate": "pnpm manifest:validate && pnpm isolation:validate && pnpm sync:validate",
+    "sync:validate": "node scripts/validate-sync-handlers.mjs"
   },
   "dependencies": {
     "@homi/module-sdk": "workspace:*",

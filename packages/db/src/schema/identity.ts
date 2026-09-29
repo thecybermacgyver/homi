@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -26,6 +27,11 @@ export const users = core.table(
     preferredLocale: text("preferred_locale").notNull().default("en-CA"),
     timeZone: text("time_zone"),
     status: text("status").notNull().default("active"),
+    // Set when an administrator assigns a temporary password; household
+    // access is refused until the member chooses a new one.
+    passwordChangeRequired: boolean("password_change_required")
+      .notNull()
+      .default(false),
     revision: revisionColumn(),
     createdAt: createdAtColumn(),
     updatedAt: updatedAtColumn(),

@@ -2,7 +2,7 @@
 
 Homi is a self-hosted, server-authoritative household platform. Core provides identity, households, permissions, offline synchronization, a responsive shell, and a public module SDK. Household features are independently packaged modules that install through the managed lifecycle instead of being compiled into Core.
 
-> Project status: first public pre-1.0 release. Core, Calendar, and Chequebook pass clean-machine installation and release validation. Homi is self-hosted; publishing this source code never publishes or grants access to any private Homi installation.
+> Project status: pre-1.0 release candidate. Core, Calendar, and Chequebook are running in production, and clean-machine installation passes. Publication remains blocked by the unfinished release gates and the owner's explicit approval.
 
 ### Family Board direction
 
@@ -36,7 +36,7 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, Modules, Settings, Search, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.9` and Chequebook `0.1.12`
+- Calendar `0.6.7` release candidate and Chequebook `0.1.11`
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
 - editable household Chequebook categories and bidirectional recurring Calendar/Chequebook entries
 - fail-closed Ed25519-signed GitHub module-directory verification
@@ -114,6 +114,7 @@ Start from [the module template](templates/homi-module-template/README.md). The 
 - [Backup and disaster recovery](docs/BACKUP_RECOVERY.md)
 - [Trusted module directory](docs/MODULE_DIRECTORY.md)
 - [Design system requirements](docs/DESIGN_SYSTEM_REQUIREMENTS.md)
+- [Current validated state](docs/CURRENT_STATE.md)
 - [Roadmap](docs/ROADMAP.md)
 
 The installer never runs package-manager or arbitrary lifecycle scripts. It validates package paths/imports, manifest/API compatibility, schema ownership, migration SQL, publisher ownership, semantic-version direction, and SHA-256 immutability before promotion.
@@ -133,7 +134,7 @@ The installer never runs package-manager or arbitrary lifecycle scripts. It vali
 
 Real secrets and signing private keys must never be committed. Module-directory trust keys are configured locally; catalogue entries point only to immutable GitHub release assets and pin their SHA-256 digest.
 
-Homi is public as a pre-1.0 release. Public source, documentation, and signed module packages do not expose or publish operators' private servers, domains, credentials, data, or deployment configuration. Validation evidence is tracked in [the release checklist](docs/RELEASE_CHECKLIST.md) and [roadmap](docs/ROADMAP.md).
+Homi is not yet declaring a stable public release. The repository remains private until the release gates pass and the owner explicitly approves public visibility. Remaining gates are tracked in [the release checklist](docs/RELEASE_CHECKLIST.md) and [roadmap](docs/ROADMAP.md).
 
 ## Licence
 

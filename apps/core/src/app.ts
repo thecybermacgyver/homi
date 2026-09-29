@@ -11,6 +11,10 @@ import type {
   HomiMemberModulePreference,
   HomiMemberModulePreferenceService,
 } from "./member-module-preferences.js";
+import {
+  HomiAccountError,
+  type HomiAccountService,
+} from "./accounts.js";
 import { registerSyncRoutes } from "./sync-routes.js";
 import type { HomiRuntimeModule } from "./module-host.js";
 import type { HomiModuleAssetService } from "./module-assets.js";
@@ -53,6 +57,7 @@ export interface HomiAppDependencies {
   moduleSync: HomiModuleSyncService;
   householdModules: HomiHouseholdModuleService;
   memberModulePreferences: HomiMemberModulePreferenceService;
+  accounts?: HomiAccountService;
   moduleAssets?: HomiModuleAssetService;
   moduleDirectory?: HomiModuleDirectoryService;
   moduleManager?: HomiModuleManager;
@@ -129,6 +134,8 @@ function serializeMemberModulePreference(
     label: preference.label,
     visible: preference.visible,
     displayOrder: preference.displayOrder,
+    cardStyle: preference.cardStyle,
+    cardStyles: preference.cardStyles,
     revision: preference.revision.toString(),
   };
 }
@@ -504,6 +511,81 @@ export function buildApp(
     return { data: discovery };
   });
 
+  function accountService(): HomiAccountService {
+    if (!dependencies.accounts) {
+      throw new HomiAccountError(503, "ACCOUNTS_UNAVAILABLE", "Account management is unavailable.");
+    }
+    return dependencies.accounts;
+  }
+
+  async function requireAuthSubject(request: {
+    headers: Record<string, string | string[] | undefined>;
+  }): Promise<string> {
+    const authSubject = await dependencies.auth.getAuthSubject(
+      fromNodeHeaders(request.headers),
+    );
+    if (!authSubject) {
+      throw new HomiAccountError(401, "AUTHENTICATION_REQUIRED", "Authentication is required.");
+    }
+    return authSubject;
+  }
+
+  function passwordField(body: unknown, key: string): string {
+    const value =
+      typeof body === "object" && body !== null
+        ? (body as Record<string, unknown>)[key]
+        : undefined;
+    if (typeof value !== "string" || value.length === 0) {
+      validationError(`${key} is required.`);
+    }
+    return value;
+  }
+
+  // Account endpoints are not household-scoped, so a member who must replace
+  // a temporary password can still reach them.
+  app.get("/api/v1/core/account", async (request, reply) => {
+    const account = await accountService().get(await requireAuthSubject(request));
+    reply.header("Cache-Control", "no-store");
+    return { data: account };
+  });
+
+  app.post("/api/v1/core/account/password", async (request, reply) => {
+    const authSubject = await requireAuthSubject(request);
+    const result = await accountService().changePassword(
+      fromNodeHeaders(request.headers),
+      authSubject,
+      {
+        currentPassword: passwordField(request.body, "currentPassword"),
+        newPassword: passwordField(request.body, "newPassword"),
+      },
+    );
+    for (const cookie of result.setCookies) reply.header("set-cookie", cookie);
+    reply.header("Cache-Control", "no-store");
+    return { data: { changed: true } };
+  });
+
+  app.get("/api/v1/core/household/members", async (request, reply) => {
+    const context = await resolveContext(request, dependencies);
+    await dependencies.authorization.requirePermission(context, "core.household.admin");
+    reply.header("Cache-Control", "no-store");
+    return { data: { members: await accountService().listMembers(context) } };
+  });
+
+  app.post(
+    "/api/v1/core/household/members/:membershipId/password-reset",
+    async (request) => {
+      const context = await resolveContext(request, dependencies);
+      await dependencies.authorization.requirePermission(context, "core.household.admin");
+      const params = request.params as { membershipId?: unknown };
+      await accountService().resetMemberPassword(
+        context,
+        typeof params.membershipId === "string" ? params.membershipId : "",
+        passwordField(request.body, "temporaryPassword"),
+      );
+      return { data: { passwordChangeRequired: true } };
+    },
+  );
+
   app.get("/api/v1/core/context", async (request) => {
     const context = await resolveContext(request, dependencies);
 
@@ -818,8 +900,6 @@ export function buildApp(
   });
 
   app.setErrorHandler(async (error, request, reply) => {
-    request.log.error({ err: error }, "Unhandled request error");
-
     const httpError =
       typeof error === "object" && error !== null
         ? (error as {
@@ -842,6 +922,18 @@ export function buildApp(
         : statusCode >= 500
           ? "INTERNAL_ERROR"
           : "VALIDATION_FAILED";
+
+    // Server faults are errors. Client-caused rejections (not found, not
+    // signed in, invalid input) are expected outcomes, recorded at info
+    // level with their code so the error log shows only real faults.
+    if (statusCode >= 500) {
+      request.log.error({ err: error }, "Unhandled request error");
+    } else {
+      request.log.info(
+        { statusCode, code },
+        "Request rejected",
+      );
+    }
 
     const message =
       statusCode >= 500

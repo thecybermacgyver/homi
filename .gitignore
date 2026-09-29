@@ -8,3 +8,9 @@ dist/
 apps/core/.homi-modules/
 apps/core/.homi-modules-test-*/
 .DS_Store
+
+# Generated Shopping QA outputs
+packages/shopping/qa/web-contract.mjs
+packages/shopping/qa/browser-failure.txt
+packages/shopping/qa/failure-*.png
+apps/web/qa/failure-*.png

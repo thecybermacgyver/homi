@@ -42,6 +42,11 @@ import {
   seedCachedRecord,
 } from "./sync/local-db.js";
 import { projectWorkingEntities } from "./sync/working-entities.js";
+import {
+  ChangePasswordSetting,
+  HouseholdMembersSetting,
+  RequiredPasswordChange,
+} from "./AccountSettings.js";
 import { HouseholdModulesPage } from "./HouseholdModulesPage.js";
 import {
   cacheMemberModulePreferences,
@@ -697,6 +702,22 @@ export function App() {
     );
   }
 
+  // An administrator reset this member's password: Core refuses household
+  // access until they choose a new one.
+  if (
+    context.status === "failed" &&
+    context.failure.code === "PASSWORD_CHANGE_REQUIRED"
+  ) {
+    return (
+      <RequiredPasswordChange
+        online={online}
+        signOutBusy={authBusy}
+        onChanged={() => runtime.refreshContext()}
+        onSignOut={() => void handleSignOut()}
+      />
+    );
+  }
+
   const enabledModules = loadedModules.filter(
     (module) => module.descriptor.enabled,
   );
@@ -748,6 +769,14 @@ export function App() {
               preference?.displayOrder ??
               1_000_000 + moduleIndex * 100 + contributionIndex,
             contributionIndex,
+            cardStyle:
+              contribution.styles === undefined
+                ? null
+                : contribution.styles.some(
+                    (style) => style.id === preference?.cardStyle,
+                  )
+                  ? preference!.cardStyle
+                  : contribution.styles[0]!.id,
           }];
         },
       ),
@@ -1195,6 +1224,9 @@ export function App() {
               actions={moduleActionsFor(
                 module.descriptor.moduleKey,
               )}
+              {...(contribution.cardStyle === null
+                ? {}
+                : { presentation: { cardStyle: contribution.cardStyle } })}
             />
           </div>
         )}
@@ -1488,6 +1520,16 @@ export function App() {
                   </Button>
                 </Surface>
               ))}
+
+              <ChangePasswordSetting online={online} />
+
+              {ready && context.context.clientId && (
+                <HouseholdMembersSetting
+                  householdId={context.context.householdId}
+                  clientId={context.context.clientId}
+                  online={online}
+                />
+              )}
 
               <Surface className="homi-platform-setting-row">
                 <div>

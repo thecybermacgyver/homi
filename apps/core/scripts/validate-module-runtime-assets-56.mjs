@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { createHomiDatabase } from "@homi/db";
 import { loadHomiServerModules } from "../dist/module-host.js";
 import {
@@ -28,6 +29,13 @@ const context = Object.freeze({
   locale: "en-CA",
   timeZone: "America/Toronto",
 });
+
+// This check continues from the state validate-module-runtime-56 leaves behind
+// (Starter installed, enabled, configured, household revision 3). On a fresh
+// fixture it runs that validator first.
+if (!existsSync(join(installRoot, "starter"))) {
+  await import("./validate-module-runtime-56.mjs");
+}
 
 const database = createHomiDatabase(appUrl);
 const modules = await loadHomiServerModules({

@@ -1,6 +1,6 @@
 # Homi public-release checklist
 
-This checklist records the completed release gate for the first public pre-1.0 Homi release. It covers the sanitized public source snapshot only; private Homi installations and their deployment records remain private.
+This checklist is the release gate for the first public pre-1.0 Homi release. GitHub remains private until every blocking item passes and the owner explicitly approves public visibility.
 
 ## Repository and legal
 
@@ -20,7 +20,7 @@ This checklist records the completed release gate for the first public pre-1.0 H
 - [x] Compose configuration validates with documented environment variables.
 - [x] GitHub validation workflow covers install, typecheck, build, audit, manifests, directory, and lifecycle routes.
 - [x] Application security review passes: authentication, authorization, upload/import parsing, SSRF, XSS, CSRF, rate limiting, sensitive logging, and built-response security headers. Evidence is recorded in `docs/SECURITY_REVIEW.md`.
-- [x] Accessibility review passes keyboard, focus, labels, contrast, reduced motion, and phone/tablet/desktop layouts. Shared-component fixes and the remaining authenticated manual pass are recorded in `docs/ACCESSIBILITY_REVIEW.md`.
+- [ ] Accessibility review passes keyboard, focus, labels, contrast, reduced motion, and phone/tablet/desktop layouts. Shared-component fixes and the remaining authenticated manual pass are recorded in `docs/ACCESSIBILITY_REVIEW.md`.
 
 ## Installation and recovery
 
@@ -32,16 +32,16 @@ This checklist records the completed release gate for the first public pre-1.0 H
 
 ## Product acceptance
 
-- [x] Calendar multi-device acceptance passes with automatic synchronization.
-- [x] Chequebook multi-device acceptance passes with automatic synchronization.
-- [x] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events.
-- [x] Offline create/edit/delete and reconnect pass on phone and desktop.
-- [x] PWA install/update behavior passes without manual cache clearing.
-- [x] Search and Add controls pass in Core and both first-party modules.
+- [ ] Calendar multi-device acceptance passes with automatic synchronization.
+- [ ] Chequebook multi-device acceptance passes with automatic synchronization.
+- [ ] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events.
+- [ ] Offline create/edit/delete and reconnect pass on phone and desktop.
+- [ ] PWA install/update behavior passes without manual cache clearing.
+- [ ] Search and Add controls pass in Core and both first-party modules.
 
 ## Publication
 
-- [x] Public module-directory URLs and release assets are immutable and anonymously readable.
+- [ ] Public module-directory URLs and release assets are immutable and anonymously readable.
 - [x] Release notes, known limitations, upgrade instructions, and recovery instructions are complete in `docs/RELEASE_NOTES.md`, `README.md`, `docs/MODULE_INSTALLER_OPERATIONS.md`, and `docs/BACKUP_RECOVERY.md`.
-- [x] Release candidate is tagged without changing published bytes afterward.
-- [x] Owner explicitly approves changing GitHub visibility from private to public.
+- [ ] Release candidate is tagged without changing published bytes afterward.
+- [ ] Owner explicitly approves changing GitHub visibility from private to public.

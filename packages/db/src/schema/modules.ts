@@ -125,6 +125,8 @@ export const householdMemberModulePreferences = core.table(
     surfaceId: text("surface_id").notNull(),
     visible: boolean("visible").notNull().default(true),
     displayOrder: integer("display_order").notNull(),
+    // NULL uses the card's default (first declared) style.
+    cardStyle: text("card_style"),
     revision: revisionColumn(),
     createdAt: createdAtColumn(),
     updatedAt: updatedAtColumn(),

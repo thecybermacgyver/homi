@@ -352,9 +352,16 @@ export interface HomiWebModuleHostActions {
   ): Promise<void>;
 }
 
+export interface HomiWebModuleCardPresentation {
+  // The member's chosen style from the manifest's familyBoard styles.
+  readonly cardStyle: string;
+}
+
 export interface HomiWebModuleSurfaceProps {
   readonly context: HomiWebModuleHostContext;
   readonly actions: HomiWebModuleHostActions;
+  // Present only for Family Board surfaces that declare card styles.
+  readonly presentation?: HomiWebModuleCardPresentation;
 }
 
 export type HomiWebModuleSurface =

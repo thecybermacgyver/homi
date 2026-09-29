@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { register } from "node:module";
 import {
   mkdtemp,
   readFile,
   rm,
   writeFile,
 } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import Fastify from "fastify";
@@ -25,6 +27,9 @@ import {
   createHomiMemberModulePreferenceService,
 } from "../dist/member-module-preferences.js";
 
+// Load the shipped web artifact with the shell's runtime bridges resolved.
+register("./module-runtime-loader.mjs", import.meta.url);
+
 const migratorUrl = process.env.HOMI_TEST_MIGRATOR_DATABASE_URL;
 const appUrl = process.env.HOMI_TEST_APP_DATABASE_URL;
 if (!migratorUrl || !appUrl) {
@@ -37,6 +42,18 @@ const calendarDirectory = fileURLToPath(
   new URL("../../../packages/calendar/", import.meta.url),
 );
 const coreRoot = fileURLToPath(new URL("../", import.meta.url));
+// Conformance applies to the Calendar package as it is in this repository.
+// Reminders are only scheduled for future times, so events that carry
+// reminders start two days after this run rather than on a fixed date.
+const REMINDER_DAY = new Date(Date.now() + 2 * 86_400_000)
+  .toISOString()
+  .slice(0, 10);
+const REMINDER_DAY_END = new Date(Date.now() + 3 * 86_400_000)
+  .toISOString()
+  .slice(0, 10);
+const CALENDAR_VERSION = JSON.parse(
+  readFileSync(join(calendarDirectory, "homi.module.json"), "utf8"),
+).version;
 const installRoot = await mkdtemp(
   join(coreRoot, ".homi-modules-calendar60-"),
 );
@@ -65,7 +82,7 @@ const context = Object.freeze({
 
 const prepared = await inspectHomiModulePackage(calendarDirectory);
 assert.equal(prepared.manifest.moduleKey, "calendar");
-assert.equal(prepared.manifest.version, "0.6.7");
+assert.equal(prepared.manifest.version, CALENDAR_VERSION);
 const legacyMigrations = prepared.migrations.filter(
   (migration) =>
     migration.id !== "0004_external_sync_ics.sql" &&
@@ -320,7 +337,7 @@ try {
   });
   assert.equal(adopted.status, "adopted");
   assert.equal(adopted.currentVersion, "0.4.0");
-  assert.equal(adopted.candidateVersion, "0.6.7");
+  assert.equal(adopted.candidateVersion, CALENDAR_VERSION);
   assert.deepEqual(
     adopted.adoptedMigrations,
     legacyMigrations.map((migration) => migration.id),
@@ -357,7 +374,7 @@ try {
   });
   assert.equal(installed.status, "installed");
   assert.equal(installed.fromVersion, "0.4.0");
-  assert.equal(installed.version, "0.6.7");
+  assert.equal(installed.version, CALENDAR_VERSION);
   assert.deepEqual(installed.appliedMigrations, [
     "0004_external_sync_ics.sql",
     "0005_event_colors.sql",
@@ -412,7 +429,7 @@ try {
     assert(calendarState);
     assert.equal(calendarState.enabled, true);
     assert.equal(calendarState.setupState, "configured");
-    assert.equal(calendarState.version, "0.6.7");
+    assert.equal(calendarState.version, CALENDAR_VERSION);
 
     const preferences =
       createHomiMemberModulePreferenceService(database.db);
@@ -565,8 +582,8 @@ try {
               description: "Must not survive a Core post-handler failure",
               allDay: false,
               timeZone: "America/Toronto",
-              startsAt: "2026-09-23T18:00:00.000Z",
-              endsAt: "2026-09-23T19:00:00.000Z",
+              startsAt: `${REMINDER_DAY}T18:00:00.000Z`,
+              endsAt: `${REMINDER_DAY}T19:00:00.000Z`,
               startDate: null,
               endDateExclusive: null,
               location: "Home",
@@ -646,8 +663,8 @@ try {
           description: "Exercises Core notification delivery",
           allDay: false,
           timeZone: "America/Toronto",
-          startsAt: "2026-09-21T18:00:00.000Z",
-          endsAt: "2026-09-21T19:00:00.000Z",
+          startsAt: `${REMINDER_DAY}T18:00:00.000Z`,
+          endsAt: `${REMINDER_DAY}T19:00:00.000Z`,
           startDate: null,
           endDateExclusive: null,
           location: "Home",
@@ -768,8 +785,8 @@ try {
       const range = await rangeProvider.handle(context, {
         action: "list-occurrences",
         payload: {
-          startDate: "2026-09-20",
-          endDateExclusive: "2026-09-23",
+          startDate: REMINDER_DAY,
+          endDateExclusive: REMINDER_DAY_END,
           limit: 100,
         },
       });
@@ -1055,8 +1072,30 @@ END:VCALENDAR]]></c:calendar-data>
       Object.keys(definition.familyBoard ?? {}).sort(),
       ["coming-week", "mini-month", "today-count"],
     );
-    assert.equal(definition.sync?.mutationAdapters?.length, 3);
-    assert.equal(definition.sync?.changeHandlers?.length, 3);
+    // Exactly one handler per declared entity and one adapter per declared
+    // operation, as the web module host requires.
+    const declared = JSON.parse(
+      readFileSync(join(calendarDirectory, "homi.module.json"), "utf8"),
+    ).sync.entities;
+    assert.equal(definition.sync?.changeHandlers?.length, declared.length);
+    for (const entity of declared) {
+      assert.equal(
+        definition.sync.changeHandlers.filter(
+          (handler) => handler.entityType === entity.entityType,
+        ).length,
+        1,
+      );
+      for (const operation of entity.operations) {
+        assert.equal(
+          definition.sync.mutationAdapters.filter(
+            (adapter) =>
+              adapter.entityType === entity.entityType &&
+              adapter.operations.includes(operation),
+          ).length,
+          1,
+        );
+      }
+    }
   } finally {
     await database.close();
   }
@@ -1071,7 +1110,7 @@ END:VCALENDAR]]></c:calendar-data>
        WHERE module_key = 'calendar'`,
     );
     assert.deepEqual(registry.rows, [
-      { state: "installed", currentVersion: "0.6.7" },
+      { state: "installed", currentVersion: CALENDAR_VERSION },
     ]);
 
     const preserved = await finalOwner.query(

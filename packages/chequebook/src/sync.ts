@@ -271,11 +271,13 @@ async function submitMutation(
   );
 }
 
+// Returns null when the entity no longer exists: a change replayed after the
+// entity was deleted materializes as a delete rather than failing.
 async function fetchSnapshot(
   change: HomiModuleSyncChange,
   context: HomiModuleSyncHandlerContext,
   signal?: AbortSignal,
-): Promise<Readonly<Record<string, unknown>>> {
+): Promise<Readonly<Record<string, unknown>> | null> {
   const base = PATHS[change.entityType];
   if (!base) {
     throw new ChequebookWebApiError(
@@ -302,7 +304,14 @@ async function fetchSnapshot(
   });
   const body = await readJson(response);
   if (!response.ok) {
-    throw responseError(body, response.status);
+    const error = responseError(body, response.status);
+    if (
+      response.status === 404 &&
+      /^CHEQUEBOOK_[A-Z_]+_NOT_FOUND$/.test(error.code)
+    ) {
+      return null;
+    }
+    throw error;
   }
   if (!isObject(body) || !Object.hasOwn(body, "data")) {
     throw new ChequebookWebApiError(
@@ -410,6 +419,15 @@ function handler(
         context,
         signal,
       );
+      if (snapshot === null) {
+        return Object.freeze({
+          kind: "delete" as const,
+          moduleKey: CHEQUEBOOK_MODULE_KEY,
+          entityType,
+          entityId: change.entityId,
+          sequence: change.sequence,
+        });
+      }
 
       return Object.freeze({
         kind: "put" as const,
