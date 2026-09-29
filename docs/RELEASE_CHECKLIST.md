@@ -1,6 +1,6 @@
 # Homi public-release checklist
 
-This checklist is the release gate for the first public pre-1.0 Homi release. GitHub remains private until every blocking item passes and the owner explicitly approves public visibility.
+This checklist tracks the gates for Homi's stable 1.0 release. The owner approved public visibility, and the repository is published as a pre-1.0 release; unchecked items remain open before 1.0.
 
 ## Repository and legal
 
@@ -24,7 +24,7 @@ This checklist is the release gate for the first public pre-1.0 Homi release. Gi
 
 ## Installation and recovery
 
-- [x] Clean-machine deployment passes from a verified tracked-files-only archive at commit `f15625b`: isolated Compose project, fresh database and module volumes, core migration, Calendar 0.6.7 and Chequebook 0.1.11 package installation, all four runtime services healthy, runtime bridges and module assets HTTP 200, and manifest served as `application/manifest+json` (2026-09-23).
+- [x] Clean-machine deployment passes from a verified tracked-files-only archive at commit `eeb7839` on a fresh Docker engine, following the README exactly: core migration, bootstrap (repeat refused), Calendar 0.6.10 and Chequebook 0.1.14 installation, all four runtime services healthy, runtime bridges and module assets HTTP 200, manifest served as `application/manifest+json`, sign-in, module enablement, card preferences, members list, and password change (2026-09-29). First passed at commit `f15625b` on 2026-09-23.
 - [x] First-account/bootstrap procedure is documented and tested (single owner/household/admin creation, successful login, and fail-closed repeat attempt).
 - [x] Backup creation and documented restoration are tested on the release candidate (database restore matched critical records; all 109 managed-module files matched SHA-256).
 - [x] Module install, enable, disable, uninstall, reinstall, failed update, and rollback pass end to end in the isolated release-candidate deployment.
@@ -44,4 +44,4 @@ This checklist is the release gate for the first public pre-1.0 Homi release. Gi
 - [ ] Public module-directory URLs and release assets are immutable and anonymously readable.
 - [x] Release notes, known limitations, upgrade instructions, and recovery instructions are complete in `docs/RELEASE_NOTES.md`, `README.md`, `docs/MODULE_INSTALLER_OPERATIONS.md`, and `docs/BACKUP_RECOVERY.md`.
 - [ ] Release candidate is tagged without changing published bytes afterward.
-- [ ] Owner explicitly approves changing GitHub visibility from private to public.
+- [x] Owner explicitly approves changing GitHub visibility from private to public.

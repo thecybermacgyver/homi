@@ -18,6 +18,8 @@ Homi is a self-hosted, server-authoritative household platform. Core provides id
 
 ## Actual application screens
 
+These are real Homi screens shown with invented sample data.
+
 | Phone Dashboard | Desktop Dashboard |
 | --- | --- |
 | ![Homi Dashboard on a phone](docs/assets/homi-dashboard-phone.jpg) | ![Homi Dashboard on desktop](docs/assets/homi-dashboard-desktop.png) |
@@ -42,13 +44,14 @@ Additional release details and known limitations are in [the release notes](docs
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
 - editable household Chequebook categories and bidirectional recurring Calendar/Chequebook entries
 - fail-closed Ed25519-signed GitHub module-directory verification
+
 ## Architecture
 
 Core owns platform policy and shared controls. Modules declare navigation, contextual Search/Add actions, setup/settings, permissions, sync entities, jobs, Home cards, and broker capabilities through public contracts. A module must not import private Core/Web code or another module.
 
 Installation and household use are separate:
 
-1. an operator installs a validated immutable artifact;
+1. an operator installs a validated immutable artifact, or a household administrator installs one from the signed module directory on the Modules screen;
 2. a household administrator enables it for the household;
 3. each family member chooses which module cards appear on their own Dashboard.
 
@@ -71,7 +74,7 @@ pnpm typecheck
 pnpm --filter @homi/core module-directory:validate
 ```
 
-Copy `.env.example` to `.env`, replace every secret placeholder independently, set the public HTTPS origin, and configure the signed module directory when one is available. A GitHub token is needed only when the directory or module release assets are private. The default Web/Core host ports are `3100`/`3101` on loopback; `HOMI_WEB_PORT`, `HOMI_CORE_PORT`, and `HOMI_BIND_ADDRESS` may be changed when running separate Compose projects on one host.
+Copy `.env.example` to `.env`, replace every secret placeholder independently, set the public HTTPS origin, and configure the signed module directory when one is available. A GitHub token is needed only when the directory or module release assets are private. The default Web/Core host ports are `3100`/`3101` on loopback; `HOMI_WEB_PORT`, `HOMI_CORE_PORT`, and `HOMI_BIND_ADDRESS` may be changed when running separate Compose projects on one host. The Core image is always tagged `homi-core`, so a second project on the same host that runs `docker compose build` replaces the first project's Core image; build test copies under a different tag instead.
 
 ## First deployment
 
@@ -99,6 +102,10 @@ Replace the bootstrap identity, locale, and IANA time zone with the household's 
 
 The two module installs are deliberately separate from the Core image lifecycle. Enable installed modules per household from Homi's Modules screen.
 
+Shopping List is not bundled in the Core image. Build it with `pnpm --filter @homi/shopping build`, copy `homi.module.json`, `package.json`, `dist`, `migrations`, and `locales` from `packages/shopping` into an empty directory, and install that directory as described in [Module installer operations](docs/MODULE_INSTALLER_OPERATIONS.md#install-or-update). The signed module directory currently offers the earlier Shopping List 0.2.2.
+
+Homi does not yet have an in-app way to invite or add further household members; see [the release notes](docs/RELEASE_NOTES.md#known-limitations).
+
 ### Deployment provenance
 
 Never build production from a hand-updated or partially synchronized server tree. From a clean, pushed checkout, run `scripts/package-deployment.sh`. It creates a tracked-files-only archive containing `.homi-source-commit`. After extracting that archive into a fresh staging directory, run `scripts/verify-deployment-source.sh <full-commit-sha>` before any image build. The verifier fails closed when the marker, required web-proxy files, or expected commit is missing or mismatched.
@@ -116,7 +123,6 @@ Start from [the module template](templates/homi-module-template/README.md). The 
 - [Backup and disaster recovery](docs/BACKUP_RECOVERY.md)
 - [Trusted module directory](docs/MODULE_DIRECTORY.md)
 - [Design system requirements](docs/DESIGN_SYSTEM_REQUIREMENTS.md)
-- [Current validated state](docs/CURRENT_STATE.md)
 - [Roadmap](docs/ROADMAP.md)
 
 The installer never runs package-manager or arbitrary lifecycle scripts. It validates package paths/imports, manifest/API compatibility, schema ownership, migration SQL, publisher ownership, semantic-version direction, and SHA-256 immutability before promotion.
@@ -130,6 +136,7 @@ The installer never runs package-manager or arbitrary lifecycle scripts. It vali
 - `packages/ui` — shared Homi design system
 - `packages/calendar` — first-party Calendar module
 - `packages/chequebook` — first-party Chequebook module
+- `packages/shopping` — first-party Shopping List module
 - `templates/homi-module-template` — independent starter module
 
 ## Security and release status
