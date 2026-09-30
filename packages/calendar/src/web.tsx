@@ -1861,8 +1861,8 @@ function CalendarPage({
         .homi-calendar-upcoming-bar{align-self:stretch;border-radius:999px}
         .homi-calendar-upcoming-main{display:grid;gap:3px}
         .homi-calendar-upcoming-main small{color:var(--homi-text-muted)}
-        .homi-calendar-editor-backdrop{position:fixed;inset:0;z-index:50;background:rgba(20,20,20,.42);display:grid;place-items:center;padding:18px;overflow:auto}
-        .homi-calendar-editor{width:min(780px,100%);max-height:calc(100vh - 36px);overflow:auto;display:grid;gap:16px}
+        .homi-calendar-editor-backdrop{position:fixed;inset:0;z-index:100;background:rgba(20,20,20,.42);display:grid;place-items:center;padding:18px;overflow:auto}
+        .homi-calendar-editor.homi-calendar-editor{width:min(780px,100%);max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);overflow:auto;display:grid;gap:16px;padding-bottom:calc(72px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom))}
         .homi-calendar-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
         .homi-calendar-checkboxes{display:flex;flex-wrap:wrap;gap:10px}
         .homi-calendar-checkboxes label{display:flex;align-items:center;gap:6px}

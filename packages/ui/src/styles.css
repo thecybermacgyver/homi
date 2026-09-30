@@ -441,10 +441,15 @@ button:disabled {
 .homi-ui-sheet {
   width: min(100%, 600px);
   max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
   overflow-y: auto;
   border: 1px solid var(--homi-border);
   border-radius: var(--homi-radius-xl);
   padding: 22px;
+  /* Buffer so the last controls (Save/Cancel) can scroll clear of the
+     floating bottom navigation and device safe area. */
+  padding-bottom: calc(22px + 72px + env(safe-area-inset-bottom));
+  scroll-padding-bottom: calc(72px + env(safe-area-inset-bottom));
   color: var(--homi-text);
   background: var(--homi-surface-strong);
   box-shadow: var(--homi-shadow-lg);
@@ -762,7 +767,7 @@ button:disabled {
 
   .homi-ui-dialog,
   .homi-ui-sheet {
-    padding: 26px;
+    padding: 26px 26px calc(26px + 72px + env(safe-area-inset-bottom));
   }
 }
 

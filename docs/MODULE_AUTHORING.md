@@ -163,6 +163,8 @@ from props.
 
 Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Modules must not create competing fixed-position Search or Add buttons.
 
+Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
+
 ## Setup and settings
 
 If `setup.required` is true, the module owns and persists its setup state. Homi hosts that setup flow and does not present the module as configured until required setup is complete.
