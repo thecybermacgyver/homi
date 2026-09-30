@@ -2631,7 +2631,11 @@ async function brokerLinkedEvents(
       frequency: rule.frequency as CalendarEvent["recurrence"] extends infer R
         ? R extends { frequency: infer F } ? F : never : never,
       interval: Number(rule.interval),
-      weekdays: [],
+      // Weekly rules must name at least one weekday; a linked entry recurs on
+      // the weekday of its first occurrence.
+      weekdays: rule.frequency === "weekly"
+        ? [new Date(`${date}T00:00:00Z`).getUTCDay()]
+        : [],
       endDate: rule.until as string | null,
     };
   }
