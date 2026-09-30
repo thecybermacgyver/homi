@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-28T14:54:42.154Z",
+  "run": "7246993",
+  "results": [
+    "two registered devices and a distinct authorized household user",
+    "online create propagates automatically to second device and second user",
+    "full browser/PWA restart offline loads Shopping assets and data",
+    "offline create/edit/check/uncheck/delete survive another full restart",
+    "reconnect applies every queued edit automatically without self-conflicts",
+    "stale revision is reviewable and cancelling review preserves conflict",
+    "phone/tablet/desktop layout has no horizontal overflow",
+    "no JavaScript page errors"
+  ]
+}

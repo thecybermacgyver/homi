@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-29T21:57:18.415Z",
+  "base": "http://localhost:3404",
+  "results": [
+    {
+      "name": "wide board packs unplaced cards",
+      "cards": 7
+    },
+    {
+      "name": "card opens its module when not arranging"
+    },
+    {
+      "name": "drag moves a card and saves the wide arrangement",
+      "moved": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 2
+      }
+    },
+    {
+      "name": "corner resize respects limits",
+      "resized": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 3
+      }
+    },
+    {
+      "name": "keyboard moves and resizes",
+      "nudged": {
+        "x": 3,
+        "y": 0,
+        "w": 2,
+        "h": 4
+      }
+    },
+    {
+      "name": "arrangement persists with its empty space"
+    },
+    {
+      "name": "Core rejects off-board and out-of-limit placements"
+    },
+    {
+      "name": "phone layout is arranged and saved separately",
+      "resized": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 3
+      }
+    },
+    {
+      "name": "reset clears only the current layout"
+    },
+    {
+      "name": "wide arrangement is shared by all wide screens"
+    }
+  ]
+}

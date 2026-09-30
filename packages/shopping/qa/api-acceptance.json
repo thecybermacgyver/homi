@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-28T14:54:46.249Z",
+  "results": [
+    "duplicate delivery returns same authoritative result",
+    "changed request cannot reuse mutation ID",
+    "stale revision returns authoritative conflict state",
+    "historical changes materialize a tombstone after deletion",
+    "recipient-scoped preference reaches own second device but is absent and unwritable for other user",
+    "unauthorized household access rejected"
+  ]
+}

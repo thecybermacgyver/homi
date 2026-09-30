@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-29T03:07:34.382Z",
+  "version": "0.3.0",
+  "results": [
+    "upgrade keeps the owner's hidden Chequebook card; unstyled cards report no styles; Shopping declares List and Counts by store",
+    "after the update every dashboard shows the Shopping list by default and the hidden card stays hidden",
+    "Modules page Shopping card offers List / Counts by store; choosing counts shows All stores 4, Browns 1, Dollarama 1, Drug store 2",
+    "owner's second device switches to counts automatically",
+    "another member cannot change the owner's style; undeclared styles are rejected",
+    "second member keeps the list, sees List selected, holds none of the owner's preferences, and syncs cleanly",
+    "switching back offline takes effect immediately and survives a reload",
+    "reconnect delivers the offline style change to the second device without conflicts",
+    "counts update when an item is checked off and empty stores disappear",
+    "ticking an item immediately after adding it reaches the server without a conflict",
+    "a conflicting edit stays available for review across sync cycles and a reload",
+    "keeping the shared version clears the review and shows the other device's edit",
+    "dashboard and Modules page at 390/768/1440 have no horizontal overflow",
+    "no JavaScript page errors"
+  ]
+}
