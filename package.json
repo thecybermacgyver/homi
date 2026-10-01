@@ -17,5 +17,8 @@
     "dev:web": "pnpm --filter @homi/web dev",
     "start:core": "pnpm --filter @homi/core start",
     "calendar:db:migrate": "pnpm --filter @homi/calendar db:migrate"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
   }
 }

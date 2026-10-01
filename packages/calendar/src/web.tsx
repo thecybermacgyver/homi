@@ -741,7 +741,7 @@ async function loadServerEvents(
   if (!isObject(body) || !Array.isArray(body.data)) {
     throw new Error("Calendar events response is invalid.");
   }
-  return Object.freeze(body.data.map(parseCalendarEvent));
+  return Object.freeze(body.data.map((item) => parseCalendarEvent(item)));
 }
 
 async function loadCachedEvents(
@@ -751,7 +751,7 @@ async function loadCachedEvents(
   const events: CalendarEvent[] = [];
   for (const record of records) {
     try {
-      events.push(parseCalendarEvent(record.data));
+      events.push(parseCalendarEvent(record.data, true));
     } catch {
       // Ignore a stale cache row; reconciliation will replace it.
     }
@@ -1525,8 +1525,10 @@ function CalendarPage({
   async function finishEventMutation(messageText: string): Promise<void> {
     if (context.online) {
       await actions.syncNow();
-      await reload();
     }
+    // Offline, reload reads the working cache, which already includes the
+    // queued change, so the saved event is shown immediately.
+    await reload();
     setEditor(null);
     setMessage(
       context.online

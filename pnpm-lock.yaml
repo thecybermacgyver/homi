@@ -164,7 +164,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
 
   apps/core:
     dependencies:

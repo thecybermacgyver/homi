@@ -127,8 +127,11 @@ function parseMutationResult(
   });
 }
 
+// `pendingCreate` admits revision "0": an event created offline has no server
+// revision until its queued create is delivered, yet it must still be shown.
 export function parseCalendarEvent(
   value: unknown,
+  pendingCreate = false,
 ): CalendarEvent {
   if (
     !isObject(value) ||
@@ -144,7 +147,7 @@ export function parseCalendarEvent(
     typeof value.allDay !== "boolean" ||
     typeof value.timeZone !== "string" ||
     typeof value.revision !== "string" ||
-    !POSITIVE.test(value.revision) ||
+    !(pendingCreate ? NON_NEGATIVE : POSITIVE).test(value.revision) ||
     typeof value.createdAt !== "string" ||
     typeof value.updatedAt !== "string" ||
     !Array.isArray(value.personIds) ||
