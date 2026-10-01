@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-01T20:05:59.328Z",
+  "run": "5077951",
+  "results": [
+    "two registered devices for one member and a distinct authorized household member",
+    "online transaction propagates automatically to the second device and the second member",
+    "full browser/PWA restart while offline loads Chequebook assets and the cached register",
+    "offline create, edit and delete survive another full restart and stay queued",
+    "reconnect applies every queued change automatically, without self-conflicts, to the second device and member",
+    "server balance equals the starting balance - 25.00 - 50.00 + 100.00, and every device and member displays exactly it",
+    "creates and deletes made on any device or member propagate to the others",
+    "stale offline edit is surfaced for review and the shared (other device) version stays on screen",
+    "dismissing the reviewed change keeps the shared version on every device",
+    "phone/tablet/desktop register layout has no horizontal overflow",
+    "no JavaScript page errors"
+  ]
+}

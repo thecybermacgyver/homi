@@ -161,7 +161,7 @@ size the member chose with `@container` queries (for example, show only a
 headline number when the card is two rows tall) rather than reading its size
 from props.
 
-Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Modules must not create competing fixed-position Search or Add buttons.
+Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Registering updates the host, which hands the surface new `actions`, so the registering effect must not list `actions` as a dependency: depend only on the availability it reports, or it re-registers in a continuous render loop. Modules must not create competing fixed-position Search or Add buttons.
 
 Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
 

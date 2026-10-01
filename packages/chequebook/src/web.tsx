@@ -278,13 +278,15 @@ function signed(
   return 0;
 }
 
+// Revision "0" is a record created offline whose queued create has not been
+// delivered yet; it must still be shown.
 function parseCached<T>(
   value: unknown,
 ): T | null {
   if (
     !isObject(value) ||
     typeof value.revision !== "string" ||
-    !/^[1-9][0-9]*$/.test(value.revision)
+    !/^(0|[1-9][0-9]*)$/.test(value.revision)
   ) {
     return null;
   }
@@ -854,8 +856,10 @@ function ChequebookPage({
     setTab,
   };
 
+  // Registering updates the host, which hands this surface new actions, so the
+  // effect must not depend on their identity or it re-registers in a loop.
   useEffect(() => {
-    actions.registerContextActions({
+    actionsRef.current.registerContextActions({
       search: {
         label: "Search Chequebook",
         invoke: () => {
@@ -869,8 +873,8 @@ function ChequebookPage({
         invoke: () => latestRef.current.openNewTransaction(),
       },
     });
-    return () => actions.registerContextActions(null);
-  }, [actions, activeAccounts.length]);
+    return () => actionsRef.current.registerContextActions(null);
+  }, [activeAccounts.length]);
 
   const accountById = useMemo(
     () =>
@@ -1051,6 +1055,21 @@ function ChequebookPage({
     reloadCached,
     refreshOnline,
   ]);
+
+  // The host hands this surface fresh actions whenever synchronization changes
+  // local data. Offline, re-read the working cache; online, refetch the
+  // authoritative server state once activity settles so changes made on other
+  // devices, and the balances they affect, appear without reopening Chequebook.
+  useEffect(() => {
+    if (!online) {
+      void reloadCached().catch(() => undefined);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void refreshOnline().catch(() => undefined);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [actions]);
 
   useEffect(() => {
     void actions.listMutations().then((mutations) =>

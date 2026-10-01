@@ -33,9 +33,9 @@ This checklist tracks the gates for Homi's stable 1.0 release. The owner approve
 ## Product acceptance
 
 - [x] Calendar multi-device acceptance passes with automatic synchronization (isolated two-device plus second-member browser acceptance, `packages/calendar/qa`, Calendar 0.6.16, 2026-10-01; owner real-device confirmation pending).
-- [ ] Chequebook multi-device acceptance passes with automatic synchronization.
+- [x] Chequebook multi-device acceptance passes with automatic synchronization (owner-confirmed on phone and desktop, 2026-09-30; isolated browser acceptance re-run at Chequebook 0.1.21, 2026-10-01).
 - [ ] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events.
-- [ ] Offline create/edit/delete and reconnect pass on phone and desktop. Calendar passes the isolated browser acceptance at 390/768/1440 px (2026-10-01); Chequebook and the owner's real-device confirmation remain.
+- [ ] Offline create/edit/delete and reconnect pass on phone and desktop. Calendar 0.6.16 and Chequebook 0.1.21 pass their isolated three-profile browser acceptance (`packages/*/qa/acceptance.mjs`, 2026-10-01, phone/tablet/desktop widths); the owner's real-device confirmation remains.
 - [ ] PWA install/update behavior passes without manual cache clearing.
 - [ ] Search and Add controls pass in Core and both first-party modules.
 
