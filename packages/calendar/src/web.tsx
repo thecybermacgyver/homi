@@ -1782,6 +1782,21 @@ function CalendarPage({
                   <small>+{items.length - 3} more</small>
                 )}
               </div>
+              {items.length > 0 && (
+                <div
+                  className="homi-calendar-month-dots"
+                  aria-label={`${items.length} event${items.length === 1 ? "" : "s"}`}
+                >
+                  {items.slice(0, 3).map((item) => (
+                    <span
+                      key={item.occurrenceId}
+                      className="homi-calendar-color-dot"
+                      style={{ background: colorFor(item) }}
+                    />
+                  ))}
+                  {items.length > 3 && <small>+{items.length - 3}</small>}
+                </div>
+              )}
             </div>
           );
         })}
@@ -1845,6 +1860,8 @@ function CalendarPage({
         .homi-calendar-month-events{display:grid;gap:4px;margin-top:5px}
         .homi-calendar-month-event{display:grid;grid-template-columns:7px minmax(0,1fr);gap:6px;align-items:center;border:0;background:transparent;padding:3px;text-align:left;color:var(--homi-text);cursor:pointer;font:inherit;font-size:.72rem}
         .homi-calendar-month-event span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .homi-calendar-month-dots{display:none;align-items:center;flex-wrap:wrap;gap:3px;margin-top:4px;padding:0 4px}
+        .homi-calendar-month-dots small{font-size:.62rem;font-weight:800;color:var(--homi-text-muted)}
         .homi-calendar-color-dot{width:7px;height:7px;border-radius:999px}
         .homi-calendar-time-workspace{overflow:auto;border:1px solid var(--homi-border);border-radius:var(--homi-radius-md);background:var(--homi-surface-strong)}
         .homi-calendar-all-day-row,.homi-calendar-time-grid{display:grid;grid-template-columns:64px repeat(var(--calendar-day-count),minmax(128px,1fr));min-width:max-content}
@@ -1868,7 +1885,7 @@ function CalendarPage({
         .homi-calendar-checkboxes label{display:flex;align-items:center;gap:6px}
         .homi-calendar-editor-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
         @media(min-width:900px){.homi-calendar-search-popover{bottom:88px}}
-        @media(max-width:760px){.homi-calendar-month-cell{min-height:72px;padding:5px}.homi-calendar-month-event{display:none}.homi-calendar-form-grid{grid-template-columns:1fr}.homi-calendar-upcoming-row{grid-template-columns:5px 72px minmax(0,1fr)}.homi-calendar-upcoming-row>span:last-child{display:none}.homi-calendar-toolbar__nav input[type=date]{max-width:142px}}
+        @media(max-width:760px){.homi-calendar-month-cell{min-height:72px;padding:5px}.homi-calendar-month-events{display:none}.homi-calendar-month-dots{display:flex}.homi-calendar-form-grid{grid-template-columns:1fr}.homi-calendar-upcoming-row{grid-template-columns:5px 72px minmax(0,1fr)}.homi-calendar-upcoming-row>span:last-child{display:none}.homi-calendar-toolbar__nav input[type=date]{max-width:142px}}
       `}</style>
 
       <ModuleHeader
