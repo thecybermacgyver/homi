@@ -1,6 +1,6 @@
-# Homi pre-1.0 release notes
+# Homi 1.0 release notes
 
-Status: published pre-1.0 release. Homi runs in everyday household use but has not declared a stable 1.0; public module APIs are versioned, and any breaking change before 1.0 will be documented.
+Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From 1.0, releases follow semantic versioning, and the public module API is versioned separately (`moduleApiVersion`, currently 1): a change that is not backward compatible ships as a new module API version and a new major release, and is documented here and in the changelog.
 
 ## Included
 
@@ -28,7 +28,6 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 
 ## Known limitations
 
-- Homi is pre-1.0. Breaking changes may still occur before 1.0 and will be documented.
 - There is no in-app way to invite or add household members yet. Bootstrap creates the first account and household; further members currently have to be added by an operator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
 - The signed public module directory offers Calendar 0.6.19, Chequebook 0.1.25, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.

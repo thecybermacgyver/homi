@@ -2,7 +2,7 @@
 
 Homi is a self-hosted, server-authoritative household platform. Core provides identity, households, permissions, offline synchronization, a responsive shell, and a public module SDK. Household features are independently packaged modules that install through the managed lifecycle instead of being compiled into Core.
 
-> Project status: pre-1.0. Core, Calendar, Chequebook, and Shopping List are in everyday household use, and clean-machine installation passes. Homi is published under AGPL-3.0; the work remaining before a stable 1.0 is tracked in [the roadmap](docs/ROADMAP.md).
+> Project status: **Homi 1.0**. Core, Calendar, Chequebook, and Shopping List are in everyday household use, and clean-machine installation passes. Homi is published under AGPL-3.0; see the [changelog](CHANGELOG.md) and [roadmap](docs/ROADMAP.md).
 
 ### Family Board direction
 
@@ -144,7 +144,7 @@ The installer never runs package-manager or arbitrary lifecycle scripts. It vali
 
 Real secrets and signing private keys must never be committed. Module-directory trust keys are configured locally; catalogue entries point only to immutable GitHub release assets and pin their SHA-256 digest.
 
-Homi is not yet declaring a stable 1.0 release. Remaining release gates are tracked in [the release checklist](docs/RELEASE_CHECKLIST.md) and [roadmap](docs/ROADMAP.md).
+Homi 1.0 was released on 2026-10-02 after every gate in [the release checklist](docs/RELEASE_CHECKLIST.md) was met. Later work is tracked in the [changelog](CHANGELOG.md) and [roadmap](docs/ROADMAP.md).
 
 ## Licence
 

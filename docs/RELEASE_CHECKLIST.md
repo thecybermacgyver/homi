@@ -1,12 +1,12 @@
 # Homi public-release checklist
 
-This checklist tracks the gates for Homi's stable 1.0 release. The owner approved public visibility, and the repository is published as a pre-1.0 release; unchecked items remain open before 1.0.
+This checklist tracked the gates for Homi's stable 1.0 release; every gate is checked and Homi 1.0 was released on 2026-10-02. The owner approved public visibility, and the repository is published as a pre-1.0 release; unchecked items remain open before 1.0.
 
 ## Repository and legal
 
 - [x] AGPL-3.0 licence committed.
 - [x] Dashboard and phone design-direction images included and identified as concepts.
-- [x] README describes architecture, supported modules, installation, and current pre-1.0 status.
+- [x] README describes architecture, supported modules, installation, and current release status.
 - [x] Contribution and private security-reporting policies committed.
 - [x] Real `.env` files, secrets, private keys, backups, dumps, and production data excluded.
 - [x] Full Git history scan finds no common private-key, GitHub-token, or cloud-access-key patterns; only the placeholder `.env.example` path exists in history.

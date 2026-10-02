@@ -11,7 +11,7 @@ Publication decision 2026-09-21: Homi is licensed under AGPL-3.0. Keep the GitHu
 5. Homi application shell, design system, and module platform — COMPLETE
 6. First-party Calendar module — COMPLETE; Calendar 0.6.5 is validated locally and deployed in production through the managed module lifecycle
 7. Calendar multi-device test — PENDING
-8. Expand first-party/community modules — IN PROGRESS; Chequebook 0.1.11 and Calendar 0.6.5 are validated, installed, enabled, and connected through gated public broker contracts; Core-owned contextual Search/Add, generic missing-capability status, and the signed private-GitHub directory with isolated backup-first admin installation are implemented
+8. Expand first-party/community modules — COMPLETE for the 1.0 release (further modules continue as post-1.0 work); Chequebook 0.1.11 and Calendar 0.6.5 are validated, installed, enabled, and connected through gated public broker contracts; Core-owned contextual Search/Add, generic missing-capability status, and the signed private-GitHub directory with isolated backup-first admin installation are implemented
 
 ## Master Step 5 — Homi platform progress
 
@@ -31,7 +31,7 @@ Calendar conforms to the managed module platform at corrective version 0.6.1. Lo
 
 The customized OpenFamily installation is an explicit functional parity floor for Homi. The authoritative parity inventory is `docs/OPENFAMILY_PARITY_REQUIREMENTS.md`. Parity is functional rather than architectural: Homi must preserve the user capability while translating cross-feature behavior to SDK/broker/Core contracts. Chequebook 0.1.1 declares the Calendar broker consumer contract; user-owned setup is complete, while end-user Calendar-linkage acceptance remains a separate pending integration check.
 
-## Master Step 8 — First-party/community module expansion — IN PROGRESS
+## Master Step 8 — First-party/community module expansion — COMPLETE for 1.0
 
 The signed private-GitHub module directory is now wired into the Modules page and the isolated internal manager. Admins can install/update a verified immutable release independently of household enablement; the manager creates a database-and-artifact recovery set first, and the existing installer provides transactional rollback. Production deployment and end-to-end acceptance of this path pass. Remaining Step 8 release gates include building additional modules, multi-device Calendar acceptance, security/accessibility review, and explicit user approval before making GitHub public.
 

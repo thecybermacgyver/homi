@@ -1,6 +1,6 @@
 # Contributing to Homi
 
-Homi welcomes Core, documentation, and independently packaged module contributions while the project remains pre-1.0.
+Homi welcomes Core, documentation, and independently packaged module contributions.
 
 ## Before changing code
 
