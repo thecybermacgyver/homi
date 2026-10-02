@@ -357,11 +357,51 @@ export interface HomiWebModuleCardPresentation {
   readonly cardStyle: string;
 }
 
+// One match returned by a module's search provider. Core renders it in the
+// universal search sheet and, when it is chosen, opens the module page named
+// by `pageId` and hands `intent` to that page, which alone interprets it.
+export interface HomiWebModuleSearchResult {
+  readonly id: string;
+  readonly title: string;
+  readonly subtitle?: string;
+  // Short trailing text such as an amount or a time.
+  readonly detail?: string;
+  readonly pageId: string;
+  readonly intent?: Readonly<Record<string, string>>;
+}
+
+export interface HomiWebModuleSearchHost {
+  readonly context: HomiWebModuleHostContext;
+  readonly actions: HomiWebModuleHostActions;
+}
+
+// Core owns the search control, query box, result list and navigation. A module
+// only answers queries, from its local working cache so search also works
+// offline, and never renders its own search surface.
+export interface HomiWebModuleSearchProvider {
+  // Group heading shown above this module's results, for example "Events".
+  readonly label: string;
+  search(
+    query: string,
+    host: HomiWebModuleSearchHost,
+  ): Promise<readonly HomiWebModuleSearchResult[]>;
+}
+
+// Delivered to a page opened from a search result. `nonce` changes on every
+// delivery so choosing the same result twice is observable.
+export interface HomiWebModuleOpenIntent {
+  readonly resultId: string;
+  readonly params: Readonly<Record<string, string>>;
+  readonly nonce: number;
+}
+
 export interface HomiWebModuleSurfaceProps {
   readonly context: HomiWebModuleHostContext;
   readonly actions: HomiWebModuleHostActions;
   // Present only for Family Board surfaces that declare card styles.
   readonly presentation?: HomiWebModuleCardPresentation;
+  // Present only on a module page that was opened from a search result.
+  readonly intent?: HomiWebModuleOpenIntent;
 }
 
 export type HomiWebModuleSurface =
@@ -465,6 +505,7 @@ export interface HomiWebModuleDefinition {
     Record<string, HomiWebModuleSurface>
   >;
   readonly sync: HomiWebModuleSyncContributions;
+  readonly search?: HomiWebModuleSearchProvider;
 }
 
 function validModuleKey(value: string): boolean {
@@ -688,6 +729,17 @@ export function defineHomiWebModule<
     definition.familyBoard === undefined
       ? undefined
       : validateSurfaces(definition.familyBoard);
+
+  if (
+    definition.search !== undefined &&
+    (typeof definition.search.label !== "string" ||
+      definition.search.label.trim() === "" ||
+      typeof definition.search.search !== "function")
+  ) {
+    throw new Error(
+      "Homi web module search must provide a label and a search function.",
+    );
+  }
 
   const mutationAdapters = validateMutationAdapters(
     definition.sync?.mutationAdapters ?? [],

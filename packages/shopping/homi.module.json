@@ -3,7 +3,7 @@
   "moduleKey": "shopping",
   "name": "Shopping List",
   "publisher": "Homi",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "moduleApiVersion": 1,
   "description": "A shared household shopping list with automatic aisle grouping, store and shopper assignments, offline use, and synchronized check-off.",
   "entrypoints": {

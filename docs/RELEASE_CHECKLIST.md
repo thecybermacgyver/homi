@@ -33,11 +33,11 @@ This checklist tracks the gates for Homi's stable 1.0 release. The owner approve
 ## Product acceptance
 
 - [x] Calendar multi-device acceptance passes with automatic synchronization (isolated two-device plus second-member browser acceptance, `packages/calendar/qa`, Calendar 0.6.16, 2026-10-01; owner real-device confirmation pending).
-- [x] Chequebook multi-device acceptance passes with automatic synchronization (owner-confirmed on phone and desktop, 2026-09-30; isolated browser acceptance re-run at Chequebook 0.1.21, 2026-10-01).
-- [ ] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events.
+- [x] Chequebook multi-device acceptance passes with automatic synchronization (owner-confirmed on phone and desktop, 2026-09-30). Re-run and passed in the isolated browser acceptance at Chequebook 0.1.21 (2026-10-01).
+- [x] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events (owner-confirmed, 2026-09-30).
 - [x] Offline create/edit/delete and reconnect pass on phone and desktop (Calendar 0.6.16 and Chequebook 0.1.21: isolated three-profile browser acceptance `packages/*/qa/acceptance.mjs`, 2026-10-01, plus owner-confirmed on real phone and desktop, 2026-10-01).
-- [ ] PWA install/update behavior passes without manual cache clearing. The isolated acceptance (`apps/web/qa/pwa-update-acceptance.mjs`, 2026-10-01) passes: valid manifest and no Chrome installability errors, module upgrades picked up by the open app on reconnect with no reload or cache clearing, a device offline during the upgrade keeping its queued change, and a new shell (service-worker cache v19 to v20) installing and reloading itself on the next open, all while signed in with data intact and fully offline starts afterwards; the owner's real-device confirmation remains.
-- [ ] Search and Add controls pass in Core and both first-party modules.
+- [ ] PWA install/update behavior passes without manual cache clearing. The isolated acceptance (`apps/web/qa/pwa-update-acceptance.mjs`, 2026-10-01) passes: valid manifest and no Chrome installability errors, module upgrades (Calendar 0.6.14 to 0.6.16, Chequebook 0.1.15 to 0.1.21) picked up by the open app on reconnect with no reload or cache clearing, a device offline during the upgrade keeping its queued change, and a new shell (service-worker cache v19 to v20) installing and reloading itself on the next open, all while signed in with data intact and fully offline starts afterwards; the owner's real-device confirmation remains.
+- [ ] Search and Add controls pass in Core and the first-party modules. Add is owner-confirmed. Search was only a per-view filter (owner-reported 2026-10-02); it is now one Core-owned universal Search across Calendar, Chequebook and Shopping List, and its isolated acceptance (`apps/web/qa/universal-search-acceptance.mjs`, 2026-10-02) passes on the Dashboard and inside modules, offline, and at phone/tablet/desktop widths; the owner's real-device confirmation remains.
 
 ## Publication
 

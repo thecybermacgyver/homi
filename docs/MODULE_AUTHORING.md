@@ -163,6 +163,34 @@ from props.
 
 Module pages may call `actions.registerContextActions()` to contribute Search and Create behavior for the active page. Core owns, positions, labels, and removes the floating controls; the module owns only the callback behavior and current availability. A page must unregister its contextual actions when it unmounts. Registering updates the host, which hands the surface new `actions`, so the registering effect must not list `actions` as a dependency: depend only on the availability it reports, or it re-registers in a continuous render loop. Modules must not create competing fixed-position Search or Add buttons.
 
+## Search
+
+Search is owned by Core and is universal: one Search control, reachable from the Dashboard and from every module page, searches every enabled module at once and shows the matches grouped by module. A module never renders its own search box or result list. It contributes a search provider on its web definition, so Core can query it even when none of its pages is open:
+
+```ts
+defineHomiWebModule({
+  // ...
+  search: {
+    label: "Calendar events", // group heading in Core's result list
+    async search(query, { context, actions }) {
+      // Read the local working cache so search also works offline and includes
+      // changes that are still queued.
+      const records = await actions.listWorkingEntities("event");
+      return matches.map((item) => ({
+        id: item.id,
+        title: item.title,
+        subtitle: "2026-11-11 · 9:00 a.m.",
+        detail: "optional trailing text such as an amount",
+        pageId: "calendar", // a navigation id from the manifest
+        intent: { date: "2026-11-11" }, // opaque to Core; string values only
+      }));
+    },
+  },
+});
+```
+
+Core limits each provider to 4 seconds and 20 results and shows a notice if a provider fails. When a result is chosen, Core opens the module page named by `pageId` and passes `intent` to that page as the `intent` surface prop (`{ resultId, params, nonce }`). The page, and only the page, interprets it: for example it jumps to a day or opens an item for editing. Apply the intent once per `nonce`, and only after the page has loaded the data it refers to. A module that offers no provider can still register an in-page search through `registerContextActions`, which Core uses only when no enabled module provides universal search.
+
 Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
 
 ## Setup and settings

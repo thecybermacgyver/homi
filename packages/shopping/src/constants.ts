@@ -1,5 +1,5 @@
 export const SHOPPING_MODULE_KEY = "shopping" as const;
-export const SHOPPING_VERSION = "0.3.1" as const;
+export const SHOPPING_VERSION = "0.3.2" as const;
 export const AISLES = ["Produce", "Bakery", "Dairy & eggs", "Meat & seafood", "Pantry", "Frozen", "Household", "Personal care", "Pharmacy", "Hardware", "Pets", "Other"] as const;
 const RULES: readonly [RegExp, string][] = [
   [/\b(ice cream|frozen|popsicles?)\b/i, "Frozen"],

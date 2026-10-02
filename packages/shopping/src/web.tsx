@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { defineHomiWebModule, HOMI_MODULE_API_VERSION, type HomiHouseholdPerson,
+import { defineHomiWebModule, type HomiWebModuleSearchProvider, HOMI_MODULE_API_VERSION, type HomiHouseholdPerson,
   type HomiWebModuleSurfaceProps, type HomiWebModuleHostActions,
   type HomiWebModuleMutationState, type HomiWebModuleMutationInput } from "@homi/module-sdk";
 import { BottomSheet, Button, Checkbox, FormField, Select, TextField } from "@homi/ui";
@@ -142,22 +142,29 @@ function ShoppingPage(props:HomiWebModuleSurfaceProps) {
   const data = useShopping(props);
   const [editor,setEditor] = useState<Editor|null>(null);
   const [quick,setQuick] = useState("");
-  const [query,setQuery] = useState("");
-  const [searchOpen,setSearchOpen] = useState(false);
   const [store,setStore] = useState("");
   const [checked,setChecked] = useState(false);
   const latest = useRef({actions:props.actions,store});latest.current={actions:props.actions,store};
   useEffect(() => {
     latest.current.actions.registerContextActions({
       create:{label:"Add shopping item",invoke:()=>setEditor(fresh(latest.current.store))},
-      search:{label:"Search Shopping List",invoke:()=>setSearchOpen(v=>!v)},
     });
     return () => latest.current.actions.registerContextActions(null);
   },[props.context.householdId]);
+  // An item chosen in Core's universal search opens for viewing or editing once the list has loaded it.
+  const appliedIntent = useRef(0);
+  useEffect(() => {
+    const intent = props.intent;
+    if (!intent || appliedIntent.current === intent.nonce) return;
+    const target = data.items.find(i => i.id === intent.params.itemId);
+    if (!target) return;
+    appliedIntent.current = intent.nonce;
+    setChecked(target.checked);
+    setEditor(edit(target));
+  },[props.intent?.nonce, data.items]);
   const stores = [...new Set(data.items.map(i=>i.store).filter(s=>s!=="Any store"))].sort((a,b)=>a.localeCompare(b));
   const people = new Map(data.people.map(p=>[p.id,p.displayName]));
-  const visible = data.items.filter(item => item.checked===checked && (!store || item.store===store) &&
-    (!query || [item.name,item.store,item.aisle,people.get(item.assignedTo??"")??""].some(s=>normalized(s).includes(normalized(query)))));
+  const visible = data.items.filter(item => item.checked===checked && (!store || item.store===store));
   const groups = new Map<string,Map<string,ShoppingItem[]>>();
   for (const item of visible) {
     const aisles=groups.get(item.store)??new Map<string,ShoppingItem[]>();
@@ -195,9 +202,6 @@ function ShoppingPage(props:HomiWebModuleSurfaceProps) {
           <option>Any store</option>
         </Select>
       </FormField>
-      {searchOpen&&<FormField label="Find an item" htmlFor="shopping-find">
-        <TextField id="shopping-find" autoFocus value={query} onChange={e=>setQuery(e.currentTarget.value)}/>
-      </FormField>}
     </div>
     <div className="shopping-tabs" aria-label="List view">
       <Button variant={checked?"quiet":"secondary"} aria-pressed={!checked} onClick={()=>setChecked(false)}>To buy</Button>
@@ -220,7 +224,7 @@ function ShoppingPage(props:HomiWebModuleSurfaceProps) {
       }}>Review item</Button>
     </div>)}
     {!data.loaded?<p className="shopping-status">Loading your list…</p>:visible.length===0?
-      <p className="shopping-status">{checked?"No checked items.":query||store?"No items match this view.":"Your list is empty. Add what you need above."}</p>:
+      <p className="shopping-status">{checked?"No checked items.":store?"No items match this view.":"Your list is empty. Add what you need above."}</p>:
       [...groups].sort(([a],[b])=>a.localeCompare(b)).map(([storeName,aisles])=><section className="shopping-group" key={storeName}>
         {(groups.size>1||storeName!=="Any store")&&<h2>{storeName}</h2>}
         {[...aisles].sort(([a],[b])=>{
@@ -277,8 +281,28 @@ function ShoppingBoard(props:HomiWebModuleSurfaceProps) {
     <div className="shopping-board-footer"><Button variant="quiet" onClick={()=>props.actions.navigate("/modules/shopping")}>{!counts&&active.length>9?"+ "+(active.length-9)+" more · Open list":"Open list"}</Button></div>
   </div>;
 }
+// Answers Core's universal search from the local working cache, so it also works offline.
+const shoppingSearchProvider: HomiWebModuleSearchProvider = {
+  label: "Shopping list items",
+  async search(query, { context, actions }) {
+    const needle = normalized(query.trim());
+    if (needle === "") return [];
+    const records = await actions.listWorkingEntities("item");
+    const items = records.map(row => parseShoppingWorkingItem(row.data)).filter(item => !item.deleted);
+    return items
+      .filter(item => [item.name, item.store, item.aisle].some(value => normalized(value).includes(needle)))
+      .sort((a,b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name, context.locale))
+      .map(item => ({
+        id: item.id,
+        title: item.name,
+        subtitle: `${item.store} · ${item.aisle}${item.checked ? " · checked off" : ""}`,
+        pageId: "shopping",
+        intent: { itemId: item.id },
+      }));
+  },
+};
 export function createHomiWebModule() {
-  return defineHomiWebModule({moduleKey:SHOPPING_MODULE_KEY,moduleApiVersion:HOMI_MODULE_API_VERSION,
+  return defineHomiWebModule({search:shoppingSearchProvider,moduleKey:SHOPPING_MODULE_KEY,moduleApiVersion:HOMI_MODULE_API_VERSION,
     pages:{shopping:ShoppingPage},familyBoard:{"shopping-list":ShoppingBoard},
     sync:{mutationAdapters:[shoppingItemMutationAdapter],changeHandlers:[shoppingItemChangeHandler]}});
 }

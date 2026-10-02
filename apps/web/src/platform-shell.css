@@ -1177,3 +1177,48 @@
     bottom: 24px;
   }
 }
+
+.homi-global-search {
+  display: grid;
+  gap: 12px;
+}
+
+.homi-global-search__status {
+  margin: 0;
+  color: var(--homi-text-muted);
+  font-weight: 650;
+}
+
+.homi-global-search__group h3 {
+  margin: 4px 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--homi-text-muted);
+}
+
+.homi-global-search__group [role="list"] {
+  display: grid;
+  gap: 6px;
+}
+
+.homi-global-search__result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--homi-border, rgba(92, 70, 61, 0.2));
+  border-radius: var(--homi-radius-md, 8px);
+  background: var(--homi-surface-strong, #fffaf2);
+  color: var(--homi-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.homi-global-search__result small {
+  display: block;
+  color: var(--homi-text-muted);
+}

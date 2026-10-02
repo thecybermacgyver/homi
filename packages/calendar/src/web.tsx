@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   defineHomiWebModule,
   type HomiWebModuleHostContext,
   type HomiWebModuleMutationState,
+  type HomiWebModuleSearchProvider,
   type HomiWebModuleSurfaceProps,
 } from "@homi/module-sdk";
 import {
@@ -1155,6 +1157,7 @@ function CalendarTimeGrid({
 function CalendarPage({
   context,
   actions,
+  intent,
 }: HomiWebModuleSurfaceProps) {
   const { events, failure, reload } = useCalendarEvents(
     context,
@@ -1172,8 +1175,6 @@ function CalendarPage({
   const [viewInitialized, setViewInitialized] = useState(false);
   const today = dateKey(new Date(), context.timeZone);
   const [cursor, setCursor] = useState(today);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [editor, setEditor] = useState<CalendarEditorState | null>(null);
   const [externalDetail, setExternalDetail] =
     useState<CalendarOccurrence | null>(null);
@@ -1193,10 +1194,6 @@ function CalendarPage({
 
   useEffect(() => {
     actions.registerContextActions({
-      search: {
-        label: "Search Calendar",
-        invoke: () => setSearchOpen((current) => !current),
-      },
       create: {
         label: "Add event",
         available: calendars.length > 0,
@@ -1232,6 +1229,21 @@ function CalendarPage({
     );
   }, [reloadMetadata]);
 
+  // A page opened from Core's universal search lands on that day. Apply it only
+  // once the remembered view has been restored, so that does not override it.
+  const appliedIntent = useRef(0);
+  useEffect(() => {
+    if (!intent || !viewInitialized || appliedIntent.current === intent.nonce) {
+      return;
+    }
+    appliedIntent.current = intent.nonce;
+    const date = intent.params.date;
+    if (date !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      setCursor(date);
+      setView("day");
+    }
+  }, [intent?.nonce, viewInitialized]);
+
   useEffect(() => {
     if (!viewInitialized) return;
     rememberCalendarView(context, view);
@@ -1256,30 +1268,6 @@ function CalendarPage({
   const peopleById = new Map(
     people.map((person) => [person.id, person] as const),
   );
-  const normalizedSearch = searchQuery.trim().toLocaleLowerCase(context.locale);
-  const searchedEvents = visibleEvents.filter((event) => {
-    if (!normalizedSearch) return true;
-    const related = new Set(event.personIds);
-    if (event.transport.pickupPersonId) {
-      related.add(event.transport.pickupPersonId);
-    }
-    if (event.transport.dropoffPersonId) {
-      related.add(event.transport.dropoffPersonId);
-    }
-    return [
-      event.title,
-      event.description ?? "",
-      event.location ?? "",
-      event.notes ?? "",
-      ...[...related].map(
-        (id) => peopleById.get(id)?.displayName ?? "",
-      ),
-    ]
-      .join("\n")
-      .toLocaleLowerCase(context.locale)
-      .includes(normalizedSearch);
-  });
-
   const viewRange = useMemo(() => {
     if (view === "day") {
       return { start: cursor, end: addDays(cursor, 1) };
@@ -1297,11 +1285,11 @@ function CalendarPage({
 
   const occurrences = useMemo(
     () => expandCalendarEvents(
-      searchedEvents,
+      visibleEvents,
       viewRange.start,
       viewRange.end,
     ),
-    [searchedEvents, viewRange.start, viewRange.end],
+    [visibleEvents, viewRange.start, viewRange.end],
   );
 
   const calendarById = new Map(
@@ -1848,7 +1836,6 @@ function CalendarPage({
         .homi-calendar-toolbar__nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
         .homi-calendar-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--homi-space-4);align-items:start}
         .homi-calendar-main{min-width:0;display:grid;gap:12px}
-        .homi-calendar-search-popover{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(146px + env(safe-area-inset-bottom));z-index:45;width:min(360px,calc(100vw - 36px));box-shadow:var(--homi-shadow-lg)}
         .homi-calendar-view-surface{min-width:0;width:100%;overflow:hidden}
         .homi-calendar-week-scroll{min-width:0;width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
         .homi-calendar-week-content{min-width:960px}
@@ -1886,7 +1873,6 @@ function CalendarPage({
         .homi-calendar-checkboxes{display:flex;flex-wrap:wrap;gap:10px}
         .homi-calendar-checkboxes label{display:flex;align-items:center;gap:6px}
         .homi-calendar-editor-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-        @media(min-width:900px){.homi-calendar-search-popover{bottom:88px}}
         @media(max-width:760px){.homi-calendar-month-cell{min-height:72px;padding:5px}.homi-calendar-month-events{display:none}.homi-calendar-month-dots{display:flex}.homi-calendar-form-grid{grid-template-columns:1fr}.homi-calendar-upcoming-row{grid-template-columns:5px 72px minmax(0,1fr)}.homi-calendar-upcoming-row>span:last-child{display:none}.homi-calendar-toolbar__nav input[type=date]{max-width:142px}}
       `}</style>
 
@@ -1975,11 +1961,6 @@ function CalendarPage({
           <Surface className="homi-calendar-view-surface" padding="normal">
             <div style={{ marginBottom: 14 }}>
               <strong style={{ fontSize: "1.15rem" }}>{periodLabel}</strong>
-              {normalizedSearch && (
-                <p style={{ color: "var(--homi-text-muted)" }}>
-                  Showing matches for “{searchQuery.trim()}”.
-                </p>
-              )}
             </div>
             {view === "month" && renderMonth()}
             {view === "upcoming" && renderUpcoming()}
@@ -2040,32 +2021,6 @@ function CalendarPage({
           </Surface>
         </main>
       </div>
-
-      {searchOpen && (
-        <Surface className="homi-calendar-search-popover" padding="compact">
-          <FormField label="Search Calendar" htmlFor="calendar-search">
-            <TextField
-              id="calendar-search"
-              type="search"
-              autoFocus
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.currentTarget.value)}
-              placeholder="Events, notes, places or people"
-            />
-          </FormField>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-            <Button
-              variant="quiet"
-              onClick={() => {
-                setSearchQuery("");
-                setSearchOpen(false);
-              }}
-            >
-              Close
-            </Button>
-          </div>
-        </Surface>
-      )}
 
       {externalDetail && (
         <div
@@ -3549,10 +3504,55 @@ function MiniMonthCard({
   );
 }
 
+// Answers Core's universal search from the local working cache, so it also
+// works offline and includes events that are still queued.
+const calendarSearchProvider: HomiWebModuleSearchProvider = {
+  label: "Calendar events",
+  async search(query, { context, actions }) {
+    const needle = query.trim().toLocaleLowerCase(context.locale);
+    if (needle === "") return [];
+    const today = dateKey(new Date(), context.timeZone);
+    const records = await actions.listWorkingEntities("event");
+    const matched: CalendarEvent[] = [];
+    for (const record of records) {
+      let event: CalendarEvent;
+      try {
+        event = parseCalendarEvent(record.data, true);
+      } catch {
+        continue;
+      }
+      if (
+        [event.title, event.description ?? "", event.location ?? "", event.notes ?? ""]
+          .join("\n")
+          .toLocaleLowerCase(context.locale)
+          .includes(needle)
+      ) {
+        matched.push(event);
+      }
+    }
+    return [
+      ...expandCalendarEvents(matched, addDays(today, -366), addDays(today, 731)),
+    ]
+      .sort(
+        (a, b) =>
+          a.occurrenceDate.localeCompare(b.occurrenceDate) ||
+          (a.event.startsAt ?? "").localeCompare(b.event.startsAt ?? ""),
+      )
+      .map((item) => ({
+        id: item.occurrenceId,
+        title: item.event.title,
+        subtitle: `${item.occurrenceDate} · ${formatOccurrence(item, context.locale, context.timeZone)}${item.event.location ? ` · ${item.event.location}` : ""}`,
+        pageId: "calendar",
+        intent: { date: item.occurrenceDate, eventId: item.seriesEventId },
+      }));
+  },
+};
+
 export function createHomiWebModule(
   _context: HomiWebModuleHostContext,
 ) {
   return defineHomiWebModule({
+    search: calendarSearchProvider,
     moduleKey: CALENDAR_MODULE_KEY,
     moduleApiVersion: HOMI_MODULE_API_VERSION,
     pages: {

@@ -56,7 +56,12 @@ import {
   sameFamilyBoardPlacement,
   type FamilyBoardArrangement,
 } from "./family-board-layout.js";
-import type { HomiFamilyBoardLayout } from "@homi/module-sdk";
+import type {
+  HomiFamilyBoardLayout,
+  HomiWebModuleOpenIntent,
+  HomiWebModuleSearchResult,
+} from "@homi/module-sdk";
+import { GlobalSearch, type GlobalSearchSource } from "./GlobalSearch.js";
 import {
   cacheMemberModulePreferences,
   fetchMemberModulePreferences,
@@ -203,6 +208,13 @@ export function App() {
     readonly moduleKey: string;
     readonly actions: HomiWebModuleContextActions;
   } | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchIntent, setSearchIntent] = useState<{
+    readonly moduleKey: string;
+    readonly pageId: string;
+    readonly intent: HomiWebModuleOpenIntent;
+  } | null>(null);
+  const searchIntentNonce = useRef(0);
   const firstSyncGeneration = useRef<string | null>(null);
   const loadedRuntimeIdentity = useRef<string | null>(null);
 
@@ -763,6 +775,48 @@ export function App() {
     modulePages.find(
       (page) => page.viewId === activeView,
     ) ?? null;
+  const searchSources: readonly GlobalSearchSource[] =
+    moduleSurfaceContext === null
+      ? []
+      : enabledModules.flatMap((module) =>
+          module.definition.search === undefined
+            ? []
+            : [
+                {
+                  moduleKey: module.descriptor.moduleKey,
+                  provider: module.definition.search,
+                  host: {
+                    context: moduleSurfaceContext,
+                    actions: moduleActionsFor(
+                      module.descriptor.moduleKey,
+                    ),
+                  },
+                },
+              ],
+        );
+  function chooseSearchResult(
+    moduleKey: string,
+    result: HomiWebModuleSearchResult,
+  ): void {
+    const target = modulePages.find(
+      (page) =>
+        page.module.descriptor.moduleKey === moduleKey &&
+        page.navigation.id === result.pageId,
+    );
+    setSearchOpen(false);
+    if (!target) return;
+    searchIntentNonce.current += 1;
+    setSearchIntent({
+      moduleKey,
+      pageId: result.pageId,
+      intent: Object.freeze({
+        resultId: result.id,
+        params: Object.freeze({ ...(result.intent ?? {}) }),
+        nonce: searchIntentNonce.current,
+      }),
+    });
+    setActiveView(target.viewId);
+  }
   const memberPreferenceBySurface = new Map(
     memberModulePreferences.map((preference) => [
       `${preference.moduleId}:${preference.surfaceId}`,
@@ -1739,54 +1793,76 @@ export function App() {
                 actions={moduleActionsFor(
                   activeModulePage.module.descriptor.moduleKey,
                 )}
+                {...(searchIntent !== null &&
+                searchIntent.moduleKey ===
+                  activeModulePage.module.descriptor.moduleKey &&
+                searchIntent.pageId === activeModulePage.navigation.id
+                  ? { intent: searchIntent.intent }
+                  : {})}
               />
             )}
           </section>
         )}
 
-      {activeModulePage &&
-        moduleContextActions?.moduleKey ===
-          activeModulePage.module.descriptor.moduleKey &&
-        (moduleContextActions.actions.search ||
-          moduleContextActions.actions.create) && (
+      {(() => {
+        const moduleActions =
+          activeModulePage &&
+          moduleContextActions?.moduleKey ===
+            activeModulePage.module.descriptor.moduleKey
+            ? moduleContextActions.actions
+            : null;
+        // Core's universal search takes the search control whenever any enabled
+        // module can answer queries; a module's own in-page search remains the
+        // fallback for modules that offer no provider.
+        const searchAction =
+          (ready || offlineReady) && searchSources.length > 0
+            ? {
+                label: "Search Homi",
+                available: true,
+                invoke: () => setSearchOpen(true),
+              }
+            : (moduleActions?.search ?? null);
+        const createAction = moduleActions?.create ?? null;
+        if (!searchAction && !createAction) return null;
+        return (
           <div
             className="homi-platform-context-actions"
             aria-label="Module actions"
           >
-            {moduleContextActions.actions.search && (
+            {searchAction && (
               <button
                 type="button"
                 className="homi-platform-context-action"
-                aria-label={moduleContextActions.actions.search.label}
-                title={moduleContextActions.actions.search.label}
-                disabled={
-                  moduleContextActions.actions.search.available === false
-                }
-                onClick={() =>
-                  moduleContextActions.actions.search?.invoke()
-                }
+                aria-label={searchAction.label}
+                title={searchAction.label}
+                disabled={searchAction.available === false}
+                onClick={() => searchAction.invoke()}
               >
                 🔍
               </button>
             )}
-            {moduleContextActions.actions.create && (
+            {createAction && (
               <button
                 type="button"
                 className="homi-platform-context-action homi-platform-context-action--primary"
-                aria-label={moduleContextActions.actions.create.label}
-                title={moduleContextActions.actions.create.label}
-                disabled={
-                  moduleContextActions.actions.create.available === false
-                }
-                onClick={() =>
-                  moduleContextActions.actions.create?.invoke()
-                }
+                aria-label={createAction.label}
+                title={createAction.label}
+                disabled={createAction.available === false}
+                onClick={() => createAction.invoke()}
               >
                 ＋
               </button>
             )}
           </div>
-        )}
+        );
+      })()}
+
+      <GlobalSearch
+        open={searchOpen}
+        sources={searchSources}
+        onClose={() => setSearchOpen(false)}
+        onChoose={chooseSearchResult}
+      />
 
       {(ready || offlineReady) &&
         activeModuleSetting &&

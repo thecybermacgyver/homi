@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-02T15:58:50.068Z",
+  "run": "6715851",
+  "results": [
+    "one Search control on the Dashboard finds the same word in Calendar, Chequebook and Shopping, grouped by module",
+    "a word that matches nothing says so",
+    "choosing a Calendar result opens that day with the event",
+    "choosing a Chequebook result, searched from inside Calendar, opens that transaction for editing",
+    "choosing a Shopping result opens that item for editing",
+    "after a full browser restart while offline, Search still finds results in all three modules",
+    "and choosing an offline result still opens it",
+    "layout has no horizontal overflow at phone, tablet and desktop widths",
+    "no JavaScript page errors"
+  ]
+}

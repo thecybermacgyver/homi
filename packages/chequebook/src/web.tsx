@@ -12,6 +12,7 @@ import {
   type HomiWebModuleHostContext,
   type HomiWebModuleMutationInput,
   type HomiWebModuleMutationState,
+  type HomiWebModuleSearchProvider,
   type HomiWebModuleSurfaceProps,
 } from "@homi/module-sdk";
 import {
@@ -774,6 +775,7 @@ function recurringPayload(
 function ChequebookPage({
   context,
   actions,
+  intent,
 }: HomiWebModuleSurfaceProps) {
   const householdId = context?.householdId ?? "";
   const online = Boolean(context?.online);
@@ -803,8 +805,6 @@ function ChequebookPage({
     useState<ChequebookMonthlySummary | null>(
       null,
     );
-  const [search, setSearch] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [accountFilter, setAccountFilter] =
     useState("all");
   const [message, setMessage] =
@@ -847,26 +847,28 @@ function ChequebookPage({
 
   const latestRef = useRef({
     openNewTransaction,
-    setSearchOpen,
-    setTab,
   });
   latestRef.current = {
     openNewTransaction,
-    setSearchOpen,
-    setTab,
   };
+
+  // A transaction chosen in Core's universal search opens for viewing or
+  // editing once the register has loaded it.
+  const appliedIntent = useRef(0);
+  useEffect(() => {
+    if (!intent || appliedIntent.current === intent.nonce) return;
+    const id = intent.params.transactionId;
+    const target = transactions.find((item) => item.id === id);
+    if (!target) return;
+    appliedIntent.current = intent.nonce;
+    setTab("register");
+    openEditTransaction(target);
+  }, [intent?.nonce, transactions]);
 
   // Registering updates the host, which hands this surface new actions, so the
   // effect must not depend on their identity or it re-registers in a loop.
   useEffect(() => {
     actionsRef.current.registerContextActions({
-      search: {
-        label: "Search Chequebook",
-        invoke: () => {
-          latestRef.current.setTab("register");
-          latestRef.current.setSearchOpen((current) => !current);
-        },
-      },
       create: {
         label: "Add transaction",
         available: activeAccounts.length > 0,
@@ -1780,49 +1782,18 @@ function ChequebookPage({
   }
 
   const visibleTransactions = useMemo(
-    () => {
-      const q =
-        search.trim().toLowerCase();
-      return transactions.filter(
-        (item) => {
-          if (
-            accountFilter !== "all" &&
-            item.accountId !==
-              accountFilter &&
-            item.transferAccountId !==
-              accountFilter
-          ) {
-            return false;
-          }
-          if (
-            item.date < month ||
-            item.date > monthEnd(month)
-          ) {
-            return false;
-          }
-          if (!q) return true;
-          return [
-            item.description,
-            item.payee ?? "",
-            item.notes ?? "",
-            categoryById.get(
-              item.categoryId ?? "",
-            )?.name ?? "",
-          ].some((value) =>
-            value
-              .toLowerCase()
-              .includes(q),
-          );
-        },
-      );
-    },
-    [
-      accountFilter,
-      categoryById,
-      month,
-      search,
-      transactions,
-    ],
+    () =>
+      transactions.filter((item) => {
+        if (
+          accountFilter !== "all" &&
+          item.accountId !== accountFilter &&
+          item.transferAccountId !== accountFilter
+        ) {
+          return false;
+        }
+        return item.date >= month && item.date <= monthEnd(month);
+      }),
+    [accountFilter, month, transactions],
   );
 
   const upcoming = useMemo(() => {
@@ -1885,8 +1856,6 @@ function ChequebookPage({
         .cheq-bar{display:grid;grid-template-columns:minmax(100px,1fr) 3fr auto;gap:8px;align-items:center}
         .cheq-bar-track{height:10px;background:rgba(127,127,127,.18);border-radius:99px;overflow:hidden}
         .cheq-bar-fill{height:100%;background:currentColor;border-radius:99px}
-        .cheq-search-popover{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(146px + env(safe-area-inset-bottom));z-index:50;width:min(360px,calc(100vw - 36px));background:var(--homi-color-surface,#fffaf2);border:1px solid rgba(92,70,61,.2);border-radius:var(--homi-radius-md,8px);box-shadow:var(--homi-shadow-lg)}
-        @media (min-width:900px){.cheq-search-popover{bottom:88px}}
         .cheq-scope-option{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(127,127,127,.2);border-radius:var(--homi-radius-md,8px);cursor:pointer}
         .cheq-scope-option:hover{background:rgba(127,127,127,.05)}
         .cheq-scope-option input{margin-top:3px}
@@ -2620,50 +2589,6 @@ function ChequebookPage({
             </div>
           </Surface>
         </div>
-      )}
-
-      {searchOpen && (
-        <Surface
-          className="cheq-search-popover"
-          padding="compact"
-          role="search"
-          aria-label="Search transactions"
-        >
-          <SearchField
-            id="chequebook-search"
-            label="Search transactions"
-            placeholder="Search payee, description, category…"
-            autoFocus
-            value={search}
-            onChange={(event) =>
-              setSearch(event.currentTarget.value)
-            }
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                setSearchOpen(false);
-              }
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, gap: 8 }}>
-            {search && (
-              <Button
-                variant="quiet"
-                onClick={() => setSearch("")}
-              >
-                Clear
-              </Button>
-            )}
-            <Button
-              variant="quiet"
-              onClick={() => {
-                setSearch("");
-                setSearchOpen(false);
-              }}
-            >
-              Close
-            </Button>
-          </div>
-        </Surface>
       )}
 
       <BottomSheet
@@ -4575,10 +4500,51 @@ function ForecastBoard({
   );
 }
 
+// Answers Core's universal search from the local working cache, so it also
+// works offline and includes transactions that are still queued.
+const chequebookSearchProvider: HomiWebModuleSearchProvider = {
+  label: "Chequebook transactions",
+  async search(query, { context, actions }) {
+    const needle = query.trim().toLocaleLowerCase(context.locale);
+    if (needle === "") return [];
+    const [transactions, categories, accounts, settings] = await Promise.all([
+      cached<ChequebookTransaction>(actions, "transaction"),
+      cached<ChequebookCategory>(actions, "category"),
+      cached<ChequebookAccount>(actions, "account"),
+      cached<ChequebookSettings>(actions, "chequebook-settings"),
+    ]);
+    const categoryName = new Map(categories.map((item) => [item.id, item.name]));
+    const accountName = new Map(accounts.map((item) => [item.id, item.name]));
+    const currency = settings[0]?.currency ?? "CAD";
+    return [...transactions]
+      .filter((item) =>
+        [
+          item.description,
+          item.payee ?? "",
+          item.notes ?? "",
+          categoryName.get(item.categoryId ?? "") ?? "",
+        ].some((value) => value.toLocaleLowerCase(context.locale).includes(needle)),
+      )
+      .sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
+      )
+      .map((item) => ({
+        id: item.id,
+        title: item.description,
+        subtitle: [item.payee, item.date, accountName.get(item.accountId)].filter(Boolean).join(" · "),
+        detail: `${item.kind === "income" ? "+" : item.kind === "expense" ? "−" : ""}${formatMoney(item.amount, currency, context.locale)}`,
+        pageId: "chequebook",
+        intent: { transactionId: item.id },
+      }));
+  },
+};
+
 export function createHomiWebModule(
   _context: HomiWebModuleHostContext,
 ) {
   return defineHomiWebModule({
+    search: chequebookSearchProvider,
     moduleKey: CHEQUEBOOK_MODULE_KEY,
     moduleApiVersion:
       HOMI_MODULE_API_VERSION,
