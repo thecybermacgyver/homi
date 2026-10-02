@@ -2,6 +2,10 @@
 
 All notable changes to Homi are recorded here, newest first. Homi has not yet declared a stable 1.0 release, so Core is identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 2026-10-02 (release candidate)
+
+- Tagged **v0.1.0-rc.2**: all release-checklist gates are checked (offline and reconnect, PWA install and update, universal Search and Add, accessibility, multi-device acceptance, signed directory audit). Added `scripts/audit-module-directory.mjs`, which checks every versioned directory release's signature and every listed package's pinned digest.
+
 ## 2026-10-02 (accessibility)
 
 ### Core

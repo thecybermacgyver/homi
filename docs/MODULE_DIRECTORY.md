@@ -53,3 +53,7 @@ Installation still uses the managed installer. The manager authenticates Core, d
 Immediately before each install attempt, the manager creates a timestamped recovery set containing a PostgreSQL custom-format dump, a recursive copy of managed module artifacts, and a manifest. A module update then changes its schema and registry promotion inside one PostgreSQL transaction. If any migration or promotion step fails, PostgreSQL rolls back all candidate data/schema changes and Homi restores the prior module state. The previous immutable artifact remains present and active. Recovery then marks the failed candidate `rolled_back`; it does not perform a whole-database restore that could erase unrelated family changes made concurrently.
 
 Operators should still create the documented database/source/module-volume backup before a production deployment. That backup is disaster recovery, while transactional rollback is the automatic per-module safety mechanism.
+
+## Auditing published releases
+
+`node scripts/audit-module-directory.mjs <public-key.pem>` downloads every versioned `module-directory-*` release anonymously, verifies its signature against the trusted public key, and recomputes each listed package's digest from its release asset, failing if any differs from the digest pinned in the signed entry. It needs a built Core and the GitHub CLI.
