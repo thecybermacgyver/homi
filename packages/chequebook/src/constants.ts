@@ -1,5 +1,5 @@
 export const CHEQUEBOOK_MODULE_KEY = "chequebook" as const;
-export const CHEQUEBOOK_VERSION = "0.1.21" as const;
+export const CHEQUEBOOK_VERSION = "0.1.22" as const;
 
 export const CHEQUEBOOK_ACCOUNT_TYPES = [
   "checking",

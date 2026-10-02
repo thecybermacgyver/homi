@@ -36,7 +36,7 @@ This checklist tracks the gates for Homi's stable 1.0 release. The owner approve
 - [x] Chequebook multi-device acceptance passes with automatic synchronization (owner-confirmed on phone and desktop, 2026-09-30; isolated browser acceptance re-run at Chequebook 0.1.21, 2026-10-01).
 - [ ] Calendar ↔ Chequebook recurring-entry changes reconcile without duplicate or stale events.
 - [x] Offline create/edit/delete and reconnect pass on phone and desktop (Calendar 0.6.16 and Chequebook 0.1.21: isolated three-profile browser acceptance `packages/*/qa/acceptance.mjs`, 2026-10-01, plus owner-confirmed on real phone and desktop, 2026-10-01).
-- [ ] PWA install/update behavior passes without manual cache clearing.
+- [ ] PWA install/update behavior passes without manual cache clearing. The isolated acceptance (`apps/web/qa/pwa-update-acceptance.mjs`, 2026-10-01) passes: valid manifest and no Chrome installability errors, module upgrades picked up by the open app on reconnect with no reload or cache clearing, a device offline during the upgrade keeping its queued change, and a new shell (service-worker cache v19 to v20) installing and reloading itself on the next open, all while signed in with data intact and fully offline starts afterwards; the owner's real-device confirmation remains.
 - [ ] Search and Add controls pass in Core and both first-party modules.
 
 ## Publication

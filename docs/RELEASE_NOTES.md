@@ -5,7 +5,7 @@ Status: published pre-1.0 release. Homi runs in everyday household use but has n
 ## Included
 
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
-- Calendar 0.6.16, Chequebook 0.1.21, and Shopping List 0.3.1, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
+- Calendar 0.6.16, Chequebook 0.1.22, and Shopping List 0.3.1, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
 - Public `@homi/module-sdk`, `@homi/ui`, and the starter module template.
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement, and per-member Dashboard visibility, order, and card style (for example Shopping's list or counts by store), chosen on the Modules screen.
@@ -14,7 +14,7 @@ Status: published pre-1.0 release. Homi runs in everyday household use but has n
 - Offline queue guarantees: an edit made right after creating an item continues from its delivered revision; conflicts and rejections stay available for review until dismissed; writes that are still retrying are never discarded.
 - Calendar ↔ Chequebook recurring-entry integration through the public broker contract.
 - Calendar 0.6.14: on phones and narrow windows, month cells show up to three coloured event dots and a "+N" count instead of looking empty. Wider windows still list event titles.
-- Chequebook 0.1.21: changes made on another device, and the balances they affect, now appear automatically instead of only after reopening Chequebook; a transaction created offline now appears immediately; and a continuous re-rendering loop while Chequebook was open is fixed. An isolated multi-device acceptance suite (`packages/chequebook/qa`) covers these.
+- Chequebook 0.1.22: a transaction form opened before the household's accounts have loaded now adopts the default account instead of being unable to save. 0.1.21 changes: changes made on another device, and the balances they affect, now appear automatically instead of only after reopening Chequebook; a transaction created offline now appears immediately; and a continuous re-rendering loop while Chequebook was open is fixed. An isolated multi-device acceptance suite (`packages/chequebook/qa`) covers these.
 - Calendar 0.6.16: events created while offline now appear immediately instead of vanishing until they sync, and an isolated multi-device acceptance suite (`packages/calendar/qa`) covers sync between devices and members, offline create/edit/delete across restarts, reconnect, and stale-edit conflicts.
 
 ## Installation and upgrade
@@ -30,7 +30,7 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 - Homi is pre-1.0. Breaking changes may still occur before 1.0 and will be documented.
 - There is no in-app way to invite or add household members yet. Bootstrap creates the first account and household; further members currently have to be added by an operator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
-- The signed public module directory offers Calendar 0.6.16, Chequebook 0.1.21, and Shopping List 0.3.1 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
+- The signed public module directory offers Calendar 0.6.16, Chequebook 0.1.22, and Shopping List 0.3.1 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.
 - Module installation and lifecycle changes require a household administrator; ordinary members control only their own Dashboard cards, card styles, and layouts.
 

@@ -876,6 +876,24 @@ function ChequebookPage({
     return () => actionsRef.current.registerContextActions(null);
   }, [activeAccounts.length]);
 
+  // A form opened before the household's accounts have loaded starts with no
+  // account and could not be saved; adopt the default once it is known.
+  const defaultAccountId =
+    settings?.defaultAccountId ?? activeAccounts[0]?.id ?? "";
+  useEffect(() => {
+    if (!defaultAccountId) return;
+    setEditor((current) =>
+      current && current.mode === "create" && !current.accountId
+        ? { ...current, accountId: defaultAccountId }
+        : current,
+    );
+    setRecurringEditor((current) =>
+      current && current.mode === "create" && !current.accountId
+        ? { ...current, accountId: defaultAccountId }
+        : current,
+    );
+  }, [defaultAccountId]);
+
   const accountById = useMemo(
     () =>
       new Map(

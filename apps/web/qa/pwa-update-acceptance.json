@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-01T21:17:13.931Z",
+  "run": "9404170",
+  "timings": {
+    "reconnectToNewVersionSeconds": 1
+  },
+  "results": [
+    "manifest is valid and Chrome reports no installability errors; a service worker controls the page (/sw.js?v=19, cache homi-shell-v19)",
+    "baseline: installed app runs Calendar 0.6.14 and Chequebook 0.1.15 and restarts fully offline with its data",
+    "a device offline during a module upgrade keeps working on the old version and keeps its queued change",
+    "after reconnect the app runs Calendar 0.6.16 and Chequebook 0.1.21 (automatically within 1 s, no reload), still signed in, with its queued change delivered",
+    "the updated modules were cached automatically and the next fully offline start runs them",
+    "a new shell installs automatically on the next open (/sw.js?v=19 -> /sw.js?v=20, homi-shell-v19 replaced by homi-shell-v20, new app bundle), reloads itself, stays signed in, keeps data",
+    "the new shell and updated modules start fully offline",
+    "no JavaScript page errors"
+  ]
+}
