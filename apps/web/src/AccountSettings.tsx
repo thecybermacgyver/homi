@@ -14,6 +14,7 @@ import {
   listHouseholdMembers,
   resetMemberPassword,
   type HouseholdMember,
+  addHouseholdMember,
 } from "./auth-actions.js";
 
 // Matches Core's HOMI_MIN_PASSWORD_LENGTH; Core enforces it authoritatively.
@@ -186,8 +187,11 @@ export function HouseholdMembersSetting(props: HouseholdMembersSettingProps) {
   const [target, setTarget] = useState<HouseholdMember | null>(null);
   const [temporary, setTemporary] = useState("");
   const [busy, setBusy] = useState(false);
-  const [issued, setIssued] = useState<{ name: string; password: string } | null>(null);
+  const [issued, setIssued] = useState<{ name: string; password: string; email?: string } | null>(null);
   const [generation, setGeneration] = useState(0);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
 
   useEffect(() => {
     if (!props.online) return;
@@ -226,21 +230,52 @@ export function HouseholdMembersSetting(props: HouseholdMembersSettingProps) {
     }
   }
 
+  async function addMember(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (temporary.length < MIN_PASSWORD_LENGTH) {
+      setFailure(`Use at least ${MIN_PASSWORD_LENGTH} characters.`);
+      return;
+    }
+    setBusy(true);
+    setFailure(null);
+    try {
+      await addHouseholdMember(props.householdId, props.clientId, {
+        displayName: newName,
+        email: newEmail,
+        temporaryPassword: temporary,
+      });
+      setIssued({ name: newName.trim(), password: temporary, email: newEmail.trim().toLowerCase() });
+      setAdding(false);
+      setNewName("");
+      setNewEmail("");
+      setTemporary("");
+      setGeneration((value) => value + 1);
+    } catch (error) {
+      setFailure(failureText(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Surface className="homi-platform-setting-row homi-platform-members">
       <div>
         <span className="homi-platform-card-kicker">Household</span>
         <strong>Members</strong>
-        <p>Reset a member's password if they have forgotten it. They choose a new one when they next sign in.</p>
+        <p>Add a household member, or reset a password they have forgotten. Either way they choose their own password when they next sign in.</p>
+        <Button variant="quiet" disabled={!props.online || busy}
+          onClick={() => { setIssued(null); setFailure(null); setTemporary(generateTemporaryPassword()); setNewName(""); setNewEmail(""); setAdding(true); }}>
+          Add member
+        </Button>
       </div>
       {issued && (
         <Notice tone="success" title={`Temporary password for ${issued.name}`}>
           <span className="homi-platform-members__password">{issued.password}</span>
-          <br />Give this to {issued.name}. It works once; they will choose their own password when they sign in.
+          <br />{issued.email ? <>Tell {issued.name} to sign in with <strong>{issued.email}</strong> and this temporary password. </> : <>Give this to {issued.name}. </>}It works once; they will choose their own password when they sign in.
           <br /><Button variant="quiet" onClick={() => setIssued(null)}>Done</Button>
         </Notice>
       )}
-      {failure && !target && <Notice tone="danger" title="Members need attention">{failure}</Notice>}
+      {failure && !target && !adding && <Notice tone="danger" title="Members need attention">{failure}</Notice>}
       <ul className="homi-platform-members__list">
         {(members ?? []).map((member) => (
           <li key={member.membershipId} className="homi-platform-members__row">
@@ -261,6 +296,34 @@ export function HouseholdMembersSetting(props: HouseholdMembersSettingProps) {
           </li>
         ))}
       </ul>
+      <BottomSheet open={adding} title="Add a household member" onDismiss={() => setAdding(false)}>
+        <form className="homi-platform-auth__form" onSubmit={(event) => void addMember(event)}>
+          <p>
+            Homi creates their account now. They sign in with this email and the temporary password
+            below, then choose their own password. Nothing is emailed, so give them the details yourself.
+          </p>
+          <FormField label="Name" htmlFor="homi-new-member-name">
+            <TextField id="homi-new-member-name" autoComplete="off" value={newName} maxLength={80}
+              onChange={(event) => setNewName(event.target.value)} disabled={busy} required />
+          </FormField>
+          <FormField label="Email" htmlFor="homi-new-member-email">
+            <TextField id="homi-new-member-email" type="email" autoComplete="off" value={newEmail}
+              onChange={(event) => setNewEmail(event.target.value)} disabled={busy} required />
+          </FormField>
+          <FormField label="Temporary password" htmlFor="homi-new-member-password"
+            hint={`At least ${MIN_PASSWORD_LENGTH} characters. A strong one is filled in for you.`}>
+            <TextField id="homi-new-member-password" autoComplete="off" value={temporary}
+              onChange={(event) => setTemporary(event.target.value)} disabled={busy} required />
+          </FormField>
+          <Button variant="quiet" onClick={() => setTemporary(generateTemporaryPassword())} disabled={busy}>
+            Generate another
+          </Button>
+          {failure && <Notice tone="danger" title="Member not added">{failure}</Notice>}
+          <Button type="submit" disabled={busy || !props.online}>
+            {busy ? "Adding…" : "Add member"}
+          </Button>
+        </form>
+      </BottomSheet>
       <BottomSheet open={target !== null} title={`Reset password for ${target?.displayName ?? ""}`}
         onDismiss={() => setTarget(null)}>
         {target && (

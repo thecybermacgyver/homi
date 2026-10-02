@@ -10,7 +10,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement, and per-member Dashboard visibility, order, and card style (for example Shopping's list or counts by store), chosen on the Modules screen.
 - A Family Board grid (8 columns wide, 4 on phones) that each member arranges with "Arrange cards": drag to move, drag a corner to resize, or use the arrow keys. Phone and wide-screen layouts are saved separately, and cards stay exactly where they are left. Modules may declare card sizes.
-- Self-service password change, and administrator password reset that requires the member to choose a new password at their next sign-in.
+- Administrators add household members in the app (Settings → Members → Add member), with a one-time temporary password and a required new password at first sign-in. Self-service password change, and administrator password reset that requires the member to choose a new password at their next sign-in.
 - Offline queue guarantees: an edit made right after creating an item continues from its delivered revision; conflicts and rejections stay available for review until dismissed; writes that are still retrying are never discarded.
 - Calendar ↔ Chequebook recurring-entry integration through the public broker contract.
 - Calendar 0.6.14: on phones and narrow windows, month cells show up to three coloured event dots and a "+N" count instead of looking empty. Wider windows still list event titles.
@@ -28,7 +28,7 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 
 ## Known limitations
 
-- There is no in-app way to invite or add household members yet. Bootstrap creates the first account and household; further members currently have to be added by an operator.
+- Members are added by an administrator with a temporary password that the administrator hands over; Homi does not send email invitations. A member added this way is a regular member, and there is no in-app way yet to make another member an administrator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
 - The signed public module directory offers Calendar 0.6.19, Chequebook 0.1.25, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.

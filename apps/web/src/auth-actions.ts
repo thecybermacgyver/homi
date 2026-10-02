@@ -234,3 +234,16 @@ export async function resetMemberPassword(
     { method: "POST", body: { temporaryPassword }, householdId, clientId },
   );
 }
+
+export async function addHouseholdMember(
+  householdId: string,
+  clientId: string,
+  input: { displayName: string; email: string; temporaryPassword: string },
+): Promise<void> {
+  await accountRequest("/api/v1/core/household/members", {
+    method: "POST",
+    body: input,
+    householdId,
+    clientId,
+  });
+}

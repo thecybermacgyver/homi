@@ -41,7 +41,7 @@ Additional release details and known limitations are in [the release notes](docs
 - Calendar `0.6.19`, Chequebook `0.1.25`, and Shopping List `0.3.2`
 - per-member Family Board card styles, chosen on the Modules page (for example Shopping's list or counts by store)
 - a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
-- self-service password change, and administrator password reset with a required new password at next sign-in
+- administrators add household members in the app, with self-service password change and administrator password reset that require a new password at next sign-in
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
 - editable household Chequebook categories and bidirectional recurring Calendar/Chequebook entries
 - fail-closed Ed25519-signed GitHub module-directory verification
@@ -105,7 +105,9 @@ The two module installs are deliberately separate from the Core image lifecycle.
 
 Shopping List is not bundled in the Core image. Build it with `pnpm --filter @homi/shopping build`, copy `homi.module.json`, `package.json`, `dist`, `migrations`, and `locales` from `packages/shopping` into an empty directory, and install that directory as described in [Module installer operations](docs/MODULE_INSTALLER_OPERATIONS.md#install-or-update). The signed module directory currently offers the earlier Shopping List 0.2.2.
 
-Homi does not yet have an in-app way to invite or add further household members; see [the release notes](docs/RELEASE_NOTES.md#known-limitations).
+### Adding household members
+
+After bootstrap, a Household Administrator adds each further member in the app: **Settings → Members → Add member**. Enter the person's name and email; Homi fills in a strong temporary password and creates their account immediately. Nothing is emailed, so give the person their email and the temporary password yourself. When they first sign in they must choose their own password, and the temporary one stops working. Members are regular members, and an administrator can reset a forgotten password from the same screen.
 
 ### Deployment provenance
 

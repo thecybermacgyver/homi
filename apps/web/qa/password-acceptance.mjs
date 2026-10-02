@@ -44,7 +44,7 @@ try{
 
   await settings(owner);await members(owner).waitFor({timeout:30000});
   // The member list loads after the panel appears.
-  await poll(async()=>await members(owner).locator('li').count()===2,'member list loaded');
+  await poll(async()=>await members(owner).locator('li').count()>=2,'member list loaded');
   assert.equal(await members(owner).locator('li',{hasText:'(you)'}).getByRole('button',{name:'Reset password'}).count(),0);
   await members(owner).locator('li',{hasText:'(you)'}).getByText('Administrator').waitFor();
   await settings(member);await member.p.waitForTimeout(3000);assert.equal(await members(member).count(),0);

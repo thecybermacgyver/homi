@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-02T20:00:46.563Z",
+  "run": "224597",
+  "results": [
+    "an administrator adds a member by name and email; Homi shows the temporary password once and lists them as needing to choose a new password (email stored lower-case)",
+    "a duplicate email, a short password, an invalid email and a blank name are all refused, and nothing is created",
+    "the new member signs in with their email and the temporary password, is made to choose their own password, then enters the household as a regular member (no Members section)",
+    "a regular member cannot add members (403)",
+    "the temporary password stops working and the chosen password signs in on another device",
+    "Settings with Add member fits phone and desktop widths without horizontal scrolling",
+    "no JavaScript page errors"
+  ]
+}

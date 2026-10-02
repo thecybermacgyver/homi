@@ -31,6 +31,15 @@ export interface HomiAuthRuntime {
     newPassword: string,
   ): Promise<HomiPasswordChangeResult>;
   setPassword(authSubject: string, password: string): Promise<void>;
+  emailInUse(email: string): Promise<boolean>;
+  // Creates a sign-in account (never through the public HTTP routes, where
+  // sign-up stays disabled) and returns its auth subject.
+  createUser(input: {
+    email: string;
+    name: string;
+    password: string;
+  }): Promise<string>;
+  deleteUser(authSubject: string): Promise<void>;
 }
 
 export function createHomiAuth(
@@ -139,6 +148,38 @@ export function createHomiAuth(
         });
       }
       await context.internalAdapter.deleteUserSessions(authSubject);
+    },
+
+    async emailInUse(email) {
+      const context = await auth.$context;
+      return (await context.internalAdapter.findUserByEmail(email)) !== null;
+    },
+
+    async createUser({ email, name, password }) {
+      if (
+        password.length < HOMI_MIN_PASSWORD_LENGTH ||
+        password.length > HOMI_MAX_PASSWORD_LENGTH
+      ) {
+        throw new Error("Temporary password length is outside the allowed range.");
+      }
+      const context = await auth.$context;
+      const user = await context.internalAdapter.createUser(
+        { email, name, emailVerified: false },
+        { method: "email-password" },
+      );
+      const hash = await context.password.hash(password);
+      await context.internalAdapter.createAccount({
+        userId: user.id,
+        providerId: "credential",
+        accountId: user.id,
+        password: hash,
+      });
+      return user.id;
+    },
+
+    async deleteUser(authSubject) {
+      const context = await auth.$context;
+      await context.internalAdapter.deleteUser(authSubject);
     },
   };
 }

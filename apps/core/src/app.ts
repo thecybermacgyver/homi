@@ -573,6 +573,19 @@ export function buildApp(
     return { data: { members: await accountService().listMembers(context) } };
   });
 
+  app.post("/api/v1/core/household/members", async (request, reply) => {
+    const context = await resolveContext(request, dependencies);
+    await dependencies.authorization.requirePermission(context, "core.household.admin");
+    const member = await accountService().addMember(context, {
+      displayName: passwordField(request.body, "displayName"),
+      email: passwordField(request.body, "email"),
+      temporaryPassword: passwordField(request.body, "temporaryPassword"),
+    });
+    reply.header("Cache-Control", "no-store");
+    reply.code(201);
+    return { data: member };
+  });
+
   app.post(
     "/api/v1/core/household/members/:membershipId/password-reset",
     async (request) => {

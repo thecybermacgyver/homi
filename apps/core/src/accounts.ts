@@ -37,6 +37,16 @@ export interface HomiAccountService {
     membershipId: string,
     temporaryPassword: string,
   ): Promise<void>;
+  addMember(
+    context: HomiRequestContext,
+    input: { displayName: string; email: string; temporaryPassword: string },
+  ): Promise<HomiAddedMember>;
+}
+
+export interface HomiAddedMember {
+  readonly membershipId: string;
+  readonly displayName: string;
+  readonly email: string;
 }
 
 export class HomiAccountError extends Error {
@@ -190,6 +200,64 @@ export function createHomiAccountService(
         self: row.userId === context.userId,
         passwordChangeRequired: row.passwordChangeRequired,
       }))));
+    },
+
+    // An administrator adds a member directly: Homi creates the sign-in account
+    // with the temporary password the administrator hands over, links it to the
+    // household, and requires the member to choose their own password at first
+    // sign-in. No email is sent, so Homi needs no mail server.
+    async addMember(context, input) {
+      const displayName = input.displayName.trim();
+      const email = input.email.trim().toLowerCase();
+      if (displayName.length < 1 || displayName.length > 80) {
+        throw new HomiAccountError(400, "MEMBER_NAME_INVALID", "Enter the member's name (up to 80 characters).");
+      }
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new HomiAccountError(400, "MEMBER_EMAIL_INVALID", "Enter a valid email address.");
+      }
+      requirePasswordLength(input.temporaryPassword, "The temporary password");
+      if (await auth.emailInUse(email)) {
+        throw new HomiAccountError(409, "MEMBER_EMAIL_IN_USE", "An account with that email address already exists.");
+      }
+      const authSubject = await auth.createUser({
+        email,
+        name: displayName,
+        password: input.temporaryPassword,
+      });
+      try {
+        const membershipId = await database.transaction(async (tx) => {
+          const user = await tx.execute(sql`
+            INSERT INTO core.users (auth_subject, display_name, preferred_locale, time_zone, password_change_required)
+            VALUES (${authSubject}, ${displayName}, ${context.locale}, ${context.timeZone}, true)
+            RETURNING id::text AS id
+          `);
+          const userId = (user.rows[0] as { id: string }).id;
+          const membership = await tx.execute(sql`
+            INSERT INTO core.household_memberships (household_id, user_id, status)
+            VALUES (CAST(${context.householdId} AS uuid), CAST(${userId} AS uuid), 'active')
+            RETURNING id::text AS id
+          `);
+          const created = (membership.rows[0] as { id: string }).id;
+          await tx.execute(sql`
+            INSERT INTO core.household_people (household_id, linked_membership_id, display_name, status)
+            VALUES (CAST(${context.householdId} AS uuid), CAST(${created} AS uuid), ${displayName}, 'active')
+          `);
+          await tx.execute(sql`
+            INSERT INTO core.audit_log (household_id, actor_user_id, action, target_type, target_id, source_module_key, request_id, metadata)
+            VALUES (
+              CAST(${context.householdId} AS uuid), CAST(${context.userId} AS uuid),
+              'core.member.added', 'user', CAST(${userId} AS uuid), 'core',
+              ${context.requestId}, CAST('{}' AS jsonb)
+            )
+          `);
+          return created;
+        });
+        return Object.freeze({ membershipId, displayName, email });
+      } catch (error) {
+        // Never leave a sign-in account that belongs to no household.
+        await auth.deleteUser(authSubject).catch(() => undefined);
+        throw error;
+      }
     },
 
     async resetMemberPassword(context, membershipId, temporaryPassword) {

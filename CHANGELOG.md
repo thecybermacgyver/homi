@@ -2,6 +2,14 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.1.0 — 2026-10-02
+
+### Core
+- **Add household members in the app.** A Household Administrator adds a member from Settings → Members → Add member: name, email and a generated temporary password. Homi creates the account immediately, links it to the household, and requires the member to choose their own password at first sign-in. Nothing is emailed, so no mail server is needed. Duplicate emails, invalid emails, short passwords and blank names are refused, and a regular member cannot add members. This removes the main limitation listed for 1.0.
+
+### Testing
+- Browser acceptance for adding a member (`apps/web/qa/add-member-acceptance.mjs`): the full flow, every refusal, first sign-in with a forced password change, a regular member's 403, and layout at phone and desktop widths; the existing password acceptance still passes.
+
 ## 1.0.0 — 2026-10-02
 
 - **Homi 1.0.** The release candidate `v0.1.0-rc.2` is declared stable: the code is unchanged apart from documentation and version labels. Core, the public SDK (`@homi/module-sdk`, module API version 1), the shared UI and the starter module template are released together with Calendar 0.6.19, Chequebook 0.1.25 and Shopping List 0.3.2, which are verified in the signed module directory. Documentation no longer describes Homi as pre-1.0; known limitations remain in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
