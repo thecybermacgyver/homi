@@ -20,7 +20,7 @@ This checklist tracks the gates for Homi's stable 1.0 release. The owner approve
 - [x] Compose configuration validates with documented environment variables.
 - [x] GitHub validation workflow covers install, typecheck, build, audit, manifests, directory, and lifecycle routes.
 - [x] Application security review passes: authentication, authorization, upload/import parsing, SSRF, XSS, CSRF, rate limiting, sensitive logging, and built-response security headers. Evidence is recorded in `docs/SECURITY_REVIEW.md`.
-- [ ] Accessibility review passes keyboard, focus, labels, contrast, reduced motion, and phone/tablet/desktop layouts. Shared-component fixes and the remaining authenticated manual pass are recorded in `docs/ACCESSIBILITY_REVIEW.md`.
+- [ ] Accessibility review passes keyboard, focus, labels, contrast, reduced motion, and phone/tablet/desktop layouts. Shared-component fixes and the remaining authenticated manual pass are recorded in `docs/ACCESSIBILITY_REVIEW.md`. The authenticated automated pass over 108 screen states (axe WCAG 2.0/2.1 A/AA, keyboard, dialog focus, reduced motion, 320 px reflow) passes with zero violations after fixes (2026-10-02, `apps/web/qa/accessibility-acceptance.mjs`); a human screen-reader and keyboard-only pass remains.
 
 ## Installation and recovery
 

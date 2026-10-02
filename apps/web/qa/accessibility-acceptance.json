@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-02T19:39:35.510Z",
+  "screensChecked": 108,
+  "violations": [],
+  "keyboard": [
+    {
+      "check": "Tab order on the Dashboard reaches controls and each shows a visible focus indicator",
+      "ok": true,
+      "detail": "20 stops"
+    },
+    {
+      "check": "every button, link and field on the Dashboard has an accessible name",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "Search sheet takes focus on open, keeps Tab inside, closes on Escape and returns focus to the Search button",
+      "ok": true,
+      "detail": "focusInside=true trapped=true returned=true"
+    },
+    {
+      "check": "Calendar event form takes focus on open, keeps Tab inside and closes on Escape",
+      "ok": true,
+      "detail": "focusInside=true trapped=true closed=true"
+    },
+    {
+      "check": "Chequebook transaction form takes focus on open, keeps Tab inside and closes on Escape",
+      "ok": true,
+      "detail": "focusInside=true trapped=true closed=true"
+    },
+    {
+      "check": "reduced-motion preference removes animation and smooth scrolling",
+      "ok": true,
+      "detail": "{\"transition\":\"1e-05s\",\"scroll\":\"auto\"}"
+    },
+    {
+      "check": "no horizontal scrolling at 320 px wide",
+      "ok": true,
+      "detail": "overflow 0px"
+    }
+  ]
+}

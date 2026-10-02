@@ -17,7 +17,9 @@ import {
 } from "@homi/module-sdk";
 import {
   Badge,
+  BottomSheet,
   Button,
+  Dialog,
   FormField,
   ModuleHeader,
   Notice,
@@ -1775,6 +1777,7 @@ function CalendarPage({
               {items.length > 0 && (
                 <div
                   className="homi-calendar-month-dots"
+                  role="img"
                   aria-label={`${items.length} event${items.length === 1 ? "" : "s"}`}
                 >
                   {items.slice(0, 3).map((item) => (
@@ -2022,24 +2025,17 @@ function CalendarPage({
         </main>
       </div>
 
-      {externalDetail && (
-        <div
-          className="homi-calendar-editor-backdrop"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setExternalDetail(null);
-            }
-          }}
-        >
-          <Surface className="homi-calendar-editor" padding="normal">
-            <ModuleHeader
-              eyebrow="External calendar"
-              title={externalDetail.event.title}
-              description="This event is synchronized from an external provider and is read-only in Homi."
-              actions={<Badge tone="neutral">Read-only</Badge>}
-            />
-            <div style={stackStyle}>
+      <Dialog
+        open={externalDetail !== null}
+        title={externalDetail?.event.title ?? "External event"}
+        onDismiss={() => setExternalDetail(null)}
+      >
+        {externalDetail && (
+          <div style={stackStyle}>
+            <p style={{ color: "var(--homi-text-muted)", margin: 0 }}>
+              This event is synchronized from an external provider and is read-only in Homi.
+            </p>
+            <Badge tone="neutral">Read-only</Badge>
               <div className="homi-calendar-form-grid">
                 <div>
                   <strong>When</strong>
@@ -2067,25 +2063,22 @@ function CalendarPage({
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button onClick={() => setExternalDetail(null)}>Close</Button>
               </div>
-            </div>
-          </Surface>
-        </div>
-      )}
+          </div>
+        )}
+      </Dialog>
 
-      {editor && (
-        <div
-          className="homi-calendar-editor-backdrop"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !busy) setEditor(null);
-          }}
-        >
-          <Surface className="homi-calendar-editor" padding="normal">
-            <ModuleHeader
-              eyebrow={editor.kind === "create" ? "New event" : "Event details"}
-              title={editor.kind === "create" ? "Add to Calendar" : editor.title || "Calendar event"}
-              description="Calendar details synchronize through Homi and remain available offline."
-            />
+      <BottomSheet
+        open={editor !== null}
+        title={editor?.kind === "create" ? "Add to Calendar" : editor?.title || "Calendar event"}
+        onDismiss={() => {
+          if (!busy) setEditor(null);
+        }}
+      >
+        {editor && (
+          <div style={stackStyle}>
+            <p style={{ color: "var(--homi-text-muted)", margin: 0 }}>
+              Calendar details synchronize through Homi and remain available offline.
+            </p>
             {editor.seriesEvent?.recurrence && (
               <Tabs
                 label="Edit scope"
@@ -2535,9 +2528,9 @@ function CalendarPage({
                 </div>
               </div>
             </form>
-          </Surface>
-        </div>
-      )}
+          </div>
+        )}
+      </BottomSheet>
     </section>
   );
 }

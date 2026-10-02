@@ -5,7 +5,7 @@ Status: published pre-1.0 release. Homi runs in everyday household use but has n
 ## Included
 
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
-- Calendar 0.6.18, Chequebook 0.1.25, and Shopping List 0.3.2, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
+- Calendar 0.6.19, Chequebook 0.1.25, and Shopping List 0.3.2, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
 - Public `@homi/module-sdk`, `@homi/ui`, and the starter module template.
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement, and per-member Dashboard visibility, order, and card style (for example Shopping's list or counts by store), chosen on the Modules screen.
@@ -31,7 +31,7 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 - Homi is pre-1.0. Breaking changes may still occur before 1.0 and will be documented.
 - There is no in-app way to invite or add household members yet. Bootstrap creates the first account and household; further members currently have to be added by an operator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
-- The signed public module directory offers Calendar 0.6.18, Chequebook 0.1.25, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
+- The signed public module directory offers Calendar 0.6.19, Chequebook 0.1.25, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.
 - Module installation and lifecycle changes require a household administrator; ordinary members control only their own Dashboard cards, card styles, and layouts.
 

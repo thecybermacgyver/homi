@@ -14,7 +14,7 @@
   --homi-surface: #fffaf0;
   --homi-surface-strong: #fffdf7;
   --homi-text: #3f3028;
-  --homi-text-muted: #74665a;
+  --homi-text-muted: #5f5247;
   --homi-border: #d8ccbc;
   --homi-border-strong: #c7b7a4;
 
@@ -26,13 +26,14 @@
 
   --homi-sage: #8b9f7b;
   --homi-sage-strong: #657b5b;
+  --homi-sage-text: #4a6140;
   --homi-sage-soft: #e3eadc;
 
   --homi-honey: #d7aa4a;
   --homi-honey-strong: #ad7e27;
   --homi-honey-soft: #f4e5ba;
 
-  --homi-danger: #a9544d;
+  --homi-danger: #9c4640;
   --homi-danger-soft: #f4dfdc;
 
   --homi-shadow-sm:
@@ -607,7 +608,7 @@ button:disabled {
 }
 
 .homi-ui-nav-button.is-active {
-  color: var(--homi-primary-hover);
+  color: var(--homi-primary-action-hover);
   background: var(--homi-primary-soft);
 }
 
@@ -657,7 +658,7 @@ button:disabled {
 
 .homi-ui-eyebrow {
   margin: 0 0 8px;
-  color: var(--homi-sage-strong);
+  color: var(--homi-sage-text);
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.12em;

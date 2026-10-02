@@ -2,7 +2,18 @@
 
 All notable changes to Homi are recorded here, newest first. Homi has not yet declared a stable 1.0 release, so Core is identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
-## 2026-10-02
+## 2026-10-02 (accessibility)
+
+### Core
+- Accessibility pass over the signed-in app: shared text, badge, eyebrow, expense and active-navigation colours now meet 4.5:1 contrast, and a dialog with an autofocused field (such as Search) returns focus to the control that opened it.
+
+### Modules
+- **Calendar 0.6.19.** The event form and external-event detail use the shared accessible sheet and dialog (focus handling, Tab trap, Escape), and the month event-count dots carry a proper image role.
+
+### Testing
+- Authenticated accessibility acceptance over 108 screen states with zero axe violations and passing keyboard, focus, reduced-motion and reflow checks.
+
+## 2026-10-02 (universal Search)
 
 ### Core
 - **Universal Search.** One Core-owned Search control, reachable from the Dashboard and from every module page, now searches every enabled module at once and groups the matches by module. Search is not limited to the week, month or register on screen, works offline from the data already on the device, and choosing a result opens that item in its module. Previously Search only filtered the page being viewed and showed no results list.

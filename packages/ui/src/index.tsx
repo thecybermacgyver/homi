@@ -263,16 +263,32 @@ function ModalSurface({
 }: DialogProps & { sheet?: boolean }) {
   const surfaceRef = useRef<HTMLElement>(null);
   const titleId = useId();
+  // The control that opened the modal is recorded while rendering, before the
+  // commit lets an autofocused field inside the modal take focus, so closing
+  // can always return focus to the opener.
+  const opener = useRef<{ element: HTMLElement | null } | null>(null);
+  if (!open) {
+    opener.current = null;
+  } else if (opener.current === null) {
+    opener.current = {
+      element:
+        document.activeElement instanceof HTMLElement &&
+        document.activeElement !== document.body
+          ? document.activeElement
+          : null,
+    };
+  }
 
   useEffect(() => {
     if (!open) return;
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
+    const previouslyFocused = opener.current?.element ?? null;
     const surface = surfaceRef.current;
-    const first = surface?.querySelector<HTMLElement>(MODAL_FOCUSABLE);
-    (first ?? surface)?.focus();
+    // Keep focus on a field that already took it (autoFocus); otherwise move it
+    // to the first control in the modal.
+    if (!surface?.contains(document.activeElement)) {
+      const first = surface?.querySelector<HTMLElement>(MODAL_FOCUSABLE);
+      (first ?? surface)?.focus();
+    }
 
     return () => previouslyFocused?.focus();
   }, [open]);
