@@ -28,7 +28,7 @@ These are real Homi screens shown with invented sample data.
 | --- | --- |
 | ![Homi Chequebook module](docs/assets/homi-chequebook-desktop.png) | ![Homi Calendar module](docs/assets/homi-calendar-desktop.png) |
 
-Additional release details and known limitations are in [the release notes](docs/RELEASE_NOTES.md).
+Additional release details and known limitations are in [the release notes](docs/RELEASE_NOTES.md); every change is listed in the [changelog](CHANGELOG.md).
 
 ## What works now
 
