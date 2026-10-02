@@ -19,6 +19,6 @@ Review started: 2026-09-23.
 
 The first run found real problems, all fixed: secondary text, the active navigation label, badges, eyebrows and expense amounts fell below 4.5:1 contrast (shared colour tokens darkened: muted text, a new sage text colour, danger, active navigation); the Calendar month event-count dots used an ARIA label without a role (Calendar 0.6.19); Calendar's event form and external-event detail were custom overlays with no dialog role, focus handling or Escape (now the shared sheet and dialog, Calendar 0.6.19); and a dialog containing an autofocused field did not return focus to the control that opened it (shared modal fixed, which affects Search). The final run reports zero violations and every keyboard check passing.
 
-## Remaining release-gate checks
+## Manual pass (2026-10-02)
 
-Automated results do not replace a human pass. The gate stays open until a person has used the signed-in app with a screen reader (VoiceOver or TalkBack) on a phone and with the keyboard alone on a desktop, confirming that reading order, announcements of dialogs and status messages, and zoom to 200% are sensible.
+The owner confirmed on real devices that a screen-reader pass on a phone (reading order, Search results announced and openable, Add forms announced and returning focus), a keyboard-only pass on a desktop (visible focus in a sensible order, Search reachable and usable, forms trapping focus and closing on Escape) and zoom to 200% on the Dashboard, Calendar and Chequebook all work. Together with the automated pass above, the accessibility gate is closed.
