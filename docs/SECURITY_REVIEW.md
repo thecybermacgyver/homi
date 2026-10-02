@@ -29,3 +29,15 @@ The reviewed release candidate passes the application-security gate. This is a p
 ## Deployment boundary
 
 TLS termination must add HSTS at the HTTPS edge. HSTS is intentionally not emitted by the internal HTTP container because it cannot know whether a request reached it through TLS. Operators must keep Core and the module manager off public ports and rotate all secrets before first deployment.
+
+## Addendum: administrator member creation (2026-10-02, Homi 1.1.0)
+
+`POST /api/v1/core/household/members` lets a Household Administrator create a member account. Review of the new surface:
+
+- **Authorization:** the route requires the `core.household.admin` permission in the caller's household; a regular member receives 403 (covered by the browser acceptance). The member is created only in the administrator's own household.
+- **Sign-up stays closed:** public sign-up over HTTP remains disabled. The account is created server-side through the authentication library's internal adapter, with the password hashed by the library; the temporary password is never stored in plain text and is not returned by the API.
+- **Input validation:** name 1 to 80 characters, a syntactically valid email of at most 254 characters (stored lower-case), and a temporary password of 10 to 128 characters. An email that is already registered is refused (409) without creating anything, so an administrator can learn that an address has an account, which is an accepted trade-off for a household administrator.
+- **First sign-in:** the account is created with a required password change, so the temporary password opens only the Choose a new password screen and stops working once replaced. Until then the administrator who issued it knows it; this is stated in the interface.
+- **Integrity:** the user, membership, linked household person and audit entry are written in one transaction, and if that transaction fails the sign-in account is removed, so no account is left without a household. The audit entry `core.member.added` records the actor and the new user.
+- **No email:** Homi sends nothing, so there is no invitation link to intercept, forward or expire; the administrator hands over the credentials directly.
+- **Residual risks:** the route has no rate limit of its own beyond administrator authentication (sign-in attempts remain rate limited by the authentication library), and a member added this way cannot be removed or promoted in the app yet.
