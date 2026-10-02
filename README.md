@@ -122,6 +122,7 @@ Do not expose PostgreSQL publicly. Put the web and Core services behind HTTPS an
 Start from [the module template](templates/homi-module-template/README.md). The authoritative contracts and operations are:
 
 - [Module authoring](docs/MODULE_AUTHORING.md)
+- [New module workflow](docs/NEW_MODULE_WORKFLOW.md)
 - [Module installer operations](docs/MODULE_INSTALLER_OPERATIONS.md)
 - [Backup and disaster recovery](docs/BACKUP_RECOVERY.md)
 - [Trusted module directory](docs/MODULE_DIRECTORY.md)
