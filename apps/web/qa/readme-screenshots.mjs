@@ -28,8 +28,9 @@ async function mutate(p,moduleKey,entityType,operation,payload,entityId=crypto.r
 try{
   const p=await page({viewport:{width:1440,height:960}});
 
-  // SCREENSHOTS_ONLY=1 retakes the images without adding the invented data again.
-  if(!process.env.SCREENSHOTS_ONLY){
+  // SCREENSHOTS_ONLY=1 retakes the images without adding any invented data again; SEED_BOARD_ONLY=1 adds only
+  // the Noticeboard and Meal Planner data to a stack that already has the rest.
+  if(!process.env.SCREENSHOTS_ONLY&&!process.env.SEED_BOARD_ONLY){
   for(const m of (await api(p,'core/modules')).body.data.modules){
     if(!m.enabled){const r=await api(p,'core/modules/'+m.moduleKey,'PATCH',{enabled:true,baseRevision:m.revision});assert.equal(r.status,200,JSON.stringify(r.body));}
   }
@@ -56,6 +57,34 @@ try{
   // Invented Shopping items for the list card.
   for(const [name,store] of [['Milk','Corner Market'],['Apples','Corner Market'],['Bread','Corner Market'],['Batteries','Hardware Store']])
     await mutate(p,'shopping','item','create',{name,quantity:'1',store,aisle:'',assignedTo:null,checked:false});
+
+  }
+  if(!process.env.SCREENSHOTS_ONLY){
+  // Invented Noticeboard notes (one with a drawn poster) and a Meal Planner week. The week is
+  // 5 to 9 October 2026, matching the fixed clock used for the screenshots below.
+  const poster=await p.evaluate(()=>{const c=document.createElement('canvas');c.width=640;c.height=420;const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,640,420);g.addColorStop(0,'#2f5d62');g.addColorStop(.55,'#c2634b');g.addColorStop(1,'#e8b94a');x.fillStyle=g;x.fillRect(0,0,640,420);
+    x.fillStyle='rgba(255,253,247,.92)';x.font='bold 64px sans-serif';x.fillText('SPRING FAIR',64,170);x.font='36px sans-serif';x.fillText('Saturday  ·  10 am',64,240);x.fillText('Games, music and pie',64,300);return c.toDataURL('image/jpeg',0.7);});
+  const note=(title,body,color,x,y,w,rotation,z,image=null,checklist=[])=>mutate(p,'noticeboard','notice','create',{title,body,color,image,checklist,pinned:true,x,y,w,rotation,z});
+  await note('Things to remember','Water bottles and snacks for Saturday. Library books are due Friday.','#f6dd7a',0.05,0.07,0.50,-3,1);
+  await note('Spring fair','Saturday at the school.','#e8a58f',0.45,0.30,0.50,3,3,poster);
+  await note('Hugs and kisses','Hugs and kisses forever.','#d9b9d8',0.10,0.64,0.46,-2,2);
+  for(const [date,title] of [['2026-10-05','Chicken soup'],['2026-10-06','Pink tacos'],['2026-10-07','Garden pasta'],['2026-10-08','Turtle turnovers'],['2026-10-09','Fried rice']])
+    await mutate(p,'mealplanner','meal','create',{date,slot:'dinner',kind:'meal',title,notes:'',servings:4,cookPersonId:null,status:'planned',recipe:null,position:0,seriesId:null});
+  }
+  // The picture Dashboard (idempotent, so it also applies to a stack that is already seeded).
+  // Card order for the pictures:  the Noticeboard first, then Events today and Current balance, then the rest.
+  const ORDER=['noticeboard:noticeboard','calendar:today-count','chequebook:current-balance','calendar:coming-week','mealplanner:weekly-plan','shopping:shopping-list'];
+  for(const [index,key] of ORDER.entries()){
+    const pref=(await api(p,'core/module-preferences')).body.data.preferences.find(x=>x.moduleKey+':'+x.surfaceId===key);
+    const r=await api(p,'core/sync/mutations','POST',{clientMutationId:crypto.randomUUID(),moduleKey:'core',entityType:'member-module-preference',entityId:pref.id,operation:'update',baseRevision:pref.revision,payload:{displayOrder:index}});
+    assert.equal(r.body.data.status,'applied',key+' '+JSON.stringify(r.body));
+  }
+  // A tidy Dashboard for the pictures: the six cards a household uses most, in Homi's own arrangement.
+  for(const key of ['calendar:mini-month','chequebook:monthly-spend','chequebook:cash-flow-forecast']){
+    const pref=(await api(p,'core/module-preferences')).body.data.preferences.find(x=>x.moduleKey+':'+x.surfaceId===key);
+    const r=await api(p,'core/sync/mutations','POST',{clientMutationId:crypto.randomUUID(),moduleKey:'core',entityType:'member-module-preference',entityId:pref.id,operation:'update',baseRevision:pref.revision,payload:{visible:false}});
+    assert.equal(r.body.data.status,'applied',JSON.stringify(r.body));
   }
   await p.reload();await p.waitForLoadState('networkidle');
   // Every card at its module's default size, in Homi's own arrangement.
@@ -64,16 +93,21 @@ try{
     await q.locator('[data-family-board-card="chequebook:current-balance"] .cheq-board-figure').getByText(/\$[0-9]/).waitFor({timeout:30000});
     await q.locator('[data-family-board-card="calendar:today-count"] .cal-board-count').waitFor();
     await q.waitForTimeout(1500);};
-  await dashboard(p);await p.screenshot({path:ASSETS+'homi-dashboard-desktop.png'});
+  const FIXED=new Date('2026-10-05T19:15:00Z');
+  const wide=await page({viewport:{width:1920,height:1080}});
+  await wide.clock.install({time:FIXED});await wide.reload();await wide.waitForLoadState('networkidle');
+  await dashboard(wide);await wide.screenshot({path:ASSETS+'homi-dashboard-desktop.png'});
+  await wide.context().close();
 
   const phone=await page({viewport:{width:390,height:846},deviceScaleFactor:945/390,isMobile:true,hasTouch:true});
+  await phone.clock.install({time:FIXED});await phone.reload();await phone.waitForLoadState('networkidle');
   await dashboard(phone);await phone.screenshot({path:ASSETS+'homi-dashboard-phone.jpg',type:'jpeg',quality:88});
 
   await p.setViewportSize({width:1001,height:1204});
   await p.locator('[data-family-board-card="chequebook:current-balance"] article').click();await p.getByText('Corner Market').first().waitFor({timeout:30000});await p.waitForTimeout(1500);
   await p.screenshot({path:ASSETS+'homi-chequebook-desktop.png'});
   await p.getByRole('button',{name:'Dashboard',exact:true}).first().click();
-  await p.locator('[data-family-board-card="calendar:mini-month"] article').click();await p.getByText('Book club').first().waitFor({timeout:30000});await p.waitForTimeout(1500);
+  await p.locator('[data-family-board-card="calendar:coming-week"] article').click();await p.getByText('Book club').first().waitFor({timeout:30000});await p.waitForTimeout(1500);
   await p.screenshot({path:ASSETS+'homi-calendar-desktop.png'});
   console.log('PASS_README_SCREENSHOTS_FROM_INVENTED_DATA');
 }finally{await browser.close();}

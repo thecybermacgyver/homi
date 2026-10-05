@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-05T19:33:14.644Z",
+  "results": [
+    {
+      "name": "the header shows the date and time in the household time zone (not the browser's)",
+      "date": "5th October 2026",
+      "time": "03:15 P.M."
+    },
+    {
+      "name": "the clock advances each minute and rolls the date over at midnight"
+    },
+    {
+      "name": "the clock sits between the logo and the Arrange button without overflow at 1440, 768 and 390 px"
+    },
+    {
+      "name": "no JavaScript page errors"
+    }
+  ]
+}

@@ -703,13 +703,65 @@
   background: rgba(249, 247, 241, 0.2);
 }
 
+.homi-family-board__clock {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  color: #2a1f1b;
+  white-space: nowrap;
+}
+
+.homi-family-board__clock-date {
+  font-size: clamp(0.95rem, 1.6vw, 1.45rem);
+  font-weight: 700;
+}
+
+.homi-family-board__clock-time {
+  font-size: clamp(1.9rem, 4.6vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .homi-family-board__clock {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  /* On a phone the time is the same size as the date, so it never crowds the logo. */
+  .homi-family-board__header {
+    gap: 10px;
+  }
+
+  .homi-family-board__brand {
+    min-width: 0;
+  }
+
+  .homi-family-board__clock-date,
+  .homi-family-board__clock-time {
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 360px) {
+  .homi-family-board__clock-date,
+  .homi-family-board__clock-time {
+    font-size: 0.74rem;
+  }
+}
+
 .homi-family-board__arrange {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .homi-family-board__arrange-hint {

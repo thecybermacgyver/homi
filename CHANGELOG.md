@@ -2,6 +2,17 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.3.0 — 2026-10-05
+
+### Core (web app)
+- **Date and time on the Dashboard.** The Family Board header shows the date and a large clock at the top right, beside the search control: for example "5th October 2026" and "03:15 P.M." They follow the household's time zone and language (English uses the board's own style; other languages use the browser's long date and short time), update every minute and roll over at midnight. On a phone the time is the same size as the date and stays clear of the logo, down to the narrowest screens. No Core service, API or module change.
+
+### Documentation
+- The README screenshots were retaken from invented data on an isolated stack: the widescreen Dashboard now shows the clock, the cork Noticeboard and the Meal Planner, and the phone screenshot shows the clock with the Noticeboard first, as on a real phone.
+
+### Testing
+- Clock browser acceptance (`apps/web/qa/clock-acceptance.mjs`: household time zone, minute update, midnight roll-over, placement with a clear gap from the logo and equal date and time sizes on phones from 1440 down to 320 px) and unit tests for the formatting. The accessibility (168 screens), board-layout and universal-search acceptances pass unchanged.
+
 ## 2026-10-05 (Meal Planner)
 
 ### Modules

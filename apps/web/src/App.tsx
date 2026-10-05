@@ -63,6 +63,7 @@ import type {
   HomiWebModuleSearchResult,
 } from "@homi/module-sdk";
 import { GlobalSearch, type GlobalSearchSource } from "./GlobalSearch.js";
+import { FamilyBoardClock } from "./FamilyBoardClock.js";
 import {
   cacheMemberModulePreferences,
   fetchMemberModulePreferences,
@@ -1559,6 +1560,10 @@ export function App() {
                   Family Board
                 </span>
               </div>
+              <FamilyBoardClock
+                locale={displayLocale || "en"}
+                timeZone={displayTimeZone || "UTC"}
+              />
               {familyBoardContributions.length > 0 && (
                 <div className="homi-family-board__arrange">
                   {arrangingBoard && (
