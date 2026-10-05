@@ -89,6 +89,23 @@ test("saved places are fitted to the board and the module's limits", () => {
   );
 });
 
+test("a card declared one column wide is never narrower than two on a phone", () => {
+  const size = {
+    default: { w: 2, h: 2 },
+    min: { w: 1, h: 2 },
+    max: { w: 4, h: 6 },
+  };
+  assert.equal(resolveHomiFamilyBoardCardLimits(size, "wide").min.w, 1);
+  assert.equal(resolveHomiFamilyBoardCardLimits(size, "phone").min.w, 2);
+  assert.equal(
+    resolveHomiFamilyBoardCardLimits(
+      { ...size, default: { w: 1, h: 2 } },
+      "phone",
+    ).default.w,
+    2,
+  );
+});
+
 test("placing a card pushes only the cards it lands on straight down", () => {
   const start = arrangeFamilyBoard(
     [

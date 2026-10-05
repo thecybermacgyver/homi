@@ -3,7 +3,7 @@
   "moduleKey": "chequebook",
   "name": "Chequebook",
   "publisher": "Homi",
-  "version": "0.1.25",
+  "version": "0.1.27",
   "moduleApiVersion": 1,
   "description": "Household chequebook, cash-flow forecasting, recurring bills and income, category budgets, reconciliation, analytics, and Calendar-linked financial events.",
   "entrypoints": {
@@ -114,7 +114,7 @@
             "h": 2
           },
           "min": {
-            "w": 2,
+            "w": 1,
             "h": 2
           },
           "max": {

@@ -2,6 +2,17 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.1.3 — 2026-10-05
+
+### Core
+- **Smaller minimum card sizes are honoured per layout.** A card's declared minimum is in wide-layout units; on phones a card is never narrower than two columns (a phone column is only a quarter of the screen), so a module that declares a one-column minimum for wide screens does not make phone cards unreadable. The platform's test script now runs every web test file (the unquoted glob had been skipping `src/*.test.ts`).
+
+### Modules
+- **Calendar 0.6.21 and Chequebook 0.1.27.** The Events today and Current balance cards can be resized down to one column by two rows on wide screens. Phone layouts are unchanged (two columns by two rows at the smallest).
+
+### Testing
+- Board-layout acceptance gained a check that both cards shrink to 1×2 on wide screens and 2×2 on phones, independently.
+
 ## 1.1.2 — 2026-10-05
 
 ### Core

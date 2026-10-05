@@ -3,7 +3,7 @@
   "moduleKey": "calendar",
   "name": "Calendar",
   "publisher": "Homi",
-  "version": "0.6.19",
+  "version": "0.6.21",
   "moduleApiVersion": 1,
   "description": "Shared household calendar, events, recurrence, reminders, people, and transportation coordination.",
   "entrypoints": {
@@ -108,7 +108,7 @@
             "h": 2
           },
           "min": {
-            "w": 2,
+            "w": 1,
             "h": 2
           },
           "max": {

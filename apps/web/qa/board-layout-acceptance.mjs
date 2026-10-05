@@ -29,13 +29,13 @@ async function api(p,path,method='GET',body){const id=await identity(p);return p
 async function mutate(p,moduleKey,entityType,operation,payload,entityId=crypto.randomUUID(),baseRevision='0'){const r=await api(p,'core/sync/mutations','POST',{clientMutationId:crypto.randomUUID(),moduleKey,entityType,entityId,operation,baseRevision,payload});assert.equal(r.body.data?.status,'applied',JSON.stringify(r.body));return r.body.data;}
 const preferences=async p=>(await api(p,'core/module-preferences')).body.data.preferences;
 const cardKey=preference=>`${preference.moduleKey}:${preference.surfaceId}`;
-// Declared by Calendar 0.6.11, Chequebook 0.1.15 and Shopping 0.3.1: [default, min] in wide units.
+// Declared by Calendar 0.6.21, Chequebook 0.1.27 and Shopping 0.3.2: [default, min] in wide units.
 const SIZES={
-  'calendar:today-count':[[2,2],[2,2]],'calendar:coming-week':[[3,4],[2,3]],'calendar:mini-month':[[3,5],[2,4]],
-  'chequebook:current-balance':[[2,2],[2,2]],'chequebook:monthly-spend':[[2,2],[2,2]],'chequebook:cash-flow-forecast':[[2,2],[2,2]],
+  'calendar:today-count':[[2,2],[1,2]],'calendar:coming-week':[[3,4],[2,3]],'calendar:mini-month':[[3,5],[2,4]],
+  'chequebook:current-balance':[[2,2],[1,2]],'chequebook:monthly-spend':[[2,2],[2,2]],'chequebook:cash-flow-forecast':[[2,2],[2,2]],
   'shopping:shopping-list':[[3,5],[2,3]],
 };
-const phoneWidth=w=>w<=2?w:4;
+const phoneWidth=w=>w<=2?Math.max(w,2):4;
 
 // Reads each card's grid cell from the rendered board.
 async function board(p){
@@ -219,6 +219,24 @@ try{
   assert.deepEqual(await board(tablet),arranged);
   await tablet.screenshot({path:OUT+'board-wide-768.png',fullPage:true});
   pass('wide arrangement is shared by all wide screens');
+
+  // 11. Events today and Current balance shrink to one wide column (two on a phone), two rows tall.
+  for(const [view,layout,expectW] of [[{width:1440,height:960},'wide',1],[{width:390,height:844},'phone',2]]){
+    const q=await page({viewport:view});
+    await q.locator('[data-family-board-card]').first().waitFor();await settle(q);
+    await q.getByRole('button',{name:'Arrange & resize'}).click();
+    for(const key of ['calendar:today-count','chequebook:current-balance']){
+      const editor=q.locator(`[data-family-board-card="${key}"] .homi-family-board__editor`);
+      for(let i=0;i<8;i++){await editor.focus();await q.keyboard.press('Shift+ArrowLeft');await q.waitForTimeout(200);await editor.focus();await q.keyboard.press('Shift+ArrowUp');await q.waitForTimeout(200);}
+    }
+    await settle(q);
+    const small=await board(q);
+    for(const key of ['calendar:today-count','chequebook:current-balance'])assert.deepEqual([small[key].w,small[key].h],[expectW,2],`${key} shrinks to ${expectW}x2 on ${layout}`);
+    q.once('dialog',dialog=>dialog.accept());
+    await q.getByRole('button',{name:'Reset layout'}).click();await settle(q);
+    await q.getByRole('button',{name:'Done arranging'}).click();
+  }
+  pass('Events today and Current balance shrink to a compact size',{wide:'1x2',phone:'2x2'});
 
   writeFileSync(OUT+'board-layout-acceptance.json',JSON.stringify({date:new Date().toISOString(),base,results},null,2)+'\n');
   console.log('PASS_BOARD_LAYOUT_ACCEPTANCE',results.length);

@@ -41,10 +41,16 @@ const UNDECLARED: HomiModuleFamilyBoardSizeManifest = Object.freeze({
   default: Object.freeze({ w: 4, h: 4 }),
 });
 
+// A phone column is only a quarter of a narrow screen, so a card is never
+// narrower than two of them, whatever width a module declares for wide screens.
+const PHONE_MIN_CARD_COLUMNS = 2;
+
 // A phone column is half a wide one's share of the screen, so a card wider
 // than half the wide board fills the phone's width.
 function phoneWidth(w: number): number {
-  return w <= 2 ? w : HOMI_FAMILY_BOARD_COLUMNS.phone;
+  return w <= 2
+    ? Math.max(w, PHONE_MIN_CARD_COLUMNS)
+    : HOMI_FAMILY_BOARD_COLUMNS.phone;
 }
 
 export function resolveHomiFamilyBoardCardLimits(
@@ -76,7 +82,10 @@ export function resolveHomiFamilyBoardCardLimits(
       h: wide.default.h,
     }),
     min: Object.freeze({
-      w: Math.min(wide.min.w, HOMI_FAMILY_BOARD_COLUMNS.phone),
+      w: Math.min(
+        Math.max(wide.min.w, PHONE_MIN_CARD_COLUMNS),
+        HOMI_FAMILY_BOARD_COLUMNS.phone,
+      ),
       h: wide.min.h,
     }),
     max: Object.freeze({

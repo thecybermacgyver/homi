@@ -151,7 +151,9 @@ A card may declare its size in wide-layout grid units:
 and `max`. Omitted limits default to `min` 2×2 (or `default`, if smaller)
 and `max` 8×12. A card with no `size` starts half the board wide and four
 rows tall. On phones, a default wider than two columns fills the phone's
-width, and widths are capped at four columns. Core stores placements with
+width, widths are capped at four columns, and a card is never narrower than
+two columns on a phone (a phone column is only a quarter of the screen), so a
+declared width of 1 is two columns there. Core stores placements with
 the member's other card preferences and rejects sizes outside the card's
 limits. When a module update changes the limits, existing placements are
 fitted to the new ones. Content that does not fit the member's chosen size
