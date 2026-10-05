@@ -127,7 +127,7 @@ not store or synchronise card presentation themselves.
 The Family Board is a grid: 8 columns on screens at least 720 px wide, 4 on
 phones, and fixed-height rows (56 px wide, 52 px on phones) with even gaps.
 Each member arranges their cards separately for the wide and phone layouts
-("Arrange cards" on the Dashboard): drag a card to move it and drag its corner
+("Arrange & resize" on the Dashboard): drag a card to move it and drag its corner
 to resize it. On a phone, the card's grip moves it, so the rest of the card
 still scrolls the page. Cards stay exactly where the member leaves them, and so
 do the empty spaces. Homi packs a card only when the member has not placed it

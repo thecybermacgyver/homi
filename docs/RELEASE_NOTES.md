@@ -9,7 +9,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 - Public `@homi/module-sdk`, `@homi/ui`, and the starter module template.
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement, and per-member Dashboard visibility, order, and card style (for example Shopping's list or counts by store), chosen on the Modules screen.
-- A Family Board grid (8 columns wide, 4 on phones) that each member arranges with "Arrange cards": drag to move, drag a corner to resize, or use the arrow keys. Phone and wide-screen layouts are saved separately, the board fills the window width on large displays (1.1.1), and cards stay exactly where they are left. Modules may declare card sizes.
+- A Family Board grid (8 columns wide, 4 on phones) that each member arranges with "Arrange & resize": drag to move, drag a corner to resize, or use the arrow keys. Phone and wide-screen layouts are saved separately, the board fills the window width on large displays (1.1.1), and cards stay exactly where they are left. Modules may declare card sizes.
 - Administrators add household members in the app (Settings → Members → Add member), with a one-time temporary password and a required new password at first sign-in. Self-service password change, and administrator password reset that requires the member to choose a new password at their next sign-in.
 - Offline queue guarantees: an edit made right after creating an item continues from its delivered revision; conflicts and rejections stay available for review until dismissed; writes that are still retrying are never discarded.
 - Calendar ↔ Chequebook recurring-entry integration through the public broker contract.

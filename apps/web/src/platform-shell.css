@@ -706,6 +706,24 @@
   text-align: right;
 }
 
+.homi-family-board__arrange-toggle {
+  color: var(--board-espresso);
+  border: 1px solid rgba(34, 31, 31, 0.2);
+  background: rgba(249, 247, 241, 0.82);
+  box-shadow: 0 2px 5px rgba(34, 31, 31, 0.12);
+}
+
+.homi-family-board__arrange-toggle:hover,
+.homi-family-board__arrange-toggle:focus-visible {
+  background: var(--card-cream);
+}
+
+.homi-family-board__arrange-toggle[aria-pressed="true"] {
+  color: var(--card-cream);
+  border-color: transparent;
+  background: var(--board-terracotta);
+}
+
 .homi-family-board__arrange .homi-ui-button--secondary,
 .homi-family-board__arrange .homi-ui-button--quiet {
   background: rgba(249, 247, 241, 0.72);

@@ -108,7 +108,7 @@ try{
 
   // 3. Drag the first card two columns right and six rows down, leaving its
   //    old space empty; every card is then saved where it is shown.
-  await p.getByRole('button',{name:'Arrange cards'}).click();
+  await p.getByRole('button',{name:'Arrange & resize'}).click();
   await p.getByText('Arranging your wide-screen layout',{exact:false}).waitFor();
   assert.equal(await p.locator('.homi-family-board__editor').count(),keys.length);
   await p.screenshot({path:OUT+'board-wide-arranging-1440.png',fullPage:true});
@@ -152,7 +152,7 @@ try{
   pass('keyboard moves and resizes',{nudged});
 
   // 6. Done; the arrangement, empty spaces included, survives a reload.
-  await p.getByRole('button',{name:'Done'}).click();
+  await p.getByRole('button',{name:'Done arranging'}).click();
   assert.equal(await p.locator('.homi-family-board__editor').count(),0);
   const arranged=await board(p);
   await p.reload();await p.locator('[data-family-board-card]').first().waitFor();await settle(p);
@@ -184,7 +184,7 @@ try{
   assertNoOverlaps(phoneInitial,4);
   for(const [key,c] of Object.entries(phoneInitial))assert.deepEqual([c.w,c.h],[phoneWidth(SIZES[key][0][0]),SIZES[key][0][1]],`${key} phone default size`);
   await phone.screenshot({path:OUT+'board-phone-default-390.png',fullPage:true});
-  await phone.getByRole('button',{name:'Arrange cards'}).click();
+  await phone.getByRole('button',{name:'Arrange & resize'}).click();
   await phone.getByText('Arranging your phone layout',{exact:false}).waitFor();
   const phoneStep=await steps(phone);
   assert.equal(phoneStep.cols,4);
@@ -210,7 +210,7 @@ try{
   assert(prefs.every(pref=>pref.phoneLayout===null),'phone placements cleared');
   assert(prefs.filter(pref=>pref.visible).every(pref=>pref.wideLayout!==null),'wide placements kept');
   assert.deepEqual(await board(phone),phoneInitial);
-  await phone.getByRole('button',{name:'Done'}).click();
+  await phone.getByRole('button',{name:'Done arranging'}).click();
   pass('reset clears only the current layout');
 
   // 10. The wide device sees the saved wide arrangement at another width.

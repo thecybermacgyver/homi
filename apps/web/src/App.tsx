@@ -16,6 +16,7 @@ import {
   Button,
   EmptyState,
   FormField,
+  IconButton,
   Notice,
   PageHeader,
   Surface,
@@ -118,6 +119,27 @@ const FAMILY_BOARD_PRESENTATION: Record<
     className: "homi-family-card--schedule",
   },
 });
+
+function ArrangeResizeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      aria-hidden="true"
+      focusable="false"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="12" height="12" rx="3.5" />
+      <path d="M12 12l9 9" />
+      <path d="M21 14.5V21h-6.5" />
+    </svg>
+  );
+}
 
 function familyBoardCardKey(contribution: {
   readonly module: { readonly descriptor: { readonly moduleKey: string } };
@@ -1554,13 +1576,14 @@ export function App() {
                       </Button>
                     </>
                   )}
-                  <Button
-                    variant={arrangingBoard ? "primary" : "secondary"}
+                  <IconButton
+                    className="homi-family-board__arrange-toggle"
+                    label={arrangingBoard ? "Done arranging" : "Arrange & resize"}
                     aria-pressed={arrangingBoard}
                     onClick={() => setArrangingBoard((value) => !value)}
                   >
-                    {arrangingBoard ? "Done" : "Arrange cards"}
-                  </Button>
+                    <ArrangeResizeIcon />
+                  </IconButton>
                 </div>
               )}
             </header>

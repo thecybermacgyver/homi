@@ -2,6 +2,11 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.1.2 — 2026-10-05
+
+### Core
+- **"Arrange & resize" is now an icon.** The Dashboard's text button is replaced by a rounded-card-with-resize-arrow icon in the Homi palette. Hovering it (or focusing it with the keyboard) shows "Arrange & resize"; while arranging it turns terracotta and reads "Done arranging". Moving and resizing cards work exactly as before (drag a card, drag its corner, or use the arrow keys). The README screenshots were regenerated from invented data.
+
 ## 1.1.1 — 2026-10-05
 
 ### Core
