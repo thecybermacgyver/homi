@@ -3,7 +3,7 @@
   "moduleKey": "noticeboard",
   "name": "Noticeboard",
   "publisher": "Homi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "moduleApiVersion": 1,
   "description": "A shared household noticeboard: pin notes, photos and lists to a board that scales to every screen, arrange and overlap them, and keep every notice in a searchable list.",
   "entrypoints": {

@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-05T17:42:45.371Z",
-  "run": "070606",
+  "date": "2026-10-05T18:00:46.859Z",
+  "run": "151989",
   "results": [
     {
       "name": "two devices of one member and a distinct member share the household"
@@ -16,12 +16,12 @@
     {
       "name": "the arrangement scales with the board at phone and desktop widths",
       "r390": {
-        "x": 0.3101085863615337,
-        "w": 0.47605133056640625
+        "x": 0.32065562198036596,
+        "w": 0.47911433169716283
       },
       "r1440": {
-        "x": 0.31081394522767375,
-        "w": 0.4747685568081569
+        "x": 0.32142554665233103,
+        "w": 0.47756832093809376
       }
     },
     {

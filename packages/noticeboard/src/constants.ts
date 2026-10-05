@@ -1,5 +1,5 @@
 export const NOTICEBOARD_MODULE_KEY = "noticeboard" as const;
-export const NOTICEBOARD_VERSION = "0.1.0" as const;
+export const NOTICEBOARD_VERSION = "0.1.1" as const;
 
 export const DEFAULT_COLOR = "#f6dd7a";
 // Paper colours offered first; any #rrggbb colour is allowed.

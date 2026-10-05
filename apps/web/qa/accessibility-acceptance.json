@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-05T17:46:44.329Z",
+  "date": "2026-10-05T18:06:59.324Z",
   "screensChecked": 132,
   "violations": [],
   "keyboard": [
     {
       "check": "Tab order on the Dashboard reaches controls and each shows a visible focus indicator",
       "ok": true,
-      "detail": "34 stops"
+      "detail": "21 stops"
     },
     {
       "check": "every button, link and field on the Dashboard has an accessible name",

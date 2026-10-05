@@ -2,6 +2,11 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.2.1 — 2026-10-05
+
+### Modules
+- **Noticeboard 0.1.1.** The board now looks like cork: a speckled tan surface with a wooden frame, drawn in CSS so it scales and stays sharp at any size.
+
 ## 1.2.0 — 2026-10-05
 
 ### Core

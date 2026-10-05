@@ -46,7 +46,7 @@ const css = `
 .nb-view-checks {list-style:none;margin:.8rem 0 0;padding:0}
 .nb-view-meta {font-size:.85rem;color:var(--homi-text-muted);margin-top:.8rem!important}
 .homi-family-board__cell .nb.nb-card {position:relative;flex:1 0 auto;min-height:150px;display:grid}
-.nb-board {position:relative;isolation:isolate;container-type:size;width:100%;min-height:140px;overflow:hidden;border-radius:14px;background:radial-gradient(circle at 30% 20%,#e3d6c6,#d4c4b2 70%);box-shadow:inset 0 0 0 1px rgba(62,45,39,.18),inset 0 6px 14px rgba(62,45,39,.12)}
+.nb-board {position:relative;isolation:isolate;container-type:size;width:100%;min-height:140px;overflow:hidden;border-radius:14px;background-color:#c8a06f;background-image:radial-gradient(circle at 18% 28%,rgba(86,52,24,.42) 0 1px,transparent 1.6px),radial-gradient(circle at 72% 62%,rgba(255,232,196,.5) 0 1px,transparent 1.7px),radial-gradient(circle at 44% 84%,rgba(70,40,16,.34) 0 1.6px,transparent 2.3px),radial-gradient(circle at 86% 14%,rgba(255,236,205,.34) 0 1.4px,transparent 2.1px),radial-gradient(ellipse at 50% 38%,#d6b07c 0,#c39a68 62%,#a97f50 100%);background-size:9px 11px,13px 12px,19px 17px,23px 21px,100% 100%;box-shadow:inset 0 0 0 4px #8a5a33,inset 0 0 0 5px rgba(46,26,10,.55),inset 0 8px 18px rgba(46,26,10,.3)}
 .nb-note {position:absolute;border-radius:3px;box-shadow:0 1px 2px rgba(34,31,31,.28),0 6px 10px rgba(34,31,31,.16);font-size:clamp(.66rem,3.2cqw,1.05rem);line-height:1.25;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .nb-note.is-dragging {box-shadow:0 10px 22px rgba(34,31,31,.34);cursor:grabbing}
 .nb-note-open {all:unset;box-sizing:border-box;display:block;width:100%;padding:1.25em .8em .8em;cursor:grab;color:inherit}
@@ -60,7 +60,7 @@ const css = `
 .nb-tack {top:8px;left:8px}
 .nb-all {bottom:8px;right:8px}
 .nb-tack:focus-visible,.nb-all:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:2px}
-.nb-empty {position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:3.2rem 1rem 1rem;color:#4a3f38;font-weight:650;font-size:.9rem}
+.nb-empty {position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:3.2rem 1rem 1rem;color:#2e1b0b;font-weight:700;font-size:.9rem}
 @container (max-width:200px) {.nb-tack,.nb-all {width:34px;height:34px}}
 `;
 
