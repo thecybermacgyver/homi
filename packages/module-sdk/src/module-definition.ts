@@ -40,6 +40,11 @@ export interface HomiHouseholdPeopleCapability {
   ): Promise<readonly HomiHouseholdPerson[]>;
 }
 
+export interface HomiHouseholdRolesCapability {
+  // True when the requesting member is an administrator of the household.
+  isAdministrator(context: HomiRequestContext): Promise<boolean>;
+}
+
 export interface HomiModuleSyncPublishInput {
   readonly entityType: string;
   readonly entityId: string;
@@ -171,6 +176,7 @@ export interface HomiModuleBrokerClient {
 export interface HomiServerModuleHostContext {
   readonly moduleDatabase: HomiModuleDatabase;
   readonly householdPeople?: HomiHouseholdPeopleCapability;
+  readonly householdRoles?: HomiHouseholdRolesCapability;
   readonly sync?: HomiModuleSyncPublisherCapability;
   readonly secrets?: HomiModuleSecretsCapability;
   readonly jobs?: HomiModuleJobsCapability;

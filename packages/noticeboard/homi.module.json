@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "noticeboard",
+  "name": "Noticeboard",
+  "publisher": "Homi",
+  "version": "0.1.0",
+  "moduleApiVersion": 1,
+  "description": "A shared household noticeboard: pin notes, photos and lists to a board that scales to every screen, arrange and overlap them, and keep every notice in a searchable list.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_noticeboard",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "household-people",
+    "household-roles",
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "noticeboard",
+      "label": "Noticeboard",
+      "path": "/modules/noticeboard",
+      "icon": "pin"
+    }
+  ],
+  "setup": {
+    "required": false,
+    "scope": "household"
+  },
+  "settings": {
+    "household": false,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "notice",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [],
+    "consumes": []
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "noticeboard",
+        "label": "Noticeboard",
+        "slot": "noticeboard",
+        "size": {
+          "default": {
+            "w": 3,
+            "h": 5
+          },
+          "min": {
+            "w": 2,
+            "h": 3
+          },
+          "max": {
+            "w": 6,
+            "h": 10
+          }
+        }
+      }
+    ],
+    "householdSettings": false,
+    "notifications": false,
+    "search": true
+  }
+}

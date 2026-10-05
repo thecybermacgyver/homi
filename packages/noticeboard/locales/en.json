@@ -1,0 +1,8 @@
+{
+  "module.name": "Noticeboard",
+  "module.description": "A shared household noticeboard.",
+  "page.title": "Noticeboard",
+  "action.add": "Add notice",
+  "action.pin": "Pin to board",
+  "action.unpin": "Unpin from board"
+}

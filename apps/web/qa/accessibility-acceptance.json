@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-02T19:39:35.510Z",
-  "screensChecked": 108,
+  "date": "2026-10-05T17:46:44.329Z",
+  "screensChecked": 132,
   "violations": [],
   "keyboard": [
     {
       "check": "Tab order on the Dashboard reaches controls and each shows a visible focus indicator",
       "ok": true,
-      "detail": "20 stops"
+      "detail": "34 stops"
     },
     {
       "check": "every button, link and field on the Dashboard has an accessible name",
@@ -32,6 +32,11 @@
       "check": "reduced-motion preference removes animation and smooth scrolling",
       "ok": true,
       "detail": "{\"transition\":\"1e-05s\",\"scroll\":\"auto\"}"
+    },
+    {
+      "check": "Noticeboard add sheet (opened from the card) takes focus, keeps Tab inside, closes on Escape and returns focus to the tack",
+      "ok": true,
+      "detail": "focusInside=true trapped=true returned=true"
     },
     {
       "check": "no horizontal scrolling at 320 px wide",

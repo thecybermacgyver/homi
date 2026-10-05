@@ -2,6 +2,19 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.2.0 — 2026-10-05
+
+### Core
+- **New module capability `household-roles`.** A module that declares it can ask the host whether the requesting member is a household administrator (`host.householdRoles.isAdministrator(context)`), so it can restrict an action such as delete to the author or an administrator. Additive: the module API version stays 1.
+- **Dialogs and sheets can opt in to `portal`.** A Family Board card clips a fixed-position dialog to the card, so `<BottomSheet portal>` / `<Dialog portal>` render in `document.body`. The default is unchanged.
+- **Family Board cards can fill their card.** A card's content area is now a flex column, so a surface that sets its own `flex: 1 0 auto` fills the card at any size; other surfaces keep their natural height.
+
+### Modules
+- **Noticeboard 0.1.0 (new).** A shared household board. The Dashboard card is a board of pinned notices that scales to the card and the device; drag notices to arrange them, and they may overlap like paper on a real board. Each notice has a pin: clicking it unpins the notice, which leaves the board but stays in the module until it is deleted, and anyone can pin it back. A tack in the card's upper left (and the module's `+`) adds a notice with a title, text, any paper colour, a photo (shrunk on the device to a small JPEG) and a list to tick off. The module page lists every notice newest first with a short description; choosing one opens the whole notice, and Core's Search finds titles, text and list items. Anyone can edit, tick, pin and unpin; only the author or a household administrator can delete. Works offline.
+
+### Testing
+- Noticeboard browser acceptance (`packages/noticeboard/qa/acceptance.mjs`): three browser profiles and two members, 13 checks. The accessibility acceptance now covers the Noticeboard card, page and sheets (132 screens, no violations) and the board-layout acceptance includes the new card.
+
 ## 1.1.3 — 2026-10-05
 
 ### Core

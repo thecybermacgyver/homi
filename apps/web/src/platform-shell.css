@@ -598,11 +598,26 @@
 }
 
 .homi-family-board__cell .homi-family-card {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
   overflow-y: auto;
   scrollbar-width: thin;
+}
+
+/* A surface keeps its natural height unless it opts in to fill the card with
+   its own `flex: 1 0 auto` (for example a board that scales to the card). */
+.homi-family-board__cell .homi-family-module-surface {
+  flex: 1 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homi-family-board__cell .homi-family-module-surface > * {
+  flex: 0 0 auto;
 }
 
 .homi-family-board__grid.is-editing {

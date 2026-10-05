@@ -11,6 +11,7 @@ export type HomiCoreCapability =
   | "audit"
   | "files"
   | "household-people"
+  | "household-roles"
   | "jobs"
   | "localization"
   | "notifications"
@@ -166,6 +167,7 @@ const CORE_CAPABILITIES = new Set<HomiCoreCapability>([
   "audit",
   "files",
   "household-people",
+  "household-roles",
   "jobs",
   "localization",
   "notifications",

@@ -90,6 +90,8 @@ The module definition declares its stable module key and exact supported Homi mo
 
 The generic Homi server host provides documented host capabilities through the public SDK. A module must not reach into private Core services.
 
+Core capabilities a module may declare in `coreCapabilities` and then use on the host: `household-people` (`host.householdPeople.listActive(context)`), `household-roles` (`host.householdRoles.isAdministrator(context)`, true when the requesting member is an administrator of the household, so a module can let only an item's author or an administrator delete it), `localization`, `sync`, `jobs`, `notifications`, `secrets`, `files` and `audit`. Always enforce permissions on the server; a web page may hide a control the server would refuse, but it is never the check.
+
 ## Web entrypoint
 
 A web module declares its module key, Homi API version, and page IDs through `defineHomiWebModule()`.
@@ -158,7 +160,7 @@ the member's other card preferences and rejects sizes outside the card's
 limits. When a module update changes the limits, existing placements are
 fitted to the new ones. Content that does not fit the member's chosen size
 scrolls inside the card, so design surfaces to read well at the default size.
-Each card's grid cell is a CSS size container, so a surface can adapt to the
+A surface keeps its natural height unless it opts in to fill the card, which it does with its own `flex: 1 0 auto` (the card's content area is a flex column), for example a board that scales to whatever size the member chose. Each card's grid cell is a CSS size container, so a surface can adapt to the
 size the member chose with `@container` queries (for example, show only a
 headline number when the card is two rows tall) rather than reading its size
 from props.
@@ -193,7 +195,7 @@ defineHomiWebModule({
 
 Core limits each provider to 4 seconds and 20 results and shows a notice if a provider fails. When a result is chosen, Core opens the module page named by `pageId` and passes `intent` to that page as the `intent` surface prop (`{ resultId, params, nonce }`). The page, and only the page, interprets it: for example it jumps to a day or opens an item for editing. Apply the intent once per `nonce`, and only after the page has loaded the data it refers to. A module that offers no provider can still register an in-page search through `registerContextActions`, which Core uses only when no enabled module provides universal search.
 
-Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
+Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. A Family Board card is a layout container, which clips a fixed-position dialog to the card, so a sheet or dialog opened from inside a card sets `portal` (`<BottomSheet portal ...>`), which renders it in `document.body`. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
 
 ## Setup and settings
 

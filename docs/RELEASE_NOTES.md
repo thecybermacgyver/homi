@@ -6,6 +6,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
 - Calendar 0.6.21, Chequebook 0.1.27, and Shopping List 0.3.2, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
+- Noticeboard 0.1.0 (1.2): a shared board of pinned notes, photos and lists. The Dashboard card scales to the card, notices can be arranged and overlapped, anyone can unpin a notice (it stays in the module) or pin it back, and only the author or an administrator can delete. Add notices from the card's tack or the module's `+`; Search finds them.
 - Public `@homi/module-sdk`, `@homi/ui`, and the starter module template.
 - Signed module-directory verification and administrator-only install, update, disable, uninstall, reinstall, and rollback.
 - Per-household module enablement, and per-member Dashboard visibility, order, and card style (for example Shopping's list or counts by store), chosen on the Modules screen.

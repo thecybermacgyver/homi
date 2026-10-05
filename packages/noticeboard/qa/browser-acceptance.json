@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-05T17:42:45.371Z",
+  "run": "070606",
+  "results": [
+    {
+      "name": "two devices of one member and a distinct member share the household"
+    },
+    {
+      "name": "a notice made on the card with colour, list and a shrunk photo reaches every device",
+      "imageChars": 84711
+    },
+    {
+      "name": "notes can be dragged, overlap, and the last one touched comes to the front",
+      "z": 4
+    },
+    {
+      "name": "the arrangement scales with the board at phone and desktop widths",
+      "r390": {
+        "x": 0.3101085863615337,
+        "w": 0.47605133056640625
+      },
+      "r1440": {
+        "x": 0.31081394522767375,
+        "w": 0.4747685568081569
+      }
+    },
+    {
+      "name": "anyone can unpin a notice: it leaves the board but stays in the module"
+    },
+    {
+      "name": "the module lists every notice newest first and anyone can pin one back to the board"
+    },
+    {
+      "name": "anyone can tick list items"
+    },
+    {
+      "name": "only the author or an administrator can delete",
+      "forbiddenCode": "NOTICEBOARD_DELETE_FORBIDDEN"
+    },
+    {
+      "name": "Search finds notice text (including list items) and opens the notice; Add creates one"
+    },
+    {
+      "name": "after a full restart while offline the board loads, and offline create, move and tick survive another restart"
+    },
+    {
+      "name": "reconnect delivers every queued change without conflicts and every device agrees"
+    },
+    {
+      "name": "a stale offline edit is surfaced for review and the shared version stays on screen"
+    },
+    {
+      "name": "no horizontal overflow at 390, 768 and 1440 px and no page errors"
+    }
+  ]
+}

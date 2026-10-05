@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import type { FastifyInstance } from "fastify";
 import { fromNodeHeaders } from "better-auth/node";
 import { sql } from "drizzle-orm";
+import { createHomiAuthorization } from "./authorization.js";
 import type {
   HomiDatabase,
 } from "@homi/db";
@@ -14,6 +15,7 @@ import {
   type HomiBrokerInvocation,
   type HomiCoreCapability,
   type HomiHouseholdPeopleCapability,
+  type HomiHouseholdRolesCapability,
   type HomiModuleAtomicCapability,
   type HomiModuleAtomicServices,
   type HomiModuleJobHandler,
@@ -900,6 +902,20 @@ function createHostContext(input: {
         })
       : undefined;
 
+  const authorization = createHomiAuthorization(input.database);
+  const householdRoles:
+    | HomiHouseholdRolesCapability
+    | undefined = declaredCapabilities.has("household-roles")
+      ? Object.freeze({
+          isAdministrator(context: HomiRequestContext) {
+            return authorization.hasPermission(
+              context,
+              "core.household.admin",
+            );
+          },
+        })
+      : undefined;
+
   const scopedModuleKey = input.moduleKey;
   const moduleId = async (context: HomiRequestContext): Promise<string> => {
     if (!scopedModuleKey) {
@@ -1371,6 +1387,7 @@ function createHostContext(input: {
     ...(householdPeople === undefined
       ? {}
       : { householdPeople }),
+    ...(householdRoles === undefined ? {} : { householdRoles }),
     ...(syncPublisher === undefined ? {} : { sync: syncPublisher }),
     ...(secrets === undefined ? {} : { secrets }),
     ...(jobs === undefined ? {} : { jobs }),

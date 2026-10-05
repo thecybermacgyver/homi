@@ -33,7 +33,7 @@ const cardKey=preference=>`${preference.moduleKey}:${preference.surfaceId}`;
 const SIZES={
   'calendar:today-count':[[2,2],[1,2]],'calendar:coming-week':[[3,4],[2,3]],'calendar:mini-month':[[3,5],[2,4]],
   'chequebook:current-balance':[[2,2],[1,2]],'chequebook:monthly-spend':[[2,2],[2,2]],'chequebook:cash-flow-forecast':[[2,2],[2,2]],
-  'shopping:shopping-list':[[3,5],[2,3]],
+  'shopping:shopping-list':[[3,5],[2,3]],'noticeboard:noticeboard':[[3,5],[2,3]],
 };
 const phoneWidth=w=>w<=2?Math.max(w,2):4;
 

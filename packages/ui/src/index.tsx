@@ -10,6 +10,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
+import { createPortal } from "react-dom";
 
 function cx(...values: Array<string | false | null | undefined>): string {
   return values.filter(Boolean).join(" ");
@@ -248,6 +249,10 @@ export interface DialogProps {
   children: ReactNode;
   actions?: ReactNode;
   onDismiss?: () => void;
+  // Render the dialog in document.body instead of where it is placed. A Family
+  // Board card is a layout container, which would otherwise clip a dialog
+  // opened from inside it to the card.
+  portal?: boolean;
 }
 
 const MODAL_FOCUSABLE =
@@ -259,6 +264,7 @@ function ModalSurface({
   children,
   actions,
   onDismiss,
+  portal = false,
   sheet = false,
 }: DialogProps & { sheet?: boolean }) {
   const surfaceRef = useRef<HTMLElement>(null);
@@ -322,7 +328,7 @@ function ModalSurface({
     }
   }
 
-  return (
+  const modal = (
     <div
       className={sheet ? "homi-ui-sheet-backdrop" : "homi-ui-dialog-backdrop"}
       role="presentation"
@@ -349,6 +355,7 @@ function ModalSurface({
       </section>
     </div>
   );
+  return portal ? createPortal(modal, document.body) : modal;
 }
 
 export function Dialog(props: DialogProps) {

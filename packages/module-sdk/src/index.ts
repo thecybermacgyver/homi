@@ -71,6 +71,7 @@ export {
   type HomiModuleDatabaseQueryResult,
   type HomiHouseholdPerson,
   type HomiHouseholdPeopleCapability,
+  type HomiHouseholdRolesCapability,
   type HomiModuleMutationAdapter,
   type HomiModuleMutationSubmissionResult,
   type HomiModuleQueuedMutation,

@@ -1,5 +1,5 @@
 // Authenticated accessibility pass. Run only against an isolated localhost stack
-// with Calendar, Chequebook and Shopping List installed, enabled and set up for
+// with Calendar, Chequebook, Shopping List and Noticeboard installed, enabled and set up for
 // the fixture household. All data is invented. It runs the axe engine (WCAG 2.0
 // and 2.1 A/AA rules) on every signed-in screen at phone, tablet and desktop
 // widths in light and dark colour schemes, then checks keyboard behaviour.
@@ -38,6 +38,10 @@ async function screens(scheme,width){
   for(const tab of ['Recurring','Budget','Analytics']){await p.getByRole('tab',{name:tab,exact:true}).click();await scan(`Chequebook ${tab} (${tag})`);}
   await p.getByRole('tab',{name:'Register',exact:true}).click();await p.getByRole('button',{name:'Add transaction',exact:true}).first().click();await p.locator('#cheq-amount').waitFor();await scan(`Chequebook transaction form (${tag})`);await p.getByRole('button',{name:'Cancel',exact:true}).click();
   await p.goto(base);await p.getByRole('button',{name:/Open list$/}).click();await p.getByRole('heading',{name:'Shopping List',exact:true}).waitFor();await scan(`Shopping List (${tag})`);
+  await p.goto(base);await p.getByRole('button',{name:'Add a notice',exact:true}).waitFor();await scan(`Dashboard with Noticeboard card (${tag})`);
+  await p.getByRole('button',{name:'Add a notice',exact:true}).click();await p.getByLabel('Title',{exact:true}).waitFor();await scan(`Noticeboard add sheet on the card (${tag})`);await p.keyboard.press('Escape');
+  await p.getByRole('button',{name:'Open all notices',exact:true}).click();await p.getByRole('heading',{name:'Noticeboard',exact:true}).waitFor();await p.waitForTimeout(800);await scan(`Noticeboard (${tag})`);
+  await p.locator('.nb-row').first().click();await p.getByRole('dialog').waitFor();await scan(`Noticeboard notice sheet (${tag})`);await p.getByRole('button',{name:'Done',exact:true}).click();
   // Empty states: a Calendar week and a Chequebook month with nothing in them, and Shopping's empty Checked tab
   await p.goto(base);await p.getByRole('link',{name:/Coming week/}).click();await p.getByRole('heading',{name:'Calendar',exact:true}).waitFor();await p.getByRole('tab',{name:'Week',exact:true}).click();for(let i=0;i<30;i++)await p.getByRole('button',{name:'Next',exact:true}).click();await scan(`Calendar empty week (${tag})`);
   await p.goto(base);await p.getByRole('link',{name:/Current balance/}).click();await p.getByRole('heading',{name:'Chequebook',exact:true}).waitFor();await p.waitForTimeout(1000);for(let i=0;i<8;i++)await p.getByRole('button',{name:'‹',exact:true}).click();await p.getByText('No transactions this month').waitFor();await scan(`Chequebook empty month (${tag})`);
@@ -74,6 +78,14 @@ async function keyboardChecks(){
   // 5. Reduced motion removes meaningful animation
   const motion=await p.evaluate(()=>{const s=document.createElement('div');s.style.transition='transform 1s';document.body.appendChild(s);const d=getComputedStyle(s).transitionDuration;s.remove();return {transition:d,scroll:getComputedStyle(document.documentElement).scrollBehavior};});
   keyboard.push({check:'reduced-motion preference removes animation and smooth scrolling',ok:parseFloat(motion.transition)<0.1&&motion.scroll!=='smooth',detail:JSON.stringify(motion)});
+  // Noticeboard sheet: focus moves in, Tab stays inside, Escape closes, focus returns to the tack
+  await p.setViewportSize({width:1440,height:900});await p.goto(base);await p.getByRole('button',{name:'Add a notice',exact:true}).waitFor();
+  await p.getByRole('button',{name:'Add a notice',exact:true}).focus();await p.keyboard.press('Enter');await p.getByLabel('Title',{exact:true}).waitFor();
+  const nbInside=await p.evaluate(()=>!!document.activeElement?.closest('[role=dialog]'));
+  let nbTrapped=true;for(let i=0;i<40;i++){await p.keyboard.press('Tab');if(!await p.evaluate(()=>!!document.activeElement?.closest('[role=dialog]'))){nbTrapped=false;break;}}
+  await p.keyboard.press('Escape');await p.waitForTimeout(300);
+  const nbReturned=await p.evaluate(()=>document.activeElement?.getAttribute('aria-label')==='Add a notice');
+  keyboard.push({check:'Noticeboard add sheet (opened from the card) takes focus, keeps Tab inside, closes on Escape and returns focus to the tack',ok:nbInside&&nbTrapped&&nbReturned,detail:`focusInside=${nbInside} trapped=${nbTrapped} returned=${nbReturned}`});
   // 6. Zoom: no horizontal scroll at 320 px
   await p.setViewportSize({width:320,height:700});await p.goto(base);await p.getByRole('link',{name:/Current balance/}).waitFor();
   const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
@@ -89,6 +101,8 @@ try{
   for(let i=0;i<8;i++){await p.getByRole('button',{name:'Add transaction',exact:true}).first().click();await p.locator('#cheq-account').waitFor();if(await p.locator('#cheq-account').inputValue())break;await p.getByRole('button',{name:'Cancel',exact:true}).click();await p.waitForTimeout(1000);}
   await p.locator('#cheq-amount').fill('42.50');await p.locator('#cheq-description').fill('Groceries '+run);await p.getByRole('button',{name:'Save transaction',exact:true}).click();await p.getByRole('button',{name:new RegExp('Groceries '+run)}).first().waitFor();
   await p.goto(base);await p.getByRole('button',{name:/Open list$/}).click();await p.getByRole('heading',{name:'Shopping List',exact:true}).waitFor();await p.getByRole('textbox',{name:'Add an item',exact:true}).fill('Apples '+run);await p.getByRole('button',{name:'Add',exact:true}).click();await p.getByRole('checkbox',{name:'Apples '+run,exact:true}).waitFor();
+  // Noticeboard: a notice with text and a short list, pinned to the board
+  await p.goto(base);await p.getByRole('button',{name:'Add a notice',exact:true}).click();await p.getByLabel('Title',{exact:true}).fill('Pickup '+run);await p.getByLabel('Notice',{exact:true}).fill('Hockey at 5.');await p.getByRole('button',{name:'Add list item',exact:true}).click();await p.getByLabel('List item 1',{exact:true}).fill('Bring water');await p.getByRole('button',{name:'Save notice',exact:true}).click();await p.getByRole('button',{name:'Open notice: Pickup '+run,exact:true}).waitFor();
   for(const scheme of SCHEMES)for(const width of WIDTHS)await screens(scheme,width);
   await keyboardChecks();
 }catch(e){console.error(e);process.exitCode=1;}
