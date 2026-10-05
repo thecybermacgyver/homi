@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-05T18:58:23.416Z",
+  "run": "623222",
+  "results": [
+    {
+      "name": "two devices of one member and a distinct member share the household"
+    },
+    {
+      "name": "the card shows Monday to Friday, each in its own colour",
+      "monColor": "rgb(185, 85, 63)"
+    },
+    {
+      "name": "a planned meal reaches the Dashboard card on every device"
+    },
+    {
+      "name": "tapping a day on the card opens a quick editor and the meal is shared"
+    },
+    {
+      "name": "a meal can be marked cooked"
+    },
+    {
+      "name": "the card follows the chosen days, colours and names on every device",
+      "tueColor": "rgb(17, 34, 51)"
+    },
+    {
+      "name": "extra meal slots are planned in the planner and the card shows only the chosen one"
+    },
+    {
+      "name": "a meal can repeat weekly, and later repeats can be deleted together"
+    },
+    {
+      "name": "a meal can be copied to another day, and a whole week copied forward"
+    },
+    {
+      "name": "meal ideas can be saved, suggested and planned in a tap"
+    },
+    {
+      "name": "with a Recipes module enabled a recipe can be searched and linked to a meal; without one the control is hidden",
+      "recipe": "fixture-lentil"
+    },
+    {
+      "name": "Search finds meals and opens them; Add creates one"
+    },
+    {
+      "name": "after a full restart while offline the card loads and an offline meal survives another restart"
+    },
+    {
+      "name": "reconnect delivers queued changes without conflicts and every device agrees"
+    },
+    {
+      "name": "a stale offline edit is surfaced for review and the shared version stays on screen"
+    },
+    {
+      "name": "no horizontal overflow at 390, 768 and 1440 px and no page errors"
+    }
+  ]
+}

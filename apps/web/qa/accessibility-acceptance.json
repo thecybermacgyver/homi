@@ -1,12 +1,12 @@
 {
-  "date": "2026-10-05T18:06:59.324Z",
-  "screensChecked": 132,
+  "date": "2026-10-05T19:05:10.449Z",
+  "screensChecked": 168,
   "violations": [],
   "keyboard": [
     {
       "check": "Tab order on the Dashboard reaches controls and each shows a visible focus indicator",
       "ok": true,
-      "detail": "21 stops"
+      "detail": "36 stops"
     },
     {
       "check": "every button, link and field on the Dashboard has an accessible name",
@@ -37,6 +37,11 @@
       "check": "Noticeboard add sheet (opened from the card) takes focus, keeps Tab inside, closes on Escape and returns focus to the tack",
       "ok": true,
       "detail": "focusInside=true trapped=true returned=true"
+    },
+    {
+      "check": "Meal Planner day sheet (opened from the card) takes focus, keeps Tab inside and closes on Escape",
+      "ok": true,
+      "detail": "focusInside=true trapped=true closed=true"
     },
     {
       "check": "no horizontal scrolling at 320 px wide",

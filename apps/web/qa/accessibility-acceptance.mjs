@@ -1,5 +1,5 @@
 // Authenticated accessibility pass. Run only against an isolated localhost stack
-// with Calendar, Chequebook, Shopping List and Noticeboard installed, enabled and set up for
+// with Calendar, Chequebook, Shopping List, Noticeboard and Meal Planner installed, enabled and set up for
 // the fixture household. All data is invented. It runs the axe engine (WCAG 2.0
 // and 2.1 A/AA rules) on every signed-in screen at phone, tablet and desktop
 // widths in light and dark colour schemes, then checks keyboard behaviour.
@@ -42,6 +42,12 @@ async function screens(scheme,width){
   await p.getByRole('button',{name:'Add a notice',exact:true}).click();await p.getByLabel('Title',{exact:true}).waitFor();await scan(`Noticeboard add sheet on the card (${tag})`);await p.keyboard.press('Escape');
   await p.getByRole('button',{name:'Open all notices',exact:true}).click();await p.getByRole('heading',{name:'Noticeboard',exact:true}).waitFor();await p.waitForTimeout(800);await scan(`Noticeboard (${tag})`);
   await p.locator('.nb-row').first().click();await p.getByRole('dialog').waitFor();await scan(`Noticeboard notice sheet (${tag})`);await p.getByRole('button',{name:'Done',exact:true}).click();
+  await p.goto(base);await p.locator('.mp-row').first().waitFor({timeout:30000});await scan(`Dashboard with Meal Planner card (${tag})`);
+  await p.locator('.mp-row').first().click();await p.getByRole('dialog').waitFor();await scan(`Meal Planner day sheet (${tag})`);await p.getByRole('button',{name:'Done',exact:true}).click();
+  await p.getByRole('button',{name:'Open planner',exact:true}).click();await p.getByRole('heading',{name:'Meal Planner',exact:true}).waitFor();await p.waitForTimeout(800);await scan(`Meal Planner (${tag})`);
+  await p.getByRole('button',{name:'Plan a meal',exact:true}).click();await p.locator('#mp-title').waitFor();await scan(`Meal Planner meal sheet (${tag})`);await p.keyboard.press('Escape');
+  await p.locator('.mp-toolbar').getByRole('button',{name:'Settings',exact:true}).click();await p.getByRole('dialog').waitFor();await scan(`Meal Planner settings (${tag})`);await p.keyboard.press('Escape');
+  await p.getByRole('tab',{name:'Meal ideas',exact:true}).click();await p.waitForTimeout(500);await scan(`Meal Planner ideas (${tag})`);
   // Empty states: a Calendar week and a Chequebook month with nothing in them, and Shopping's empty Checked tab
   await p.goto(base);await p.getByRole('link',{name:/Coming week/}).click();await p.getByRole('heading',{name:'Calendar',exact:true}).waitFor();await p.getByRole('tab',{name:'Week',exact:true}).click();for(let i=0;i<30;i++)await p.getByRole('button',{name:'Next',exact:true}).click();await scan(`Calendar empty week (${tag})`);
   await p.goto(base);await p.getByRole('link',{name:/Current balance/}).click();await p.getByRole('heading',{name:'Chequebook',exact:true}).waitFor();await p.waitForTimeout(1000);for(let i=0;i<8;i++)await p.getByRole('button',{name:'‹',exact:true}).click();await p.getByText('No transactions this month').waitFor();await scan(`Chequebook empty month (${tag})`);
@@ -86,6 +92,14 @@ async function keyboardChecks(){
   await p.keyboard.press('Escape');await p.waitForTimeout(300);
   const nbReturned=await p.evaluate(()=>document.activeElement?.getAttribute('aria-label')==='Add a notice');
   keyboard.push({check:'Noticeboard add sheet (opened from the card) takes focus, keeps Tab inside, closes on Escape and returns focus to the tack',ok:nbInside&&nbTrapped&&nbReturned,detail:`focusInside=${nbInside} trapped=${nbTrapped} returned=${nbReturned}`});
+  // Meal Planner sheet: focus moves in, Tab stays inside, Escape closes
+  await p.setViewportSize({width:1440,height:900});await p.goto(base);await p.locator('.mp-row').first().waitFor({timeout:30000});
+  await p.locator('.mp-row').first().focus();await p.keyboard.press('Enter');await p.getByRole('dialog').waitFor();
+  const mpInside=await p.evaluate(()=>!!document.activeElement?.closest('[role=dialog]'));
+  let mpTrapped=true;for(let i=0;i<30;i++){await p.keyboard.press('Tab');if(!await p.evaluate(()=>!!document.activeElement?.closest('[role=dialog]'))){mpTrapped=false;break;}}
+  await p.keyboard.press('Escape');await p.waitForTimeout(300);
+  const mpClosed=await p.getByRole('dialog').count()===0;
+  keyboard.push({check:'Meal Planner day sheet (opened from the card) takes focus, keeps Tab inside and closes on Escape',ok:mpInside&&mpTrapped&&mpClosed,detail:`focusInside=${mpInside} trapped=${mpTrapped} closed=${mpClosed}`});
   // 6. Zoom: no horizontal scroll at 320 px
   await p.setViewportSize({width:320,height:700});await p.goto(base);await p.getByRole('link',{name:/Current balance/}).waitFor();
   const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
@@ -103,6 +117,8 @@ try{
   await p.goto(base);await p.getByRole('button',{name:/Open list$/}).click();await p.getByRole('heading',{name:'Shopping List',exact:true}).waitFor();await p.getByRole('textbox',{name:'Add an item',exact:true}).fill('Apples '+run);await p.getByRole('button',{name:'Add',exact:true}).click();await p.getByRole('checkbox',{name:'Apples '+run,exact:true}).waitFor();
   // Noticeboard: a notice with text and a short list, pinned to the board
   await p.goto(base);await p.getByRole('button',{name:'Add a notice',exact:true}).click();await p.getByLabel('Title',{exact:true}).fill('Pickup '+run);await p.getByLabel('Notice',{exact:true}).fill('Hockey at 5.');await p.getByRole('button',{name:'Add list item',exact:true}).click();await p.getByLabel('List item 1',{exact:true}).fill('Bring water');await p.getByRole('button',{name:'Save notice',exact:true}).click();await p.getByRole('button',{name:'Open notice: Pickup '+run,exact:true}).waitFor();
+  // Meal Planner: a meal on the first card row and a saved idea
+  await p.goto(base);await p.locator('.mp-row').first().waitFor({timeout:30000});await p.locator('.mp-row').first().click();await p.getByRole('button',{name:'Add a meal',exact:true}).click();await p.locator('#mp-title').fill('Soup '+run);await p.getByRole('button',{name:'Save meal',exact:true}).click();await p.getByRole('dialog').getByText('Soup '+run).waitFor();await p.getByRole('button',{name:'Done',exact:true}).click();
   for(const scheme of SCHEMES)for(const width of WIDTHS)await screens(scheme,width);
   await keyboardChecks();
 }catch(e){console.error(e);process.exitCode=1;}
@@ -112,4 +128,4 @@ writeFileSync(ROOT+'/accessibility-acceptance.json',JSON.stringify(out,null,2));
 console.log(`SCREENS ${checked.length}`);
 for(const v of out.violations){console.log(`VIOLATION ${v.id} (${v.impact}): ${v.help}`);for(const n of v.nodes.slice(0,6))console.log(`   ${n.target} [${n.screenCount} screens] ${n.summary}`);}
 for(const k of keyboard)console.log(k.ok?'PASS':'FAIL',k.check,k.ok?'':'-- '+k.detail);
-if(out.violations.length===0&&keyboard.every(k=>k.ok))console.log('ALL ACCESSIBILITY CHECKS PASSED');else process.exitCode=1;
+if(out.violations.length===0&&keyboard.every(k=>k.ok)&&checked.length>0&&!process.exitCode)console.log('ALL ACCESSIBILITY CHECKS PASSED');else process.exitCode=1;

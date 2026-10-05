@@ -33,7 +33,7 @@ const cardKey=preference=>`${preference.moduleKey}:${preference.surfaceId}`;
 const SIZES={
   'calendar:today-count':[[2,2],[1,2]],'calendar:coming-week':[[3,4],[2,3]],'calendar:mini-month':[[3,5],[2,4]],
   'chequebook:current-balance':[[2,2],[1,2]],'chequebook:monthly-spend':[[2,2],[2,2]],'chequebook:cash-flow-forecast':[[2,2],[2,2]],
-  'shopping:shopping-list':[[3,5],[2,3]],'noticeboard:noticeboard':[[3,5],[2,3]],
+  'shopping:shopping-list':[[3,5],[2,3]],'noticeboard:noticeboard':[[3,5],[2,3]],'mealplanner:weekly-plan':[[3,5],[2,3]],
 };
 const phoneWidth=w=>w<=2?Math.max(w,2):4;
 
@@ -99,7 +99,7 @@ try{
   pass('wide board packs unplaced cards',{cards:keys.length});
 
   // 2. Outside arranging, a card opens its module.
-  await p.locator(`[data-family-board-card="${keys[0]}"] article`).click();
+  await p.locator(`[data-family-board-card="${keys[0]}"] article .homi-family-card__header`).click();
   await p.getByRole('button',{name:'Dashboard',exact:true}).first().waitFor();
   assert.equal(await p.locator('.homi-family-board').count(),0,'card opens its module page');
   await p.getByRole('button',{name:'Dashboard',exact:true}).first().click();
@@ -173,7 +173,8 @@ try{
   assert.equal(r.status,400);assert.equal(r.body.error.code,'VALIDATION_FAILED');
   r=await post({phoneLayout:{x:0,y:0,w:2,h:2},extra:1});
   assert.equal(r.status,400);
-  r=await post({wideLayout:{x:0,y:40,w:1,h:2}});
+  const [minWide,minHigh]=SIZES[second][1];
+  r=await post({wideLayout:{x:0,y:40,w:minWide,h:minHigh-1}});
   assert.equal(r.body.data.status,'rejected');assert.equal(r.body.data.errorCode,'MODULE_PREFERENCE_LAYOUT_OUT_OF_BOUNDS');
   pass('Core rejects off-board and out-of-limit placements');
 

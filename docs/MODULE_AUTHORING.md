@@ -248,7 +248,7 @@ Modules do not use direct cross-module SQL or private imports.
 
 Cross-module behavior uses public broker contracts, capabilities, commands, events, or read projections as those contracts are implemented by Homi.
 
-A consumer may call `host.broker.status(context, capability)` before presenting or invoking cross-module behavior. Core returns `available`, `not-installed`, or `not-enabled` plus the provider module key when known. Modules use that structured status to give the household a useful install/enable message; they must not query another module's tables or inspect Core's registry directly.
+The first-party Meal Planner consumes `recipes.lookup.v1` (actions `search` and `get`); the contract a Recipes module provides is in the [Meal Planner README](../packages/mealplanner/README.md#recipes). A consumer may call `host.broker.status(context, capability)` before presenting or invoking cross-module behavior. Core returns `available`, `not-installed`, or `not-enabled` plus the provider module key when known. Modules use that structured status to give the household a useful install/enable message; they must not query another module's tables or inspect Core's registry directly.
 
 ## Create a module
 

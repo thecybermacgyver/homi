@@ -2,6 +2,14 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 2026-10-05 (Meal Planner)
+
+### Modules
+- **Meal Planner 0.1.0 (new).** One shared household meal plan. Plan meals by day and meal (Dinner by default; Breakfast, Lunch and Snack optional), as meals, eating out, leftovers, takeout or no meal, with notes, servings and who is cooking; mark meals cooked; repeat a meal weekly; copy a meal or a whole week; keep a list of meal ideas and ask for a suggestion. The Dashboard card shows one coloured row per day: the household chooses any days, the meal shown and a colour for each day. Core's Search finds meals and `+` adds one. It can pull recipes from a Recipes module through the new `recipes.lookup.v1` broker capability (documented in the module README); until one exists, meals are free text. No Core or platform changes.
+
+### Testing
+- Meal Planner browser acceptance (`packages/mealplanner/qa/acceptance.mjs`): three browser profiles and two members, 16 checks, with a test-only recipes provider standing in for the future Recipes module. The accessibility and board-layout acceptances now include the Meal Planner card, page and sheets.
+
 ## 1.2.1 — 2026-10-05
 
 ### Modules

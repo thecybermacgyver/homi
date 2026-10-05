@@ -1,0 +1,6 @@
+{
+  "module.name": "Meal Planner",
+  "module.description": "A shared household meal plan.",
+  "page.title": "Meal Planner",
+  "action.add": "Add meal"
+}

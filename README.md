@@ -38,7 +38,7 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, Modules, Settings, universal Search across all enabled modules, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.21`, Chequebook `0.1.27`, Shopping List `0.3.2`, and Noticeboard `0.1.1`
+- Calendar `0.6.21`, Chequebook `0.1.27`, Shopping List `0.3.2`, Noticeboard `0.1.1`, and Meal Planner `0.1.0`
 - per-member Family Board card styles, chosen on the Modules page (for example Shopping's list or counts by store)
 - a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
 - administrators add household members in the app, with self-service password change and administrator password reset that require a new password at next sign-in
@@ -142,6 +142,7 @@ The installer never runs package-manager or arbitrary lifecycle scripts. It vali
 - `packages/chequebook` — first-party Chequebook module
 - `packages/shopping` — first-party Shopping List module
 - `packages/noticeboard` — first-party Noticeboard module
+- `packages/mealplanner` — first-party Meal Planner module
 - `templates/homi-module-template` — independent starter module
 
 ## Security and release status

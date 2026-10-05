@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "mealplanner",
+  "name": "Meal Planner",
+  "publisher": "Homi",
+  "version": "0.1.0",
+  "moduleApiVersion": 1,
+  "description": "A shared household meal plan: plan meals by day and meal, repeat favourites, keep a list of meal ideas, and show any days you choose, in any colours, on the Dashboard.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_mealplanner",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "household-people",
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "mealplanner",
+      "label": "Meal Planner",
+      "path": "/modules/mealplanner",
+      "icon": "utensils"
+    }
+  ],
+  "setup": {
+    "required": false,
+    "scope": "household"
+  },
+  "settings": {
+    "household": false,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "meal",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "idea",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "settings",
+        "operations": [
+          "create",
+          "update"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [],
+    "consumes": [
+      "recipes.lookup.v1"
+    ]
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "weekly-plan",
+        "label": "Weekly Meal Planner",
+        "slot": "meal-planner",
+        "size": {
+          "default": {
+            "w": 3,
+            "h": 5
+          },
+          "min": {
+            "w": 2,
+            "h": 3
+          },
+          "max": {
+            "w": 6,
+            "h": 10
+          }
+        }
+      }
+    ],
+    "householdSettings": false,
+    "notifications": false,
+    "search": true
+  }
+}

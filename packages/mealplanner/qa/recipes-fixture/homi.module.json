@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "recipesfixture",
+  "name": "Recipes (test fixture)",
+  "publisher": "Homi",
+  "version": "0.0.2",
+  "moduleApiVersion": 1,
+  "description": "Test-only stand-in for the Recipes module; never published.",
+  "entrypoints": {
+    "server": "./dist/server.js"
+  },
+  "coreCapabilities": [
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [],
+  "setup": {
+    "required": false,
+    "scope": "household"
+  },
+  "settings": {
+    "household": false,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "recipe",
+        "operations": [
+          "create"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [
+      "recipes.lookup.v1"
+    ],
+    "consumes": []
+  },
+  "extensions": {
+    "familyBoard": [],
+    "householdSettings": false,
+    "notifications": false,
+    "search": false
+  },
+  "database": {
+    "schema": "mod_recipesfixture",
+    "migrations": "./migrations"
+  }
+}
