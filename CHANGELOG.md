@@ -2,6 +2,11 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.1.1 — 2026-10-05
+
+### Core
+- **The Family Board fills wide screens.** The board frame was capped at 1460 px and centred, which left a large empty margin on each side of a full-HD or larger display. The cap is now 2400 px, so the board follows the window width on desktops and wall displays; phone and tablet layouts are unchanged.
+
 ## 1.1.0 — 2026-10-02
 
 ### Core

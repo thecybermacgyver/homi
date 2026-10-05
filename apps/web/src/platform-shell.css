@@ -433,7 +433,7 @@
   --board-gold: #c89b48;
   --board-olive: #4b634e;
   --board-espresso: #3e2d27;
-  width: min(100%, 1460px);
+  width: min(100%, 2400px);
   min-height: calc(100vh - 32px);
   margin: 0 auto;
   padding: 24px;
