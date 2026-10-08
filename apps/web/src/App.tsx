@@ -14,6 +14,7 @@ import type {
 import {
   AppShell,
   Button,
+  BottomSheet,
   EmptyState,
   FormField,
   IconButton,
@@ -80,7 +81,7 @@ import {
   type LoadedHomiWebModule,
 } from "./module-runtime/host.js";
 
-type CoreView = "home" | "modules" | "settings";
+type CoreView = "home" | "manage-modules" | "settings";
 type AppView = CoreView | string;
 
 const FOREGROUND_SYNC_INTERVAL_MS = 15_000;
@@ -195,6 +196,7 @@ function moduleSettingsViewId(
 export function App() {
   const runtime = useMemo(() => createAppSyncRuntime(), []);
   const sync = useRuntimeSnapshot(runtime);
+  const [modulesMenuOpen, setModulesMenuOpen] = useState(false);
   const [online, setOnline] = useState(() => navigator.onLine);
   const [activeView, setActiveView] = useState<AppView>("home");
   const [email, setEmail] = useState("");
@@ -1341,7 +1343,7 @@ export function App() {
           ),
         );
       } else {
-        setActiveView("modules");
+        setActiveView("manage-modules");
       }
     };
 
@@ -1422,11 +1424,17 @@ export function App() {
       variant={activeView === "home" ? "family-board" : "default"}
       items={appNavigation}
       activeId={
-        activeModuleSetting
+        activeModuleSetting || activeView === "manage-modules"
           ? "settings"
           : activeView
       }
-      onNavigate={(id) => setActiveView(id)}
+      onNavigate={(id) => {
+        if (id === "modules") {
+          setModulesMenuOpen(true);
+        } else {
+          setActiveView(id);
+        }
+      }}
     >
       {offlineReady && (
         <Notice
@@ -1608,7 +1616,7 @@ export function App() {
                 <article className="homi-family-card">
                   <EmptyState
                     title="Your Family Board is ready"
-                    description="Open Modules to choose which available module cards you want to see here."
+                    description="Open Settings, then Manage modules, to choose which module cards you want to see here."
                   />
                 </article>
               </div>
@@ -1631,11 +1639,19 @@ export function App() {
         )}
 
       {(ready || offlineReady) &&
-        activeView === "modules" && (
+        activeView === "manage-modules" && (
           <section className="homi-platform-page">
+            <div className="homi-platform-module-settings-back">
+              <Button
+                variant="quiet"
+                onClick={() => setActiveView("settings")}
+              >
+                Back to Homi settings
+              </Button>
+            </div>
             <PageHeader
-              eyebrow="Modules"
-              title="Choose what belongs in Homi"
+              eyebrow="Settings"
+              title="Manage modules"
               description="Modules are independent household tools. Each household can use the ones that fit and leave the rest off."
             />
             {moduleAuthSubject &&
@@ -1714,6 +1730,26 @@ export function App() {
                   {sync.lastCycle.failure.message}
                 </Notice>
               )}
+
+              <Surface className="homi-platform-setting-row">
+                <div>
+                  <span className="homi-platform-card-kicker">
+                    Module settings
+                  </span>
+                  <strong>Manage modules</strong>
+                  <p>
+                    Install, turn on or off, and choose your Dashboard
+                    cards.
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setActiveView("manage-modules")}
+                  aria-label="Manage modules"
+                >
+                  Open
+                </Button>
+              </Surface>
 
               {moduleSettings.map((setting) => (
                 <Surface
@@ -1891,6 +1927,54 @@ export function App() {
         onClose={() => setSearchOpen(false)}
         onChoose={chooseSearchResult}
       />
+
+      <BottomSheet
+        open={modulesMenuOpen && (ready || offlineReady)}
+        title="Modules"
+        onDismiss={() => setModulesMenuOpen(false)}
+        actions={
+          <Button
+            variant="quiet"
+            onClick={() => setModulesMenuOpen(false)}
+          >
+            Close
+          </Button>
+        }
+      >
+        {enabledModules.length === 0 ? (
+          <EmptyState
+            title="No modules are turned on"
+            description="Open Settings, then Manage modules, to install and turn on household modules."
+          />
+        ) : (
+          <ul className="homi-modules-menu">
+            {enabledModules.map((module) => {
+              const firstPage =
+                module.descriptor.manifest.navigation[0];
+              return (
+                <li key={module.descriptor.moduleKey}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setModulesMenuOpen(false);
+                      setActiveView(
+                        firstPage
+                          ? modulePageViewId(
+                              module.descriptor.moduleKey,
+                              firstPage.id,
+                            )
+                          : "manage-modules",
+                      );
+                    }}
+                  >
+                    {module.descriptor.manifest.name}
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </BottomSheet>
 
       {(ready || offlineReady) &&
         activeModuleSetting &&

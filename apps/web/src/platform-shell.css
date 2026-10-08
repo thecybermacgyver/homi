@@ -1307,3 +1307,17 @@
   display: block;
   color: var(--homi-text-muted);
 }
+
+.homi-modules-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.homi-modules-menu .homi-ui-button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 48px;
+}

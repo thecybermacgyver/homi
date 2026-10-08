@@ -117,7 +117,7 @@ A Family Board contribution may offer each member a choice of card styles:
 ```
 
 Declare two to six styles; the first is the default. Core shows the choice in
-that card's "My Homi cards" row on the Modules page beside Show/Hide and ordering,
+that card's "My Homi cards" row on the Settings → Manage modules page beside Show/Hide and ordering,
 stores it with the member's other card preferences, and synchronises it only to
 that member's devices. The card surface receives
 `props.presentation.cardStyle` and renders accordingly. A stored style the

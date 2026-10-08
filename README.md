@@ -35,11 +35,11 @@ Additional release details and known limitations are in [the release notes](docs
 - Better Auth accounts and household membership/permissions
 - PostgreSQL-backed authoritative data with audited change/outbox records
 - installable mobile-first PWA with account-and-household isolated offline sync
-- Core-owned Dashboard, Modules, Settings, universal Search across all enabled modules, and Add surfaces
+- Core-owned Dashboard, a Modules pop-up launcher, Settings (with Manage modules), universal Search across all enabled modules, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
 - Calendar `0.6.21`, Chequebook `0.1.27`, Shopping List `0.3.2`, Noticeboard `0.1.1`, and Meal Planner `0.1.0`
-- per-member Family Board card styles, chosen on the Modules page (for example Shopping's list or counts by store)
+- per-member Family Board card styles, chosen in Settings → Manage modules (for example Shopping's list or counts by store)
 - a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
 - administrators add household members in the app, with self-service password change and administrator password reset that require a new password at next sign-in
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
@@ -52,7 +52,7 @@ Core owns platform policy and shared controls. Modules declare navigation, conte
 
 Installation and household use are separate:
 
-1. an operator installs a validated immutable artifact, or a household administrator installs one from the signed module directory on the Modules screen;
+1. an operator installs a validated immutable artifact, or a household administrator installs one from the signed module directory in Settings → Manage modules;
 2. a household administrator enables it for the household;
 3. each family member chooses which module cards appear on their own Dashboard.
 

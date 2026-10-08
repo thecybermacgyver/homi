@@ -28,8 +28,9 @@ async function screens(scheme,width){
   await p.emulateMedia({colorScheme:scheme,reducedMotion:'no-preference'});await p.setViewportSize({width,height:900});
   const tag=`${scheme} ${width}px`;
   await p.goto(base);await p.getByRole('link',{name:/Current balance/}).waitFor();await scan(`Dashboard (${tag})`);
-  await p.getByRole('button',{name:'Modules'}).click();await p.waitForTimeout(800);await scan(`Modules (${tag})`);
+  await p.getByRole('button',{name:'Modules'}).click();await p.waitForTimeout(800);await scan(`Modules menu (${tag})`);await p.keyboard.press('Escape');await p.waitForTimeout(300);
   await p.getByRole('button',{name:'Settings'}).click();await p.waitForTimeout(800);await scan(`Settings (${tag})`);
+  await p.getByRole('button',{name:'Manage modules'}).click();await p.waitForTimeout(800);await scan(`Manage modules (${tag})`);
   await p.goto(base);await p.getByRole('link',{name:/Coming week/}).click();await p.getByRole('heading',{name:'Calendar',exact:true}).waitFor();
   for(const view of ['Day','Week','Month','Upcoming']){await p.getByRole('tab',{name:view,exact:true}).click();await scan(`Calendar ${view} (${tag})`);}
   await p.getByRole('button',{name:'Add event',exact:true}).click();await p.locator('#calendar-editor-title').waitFor();await scan(`Calendar event form (${tag})`);await p.getByRole('button',{name:'Cancel',exact:true}).click();

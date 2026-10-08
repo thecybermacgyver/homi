@@ -18,6 +18,7 @@ async function rows(d,store){return d.p.evaluate(async store=>{const db=await ne
 async function identity(d){return JSON.parse((await rows(d,'meta')).find(r=>r.key==='activeOfflineContext').value);}
 async function api(d,path,method='GET',body){const id=await identity(d);return d.p.evaluate(async({path,method,body,id})=>{const r=await fetch('/api/v1/'+path,{method,headers:{'Content-Type':'application/json','X-Homi-Household-ID':id.householdId,'X-Homi-Client-ID':id.clientId},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()};},{path,method,body,id});}
 async function poll(fn,message,seconds=45){let last;for(let i=0;i<seconds;i++){try{last=await fn();if(last)return last;}catch(e){last=e.message;}await new Promise(r=>setTimeout(r,1000));}throw new Error(message+': '+JSON.stringify(last));}
+async function manageModules(d){await nav(d,'Settings');await d.p.getByRole('button',{name:'Manage modules',exact:true}).click();}
 async function nav(d,name){await d.p.getByRole('button',{name,exact:true}).first().click();}
 async function home(d){await nav(d,'Dashboard');await d.p.getByRole('button',{name:/Open list$/}).waitFor({timeout:30000});}
 function card(d){return d.p.locator('.shopping-board');}
@@ -25,7 +26,7 @@ async function counts(d){const list=card(d).getByRole('list',{name:'Items to buy
 async function listShown(d){return await card(d).getByRole('checkbox',{name:'Bread',exact:true}).count()>0&&await counts(d)===null;}
 const EXPECTED=[['All stores','4'],['Browns','1'],['Dollarama','1'],['Drug store','2']];
 function tile(d,name){return d.p.locator('.homi-platform-module-card').filter({has:d.p.getByRole('heading',{name,exact:true})});}
-async function styleGroup(d){await nav(d,'Modules');const group=tile(d,'Shopping List').getByRole('group',{name:'Shopping List card style'});await group.waitFor({timeout:30000});return group;}
+async function styleGroup(d){await manageModules(d);const group=tile(d,'Shopping List').getByRole('group',{name:'Shopping List card style'});await group.waitFor({timeout:30000});return group;}
 async function pressed(group){return group.locator('button[aria-pressed="true"]').innerText();}
 async function chooseStyle(d,label){const group=await styleGroup(d);await group.getByRole('button',{name:label,exact:true}).click();await poll(async()=>await pressed(group)===label,'style '+label+' pressed');}
 async function addItem(d,name,qty,store){await d.p.getByRole('button',{name:'Add shopping item'}).first().click();await d.p.getByLabel('Item',{exact:true}).fill(name);await d.p.getByLabel('Quantity',{exact:true}).fill(qty);await d.p.locator('#shopping-store').fill(store);await d.p.getByRole('button',{name:'Save item',exact:true}).click();await d.p.getByRole('checkbox',{name:qty==='1'?name:name+' · '+qty,exact:true}).waitFor();}
@@ -57,7 +58,7 @@ if(phase==='seed'){
     await a.p.getByRole('checkbox',{name:'Eggs',exact:true}).click();await poll(()=>drained(a),'retick delivered');
   }
   await poll(async()=>{const r=await api(a,'modules/shopping/items');return r.body.data.length===5&&r.body.data.filter(i=>i.checked).length===1;},'seed items on server');
-  await nav(a,'Modules');const cheque=tile(a,'Chequebook');await cheque.getByRole('button',{name:'Hide',exact:true}).first().click();await cheque.getByText('Hidden from My Homi').first().waitFor();
+  await manageModules(a);const cheque=tile(a,'Chequebook');await cheque.getByRole('button',{name:'Hide',exact:true}).first().click();await cheque.getByText('Hidden from My Homi').first().waitFor();
   await poll(()=>drained(a),'hide delivered');
   pass('production build: Calendar, Chequebook and Shopping 0.2.2 enabled; 4 unchecked + 1 checked item; owner hid one Chequebook card');
   const b=await launch('owner-b',1440);await login(b);const c=await launch('member-c',768);await login(c,MEMBER);
@@ -139,7 +140,7 @@ if(phase==='seed'){
   await a.p.getByRole('checkbox',{name:'Bread · 5',exact:true}).waitFor();
   pass('keeping the shared version clears the review and shows the other device\'s edit');
   for(const [d,width] of [[a,390],[b,768],[b,1440]]){await d.p.setViewportSize({width,height:900});await home(d);assert.equal(await d.p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await d.p.evaluate(()=>scrollTo(0,0));await d.p.screenshot({path:ROOT+'/store-counts-'+width+'.png',fullPage:true});
-    await nav(d,'Modules');await tile(d,'Shopping List').waitFor();assert.equal(await d.p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
+    await manageModules(d);await tile(d,'Shopping List').waitFor();assert.equal(await d.p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
   pass('dashboard and Modules page at 390/768/1440 have no horizontal overflow');
   assert.deepEqual(errors,[]);pass('no JavaScript page errors');
   writeFileSync(ROOT+'/store-counts-acceptance.json',JSON.stringify({date:new Date().toISOString(),version:'0.3.0',results},null,2));

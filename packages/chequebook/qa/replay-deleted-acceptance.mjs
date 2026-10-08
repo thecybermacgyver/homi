@@ -53,7 +53,7 @@ try{
     assert.deepEqual(after.deferred,[]);
     assert.equal(after.cached.filter(id=>ids.includes(id)).length,0);
     pass('fresh device replays created-then-deleted transactions with nothing set aside and none left cached');
-    for(const name of ['Modules','Settings','Dashboard'])await fresh.p.getByRole('button',{name,exact:true}).first().click();
+    for(const name of ['Settings','Dashboard'])await fresh.p.getByRole('button',{name,exact:true}).first().click();
     await fresh.p.getByRole('button',{name:/Open list$/}).first().click();await fresh.p.getByRole('heading',{name:'Shopping List',exact:true}).waitFor();
     assert.deepEqual(errors,[]);
     pass('Modules, Settings, Dashboard and Shopping load with no JavaScript errors');

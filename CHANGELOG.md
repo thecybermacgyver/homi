@@ -2,6 +2,12 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.4.0 — 2026-10-08
+
+### Core (web app)
+- **Modules pop-up.** The Modules button in the navigation now opens a small pop-up listing the modules installed and turned on for the household; choosing one launches straight into it (Calendar, Chequebook and so on).
+- **Manage modules moved to Settings.** Installing, turning modules on or off, and choosing Dashboard cards (the previous Modules page, unchanged) now live in Settings → Manage modules, with the other module settings. No Core service, API, SDK or module change.
+
 ## 1.3.0 — 2026-10-05
 
 ### Core (web app)
