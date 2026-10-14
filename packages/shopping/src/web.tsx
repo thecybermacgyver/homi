@@ -34,18 +34,46 @@ const css = `
 .shopping-form-footer {display:flex;gap:.5rem;justify-content:space-between;flex-wrap:wrap;margin-top:.6rem}
 .shopping-quick {display:flex;gap:.5rem;margin:.6rem 0 1rem;align-items:center}
 .shopping-quick input {min-width:0;flex:1}
-.shopping-board .shopping-row {min-height:42px}
-.shopping-board .shopping-row .homi-ui-check {font-size:1.15rem}
-.shopping-board button {touch-action:manipulation}
-.shopping-board-footer {margin-top:.75rem}
-.shopping-counts {list-style:none;margin:0;padding:0}
-.shopping-count {display:flex;justify-content:space-between;align-items:baseline;gap:1rem;min-height:40px;font-size:1.12rem;font-weight:600;border-bottom:1px solid var(--homi-border)}
-.shopping-count:last-child {border-bottom:0}
-.shopping-count span:first-child {overflow-wrap:anywhere;min-width:0}
-.shopping-count-total {font-size:1.25rem}
-.shopping-count-value {font-variant-numeric:tabular-nums}
-@container (max-height:260px) {.shopping-board-footer {display:none} .shopping-board .shopping-row {min-height:34px} .shopping-board .shopping-row .homi-ui-check {font-size:1rem} .shopping-count {min-height:32px;font-size:1rem}}
-@container (max-width:200px) {.shopping-count {gap:.5rem;font-size:.95rem}}
+/* The Dashboard card is a spiral notepad under the card's title: coils over
+   the top edge of the pad, ruled paper with a red margin, a box to tick in the
+   margin and the item written on the line. The pad fills the card (the SDK's
+   flex: 1 0 auto opt-in); it shows up to nine items, like 0.3.2, and a short
+   card leaves out the footer because the card itself opens the list. */
+.shopping-pad {--pad-paper:#ddd3c1;--pad-rule:#c6bba6;--pad-margin:#d58c7c;--pad-ink:#3a2f27;--pad-pitch:46px;--pad-gutter:52px;--pad-box:20px;
+  position:relative;flex:1 0 auto;display:flex;flex-direction:column;color:var(--pad-ink);
+  font-family:ui-rounded,"Avenir Next","Trebuchet MS","Segoe UI",system-ui,sans-serif}
+.homi-family-board__cell .shopping.shopping-pad {flex:1 0 auto}
+.shopping-pad-spiral {position:absolute;z-index:1;top:0;left:6px;right:6px;height:30px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='30' viewBox='0 0 17 30'%3E%3Cdefs%3E%3ClinearGradient id='m' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23262321'/%3E%3Cstop offset='.42' stop-color='%23827e79'/%3E%3Cstop offset='.6' stop-color='%23d2cec8'/%3E%3Cstop offset='1' stop-color='%23353230'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='8.5' cy='23.6' rx='3.4' ry='2.5' fill='%233a332d'/%3E%3Cpath d='M5.8 23.6C4.4 13 4.6 2.6 9 1.8 13.4 1 13.3 12.6 11.7 21.8' fill='none' stroke='url(%23m)' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center top/16.5px 30px space no-repeat}
+.shopping-pad-paper {position:relative;flex:1 0 auto;display:flex;flex-direction:column;margin-top:12px;border-radius:12px;
+  border:1px solid rgba(34,31,31,.16);background:linear-gradient(#e2d9c8,var(--pad-paper));box-shadow:0 1px 2px rgba(34,31,31,.10),0 4px 9px rgba(34,31,31,.08)}
+/* The paper carries the margin; the rules run under every item and carry on
+   below the last one to the foot of the page. */
+.shopping-pad-sheet {flex:1 0 auto;display:flex;flex-direction:column;padding-top:22px;border-radius:inherit;
+  background:linear-gradient(to right,transparent calc(var(--pad-gutter) - 1px),var(--pad-margin) calc(var(--pad-gutter) - 1px),var(--pad-margin) calc(var(--pad-gutter) + 1px),transparent calc(var(--pad-gutter) + 1px)) no-repeat}
+.shopping-pad-lines {flex:1 0 auto;border-top:2px solid var(--pad-rule);min-height:calc(var(--pad-pitch) * 2);
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--pad-pitch) - 2px),var(--pad-rule) calc(var(--pad-pitch) - 2px),var(--pad-rule) var(--pad-pitch))}
+.shopping-pad .shopping-list,.shopping-pad .shopping-counts {list-style:none;margin:0;padding:0}
+.shopping-pad-row {display:flex;align-items:center;height:var(--pad-pitch);box-sizing:border-box;padding-bottom:2px}
+.shopping-pad-row .homi-ui-check {flex:1;min-width:0;display:flex;align-items:center;gap:calc(var(--pad-gutter) - var(--pad-box) - 22px + 6px);margin:0;cursor:pointer;
+  font-size:1.07rem;font-weight:700;line-height:1.15}
+.shopping-pad-row .homi-ui-check span {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px}
+.shopping-pad-row input[type=checkbox] {appearance:none;-webkit-appearance:none;flex:0 0 auto;width:22px;height:22px;margin:0 0 0 var(--pad-box);
+  border:1.5px solid #6a635c;border-radius:3px;background:#fffdf8 center/16px 16px no-repeat;box-shadow:inset 0 1px 2px rgba(34,31,31,.12);cursor:pointer}
+.shopping-pad-row input[type=checkbox]:checked {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%233d322a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.shopping-pad-row input[type=checkbox]:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:2px}
+.shopping-pad-row input[type=checkbox]:disabled {cursor:progress}
+.shopping-pad .shopping-count {display:flex;justify-content:space-between;align-items:center;gap:1rem;height:var(--pad-pitch);box-sizing:border-box;padding:0 14px 2px calc(var(--pad-gutter) + 6px);
+  font-size:1.07rem;font-weight:700;border:0;min-height:0}
+.shopping-pad .shopping-count-total {font-weight:800}
+.shopping-pad-note {display:flex;align-items:center;height:var(--pad-pitch);box-sizing:border-box;padding:0 14px 2px calc(var(--pad-gutter) + 6px);margin:0!important;font-size:.95rem;font-weight:650;color:#59534e}
+.shopping-pad-note.shopping-error {color:var(--homi-danger)}
+.shopping-pad-footer {display:flex;justify-content:flex-end;padding:0 10px 4px}
+.shopping-pad-open {border:0;background:none;padding:4px 8px;min-height:30px;border-radius:6px;color:#59534e;font:inherit;font-size:.95rem;font-weight:650;cursor:pointer;touch-action:manipulation}
+.shopping-pad-open:hover {background:rgba(34,31,31,.06);color:var(--pad-ink)}
+.shopping-pad-open:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:1px}
+@container (max-height:250px) {.shopping-pad {--pad-pitch:36px} .shopping-pad-sheet {padding-top:18px} .shopping-pad-row .homi-ui-check,.shopping-pad .shopping-count {font-size:.98rem} .shopping-pad-footer {display:none}}
+@container (max-width:240px) {.shopping-pad {--pad-gutter:42px;--pad-box:12px} .shopping-pad .shopping-count {gap:.5rem;padding-right:10px}}
 `;
 
 async function getData(path: string, props: HomiWebModuleSurfaceProps, signal?: AbortSignal): Promise<unknown> {
@@ -264,21 +292,33 @@ function ShoppingBoard(props:HomiWebModuleSurfaceProps) {
   const active=data.items.filter(item=>!item.checked);
   // Each member chooses the card style on the Modules page; Homi passes it in.
   const counts=props.presentation?.cardStyle==="store-counts";
-  return <div className="shopping shopping-board" onClick={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
+  const note=(text:string,error=false)=><p className={"shopping-pad-note"+(error?" shopping-error":"")} role={error?"alert":undefined}>{text}</p>;
+  // Ticking and Open list belong to the pad; a tap on the coils or the top of
+  // the pad reaches the card, which opens the module like Homi's own title.
+  return <div className="shopping shopping-board shopping-pad">
     <style>{css}</style>
-    {counts?active.length>0&&<ul className="shopping-counts" aria-label="Items to buy by store">
-      <li className="shopping-count shopping-count-total"><span>All stores</span><span className="shopping-count-value">{active.length}</span></li>
-      {storeCounts(data.items).map(([store,count])=><li className="shopping-count" key={store}>
-        <span>{store}</span><span className="shopping-count-value">{count}</span>
-      </li>)}
-    </ul>:<ul className="shopping-list">{active.slice(0,9).map(item=><li className="shopping-row" key={item.id}>
-      <Checkbox label={label(item)} checked={false} disabled={data.busy} onChange={()=>void data.toggle(item)}/>
-    </li>)}</ul>}
-    {data.loaded&&active.length===0&&<p className="shopping-status">Nothing to pick up.</p>}
-    {data.error&&<p className="shopping-error" role="alert">{data.error}</p>}
-    {data.failures.length>0&&<p className="shopping-error" role="alert">Open your list to review a change.</p>}
-    {data.pending>0&&!props.context.online&&<p className="shopping-status">Saved offline</p>}
-    <div className="shopping-board-footer"><Button variant="quiet" onClick={()=>props.actions.navigate("/modules/shopping")}>{!counts&&active.length>9?"+ "+(active.length-9)+" more · Open list":"Open list"}</Button></div>
+    <div className="shopping-pad-spiral" aria-hidden="true"/>
+    <div className="shopping-pad-paper">
+      <div className="shopping-pad-sheet">
+        <div className="shopping-pad-lines" onClick={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
+          {counts?active.length>0&&<ul className="shopping-counts" aria-label="Items to buy by store">
+            <li className="shopping-count shopping-count-total"><span>All stores</span><span className="shopping-count-value">{active.length}</span></li>
+            {storeCounts(data.items).map(([store,count])=><li className="shopping-count" key={store}>
+              <span>{store}</span><span className="shopping-count-value">{count}</span>
+            </li>)}
+          </ul>:<ul className="shopping-list" aria-label="Items to buy">{active.slice(0,9).map(item=><li className="shopping-pad-row" key={item.id}>
+            <Checkbox label={label(item)} checked={false} disabled={data.busy} onChange={()=>void data.toggle(item)}/>
+          </li>)}</ul>}
+          {data.loaded&&active.length===0&&note("Nothing to pick up.")}
+          {data.error&&note(data.error,true)}
+          {data.failures.length>0&&note("Open your list to review a change.",true)}
+          {data.pending>0&&!props.context.online&&note("Saved offline")}
+        </div>
+        <div className="shopping-pad-footer" onClick={event=>event.stopPropagation()} onKeyDown={event=>event.stopPropagation()}>
+          <button type="button" className="shopping-pad-open" onClick={()=>props.actions.navigate("/modules/shopping")}>{!counts&&active.length>9?"+ "+(active.length-9)+" more · Open list":"Open list"}</button>
+        </div>
+      </div>
+    </div>
   </div>;
 }
 // Answers Core's universal search from the local working cache, so it also works offline.

@@ -2,6 +2,11 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.4.4 — 2026-10-14
+
+### Modules
+- **Shopping List 0.4.1: the Dashboard card is a spiral notepad.** Under the card's title, a pad with coils along its top edge fills the card: the items are written on ruled lines beside a red margin with a box to tick in the margin, the lines carry on below the last item to the foot of the page, and "Open list" sits at the bottom right. Up to nine items show, with "+ N more · Open list" for a longer list, and the Counts by store style is written on the same paper. The pad is drawn entirely by the module; no Core change. (0.4.0, which needed a Core change to put the coils above the title, was withdrawn before publication.)
+
 ## 1.4.3 — 2026-10-14
 
 ### Modules

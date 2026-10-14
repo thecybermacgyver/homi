@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-14T18:46:29.755Z",
+  "run": "577953",
+  "results": [
+    {
+      "name": "the card holds a notepad: coils over the top edge of the paper, filling the card under its title",
+      "titleBottom": 44,
+      "coilsTop": 58,
+      "paperTop": 70
+    },
+    {
+      "name": "items are written on the ruled lines with the box to tick in the margin",
+      "rows": 3,
+      "pitch": 46,
+      "margin": 72
+    },
+    {
+      "name": "ticking an item on the pad checks it off and leaves the Dashboard where it is"
+    },
+    {
+      "name": "a long list shows nine items and how many more are on the list",
+      "items": 14
+    },
+    {
+      "name": "tapping the title opens the Shopping List page"
+    },
+    {
+      "name": "Open list opens the Shopping List page"
+    },
+    {
+      "name": "the counts by store style is written on the same notepad",
+      "lines": [
+        "All stores15",
+        "Corner Market14",
+        "Hardware Store1"
+      ]
+    },
+    {
+      "name": "the notepad fits its card on phone, tablet and desktop widths"
+    },
+    {
+      "name": "no JavaScript page errors"
+    }
+  ]
+}

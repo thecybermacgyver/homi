@@ -25,3 +25,14 @@ Core dependency/retry/isolation regression tests run with
 `pnpm --filter @homi/web test`. The generated browser and API reports record the
 September 28 candidate acceptance. The public release uses the recovered exact
 server-installed artifact, not a rebuild of the QA directory.
+
+The 0.4.1 notepad acceptance checks the Dashboard card as drawn: the pad under
+the card title with its coils over the paper's top edge and filling the card,
+items on the ruled lines with the box to tick in the margin, ticking, nine items
+with "+ N more" for a longer list, the title and Open list opening the page, the
+counts style on the same paper, and the card at 390, 768 and 1440 px:
+
+```sh
+HOMI_TEST_CREDENTIALS=... HOMI_TEST_PROFILES=... HOMI_TEST_URL=http://localhost:3400 node packages/shopping/qa/notepad-acceptance.mjs
+```
+

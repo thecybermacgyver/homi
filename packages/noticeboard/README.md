@@ -5,6 +5,7 @@ Noticeboard is a first-party Homi module: a shared household board where anyone 
 ## Household behavior
 
 - The Dashboard card is a board of pinned notices that scales to the card and the device. Drag a notice to move it; the last one touched comes to the front, and notices may overlap like paper on a real board.
+- Every notice can be sized to any width and height by the handle in its bottom-right corner, or by the arrow keys on that handle (left and right for the width, up and down for the height). The writing on a notice is sized to the notice, so a bigger notice has bigger words, and a photo is drawn as large as the notice allows, keeping its shape and never cropped. A notice always stays whole on the cork.
 - Every notice has a pin. Clicking the pin unpins it, so it leaves the board. It stays in the module until it is deleted, and anyone can pin it back.
 - The tack in the card's upper left adds a notice: a title, text, any paper colour, a photo (shrunk on the device to a small JPEG), and a list of things to tick off. The module's `+` does the same.
 - The module page lists every notice, newest first, with a short description; choosing one opens the whole notice. Core's Search finds notice titles, text and list items.
@@ -26,4 +27,4 @@ pnpm --filter @homi/noticeboard typecheck
 pnpm --filter @homi/noticeboard build
 ```
 
-Browser acceptance (`qa/acceptance.mjs`) runs only against an isolated localhost stack with a fixture owner and the second fixture member made by `qa/seed-member.mjs`; all data is invented.
+Browser acceptance (`qa/acceptance.mjs`, and `qa/resize-acceptance.mjs` for sizing notices) runs only against an isolated localhost stack with a fixture owner and the second fixture member made by `qa/seed-member.mjs`; all data is invented.

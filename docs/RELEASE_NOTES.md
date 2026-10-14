@@ -5,7 +5,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 ## Included
 
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
-- Calendar 0.6.21, Chequebook 0.1.27, and Shopping List 0.3.2, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store.
+- Calendar 0.6.21, Chequebook 0.1.27, and Shopping List 0.4.1, whose Dashboard cards declare sizes and adapt to the size each member chooses: today's events with times, the coming week by day, a mini month with event dots, bold balance and spending figures, and the shopping list or counts by store, written on a spiral notepad (1.4.4).
 - Noticeboard 0.1.4 (1.2): a shared board of pinned notes, photos and lists. The Dashboard card scales to the card, notices can be arranged, sized to any width and height by their corner handle (or its arrow keys), with their writing and photo drawn to fit, and overlapped, anyone can unpin a notice (it stays in the module) or pin it back, and only the author or an administrator can delete. Add notices from the card's tack or the module's `+`; Search finds them.
 - Meal Planner 0.1.0: one shared household meal plan with a Dashboard card of coloured day rows (any days, any colours), repeats, copy week, meal ideas, Search, and a recipe link through the `recipes.lookup.v1` broker capability for the future Recipes module.
 - The Family Board header shows the date and a large clock in the household's time zone and language (1.3).
@@ -33,7 +33,7 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 
 - Members are added by an administrator with a temporary password that the administrator hands over; Homi does not send email invitations. A member added this way is a regular member, and there is no in-app way yet to make another member an administrator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
-- The signed public module directory offers Calendar 0.6.22, Chequebook 0.1.27, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
+- The signed public module directory offers Calendar 0.6.22, Chequebook 0.1.27, Shopping List 0.4.1, Noticeboard 0.1.4, and Meal Planner 0.1.0 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.
 - Module installation and lifecycle changes require a household administrator; ordinary members control only their own Dashboard cards, card styles, and layouts.
 

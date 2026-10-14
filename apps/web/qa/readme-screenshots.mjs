@@ -66,9 +66,9 @@ try{
     const g=x.createLinearGradient(0,0,640,420);g.addColorStop(0,'#2f5d62');g.addColorStop(.55,'#c2634b');g.addColorStop(1,'#e8b94a');x.fillStyle=g;x.fillRect(0,0,640,420);
     x.fillStyle='rgba(255,253,247,.92)';x.font='bold 64px sans-serif';x.fillText('SPRING FAIR',64,170);x.font='36px sans-serif';x.fillText('Saturday  ·  10 am',64,240);x.fillText('Games, music and pie',64,300);return c.toDataURL('image/jpeg',0.7);});
   const note=(title,body,color,x,y,w,h,rotation,z,image=null,checklist=[])=>mutate(p,'noticeboard','notice','create',{title,body,color,image,checklist,pinned:true,x,y,w,h,rotation,z});
-  await note('Things to remember','Water bottles and snacks for Saturday. Library books are due Friday.','#f6dd7a',0.05,0.07,0.50,0.26,-3,1);
-  await note('Spring fair','Saturday at the school.','#e8a58f',0.45,0.30,0.50,0.34,3,3,poster);
-  await note('Hugs and kisses','Hugs and kisses forever.','#d9b9d8',0.10,0.64,0.46,0.22,-2,2);
+  await note('Things to remember','Water bottles and snacks for Saturday. Library books are due Friday.','#f6dd7a',0.05,0.07,0.46,0.4,-3,1);
+  await note('Spring fair','Saturday at the school.','#e8a58f',0.5,0.2,0.44,0.62,3,3,poster);
+  await note('Hugs and kisses','Hugs and kisses forever.','#d9b9d8',0.08,0.6,0.4,0.3,-2,2);
   for(const [date,title] of [['2026-10-05','Chicken soup'],['2026-10-06','Pink tacos'],['2026-10-07','Garden pasta'],['2026-10-08','Turtle turnovers'],['2026-10-09','Fried rice']])
     await mutate(p,'mealplanner','meal','create',{date,slot:'dinner',kind:'meal',title,notes:'',servings:4,cookPersonId:null,status:'planned',recipe:null,position:0,seriesId:null});
   }
