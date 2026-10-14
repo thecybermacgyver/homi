@@ -2,6 +2,16 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.4.3 — 2026-10-14
+
+### Modules
+- **Noticeboard 0.1.4: notices can be sized freely, and what is on them is drawn to fit.** Every pinned notice has a corner handle: drag it right or left to make the notice wider or narrower and down or up to make it taller or shorter, or use the arrow keys on the handle. A notice now stores its height as well as its width (migration `0001_noticeboard_notice_height.sql`; existing notices keep their corner and start at the default height for their kind, moved up only if they would hang off the bottom of the board). The writing on a notice is sized from the notice, so a bigger notice has bigger words and can be made to stand out. A photo is drawn as large as the notice allows, keeping its shape and never cropped, including past the size it was taken at. The tack stands on top of the paper again instead of being clipped inside it. A drag released past the edge of the cork no longer opens the Noticeboard page, and the board's "All notices" button moves to the top of the cork beside "Add a notice", so it never covers the corner a notice is resized by. A move queued offline by an older version keeps the notice's stored height.
+
+## 1.4.2 — 2026-10-14
+
+### Modules
+- **Noticeboard 0.1.3: notices can be resized, and photos follow the size.** (Superseded by 0.1.4 before its public module release; 0.1.4 includes everything here.) A pinned notice now has a corner handle: drag it to make the notice wider or narrower, between the same limits the board already stored (15% to 90% of the board width). Dragging stops the notice at the edge of the cork; arrow keys on the handle keep going to the widest size and slide the notice along the edge, so the keyboard reaches every size without a mouse. A photo now keeps its own shape and scales with the notice instead of being cropped to a fixed band, so a bigger notice shows a bigger picture; a very tall picture is fitted whole rather than cropped. A notice also ends at the bottom edge of the board, so a long notice can no longer carry its handle off the cork. Widths were already stored and synchronized per notice, so existing notices keep their size and no migration is needed.
+
 ## 1.4.1 — 2026-10-14
 
 ### Modules

@@ -7,6 +7,7 @@ import type {
   HomiModuleSyncHandlerContext,
 } from "@homi/module-sdk";
 import { NOTICEBOARD_MODULE_KEY } from "./constants.js";
+import { DEFAULT_HEIGHT } from "./projection.js";
 import type { Notice } from "./types.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -75,9 +76,11 @@ export function parseNotice(value: unknown): Notice {
 
 // A notice created on this device has revision 0 and no author until it is
 // delivered, so the working view accepts both.
+// h is defaulted as well, so a notice cached by a version that predates stored
+// heights still opens instead of failing to parse.
 export function parseWorkingNotice(value: unknown): Notice {
   return parseNoticeValue(object(value)
-    ? { authorPersonId: null, deleted: false, body: "", image: null, checklist: [], pinned: true, z: 0, ...value }
+    ? { authorPersonId: null, deleted: false, body: "", image: null, checklist: [], pinned: true, z: 0, h: DEFAULT_HEIGHT, ...value }
     : value, NON_NEGATIVE_INTEGER);
 }
 
@@ -92,7 +95,7 @@ function parseNoticeValue(value: unknown, revisionPattern: RegExp): Notice {
     !COLOR.test(value.color) ||
     !(value.image === null || typeof value.image === "string") ||
     typeof value.pinned !== "boolean" ||
-    !finite(value.x) || !finite(value.y) || !finite(value.w) ||
+    !finite(value.x) || !finite(value.y) || !finite(value.w) || !finite(value.h) ||
     !finite(value.rotation) || !finite(value.z) ||
     !(value.authorPersonId === null || (typeof value.authorPersonId === "string" && UUID.test(value.authorPersonId))) ||
     typeof value.revision !== "string" ||
@@ -114,6 +117,7 @@ function parseNoticeValue(value: unknown, revisionPattern: RegExp): Notice {
     x: value.x,
     y: value.y,
     w: value.w,
+    h: value.h,
     rotation: value.rotation,
     z: value.z,
     authorPersonId: value.authorPersonId,

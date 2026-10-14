@@ -47,18 +47,35 @@ const css = `
 .nb-view-meta {font-size:.85rem;color:var(--homi-text-muted);margin-top:.8rem!important}
 .homi-family-board__cell .nb.nb-card {position:relative;flex:1 0 auto;min-height:150px;display:grid}
 .nb-board {position:relative;isolation:isolate;container-type:size;width:100%;min-height:140px;overflow:hidden;border-radius:14px;background-color:#c8a06f;background-image:radial-gradient(circle at 18% 28%,rgba(86,52,24,.42) 0 1px,transparent 1.6px),radial-gradient(circle at 72% 62%,rgba(255,232,196,.5) 0 1px,transparent 1.7px),radial-gradient(circle at 44% 84%,rgba(70,40,16,.34) 0 1.6px,transparent 2.3px),radial-gradient(circle at 86% 14%,rgba(255,236,205,.34) 0 1.4px,transparent 2.1px),radial-gradient(ellipse at 50% 38%,#d6b07c 0,#c39a68 62%,#a97f50 100%);background-size:9px 11px,13px 12px,19px 17px,23px 21px,100% 100%;box-shadow:inset 0 0 0 4px #8a5a33,inset 0 0 0 5px rgba(46,26,10,.55),inset 0 8px 18px rgba(46,26,10,.3)}
-.nb-note {position:absolute;border-radius:3px;box-shadow:0 1px 2px rgba(34,31,31,.28),0 6px 10px rgba(34,31,31,.16);font-size:clamp(.66rem,3.2cqw,1.05rem);line-height:1.25;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+/* A notice is a box of the size its household gave it, and a size container so
+   that everything written or shown on it is drawn to fit that box. The paper
+   itself does not clip: the tack stands proud of the top edge, the way a real
+   tack holds a note to the cork. */
+.nb-note {position:absolute;container-type:size;border-radius:3px;box-shadow:0 1px 2px rgba(34,31,31,.28),0 6px 10px rgba(34,31,31,.16);line-height:1.25;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .nb-note.is-dragging {box-shadow:0 10px 22px rgba(34,31,31,.34);cursor:grabbing}
-.nb-note-open {all:unset;box-sizing:border-box;display:block;width:100%;padding:1.25em .8em .8em;cursor:grab;color:inherit}
+/* The writing is sized from the notice's own box, so making a notice bigger
+   makes its words bigger and a notice can be sized to stand out. */
+.nb-note-open {all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;padding:1.25em .8em .8em;cursor:grab;color:inherit;font-size:clamp(7px,calc(4cqw + 5cqh),3rem)}
 .nb-note-open:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:2px}
-.nb-note-title {display:block;font-weight:800;overflow-wrap:anywhere}
-.nb-note-brief {display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:.25em;overflow-wrap:anywhere}
-.nb-note-photo {display:block;width:100%;height:5.5em;object-fit:cover;margin-top:.4em;border-radius:2px}
-.nb-pin {position:absolute;top:0;left:50%;transform:translate(-50%,-40%);width:1.9em;height:1.9em;min-width:22px;min-height:22px;border-radius:50%;border:0;padding:0;cursor:pointer;box-shadow:0 2px 3px rgba(0,0,0,.45),inset -2px -3px 4px rgba(0,0,0,.28),inset 2px 2px 3px rgba(255,255,255,.4)}
+.nb-note-title {display:block;flex:0 0 auto;font-weight:800;overflow-wrap:anywhere}
+.nb-note-brief {display:block;flex:1 1 0;min-height:0;overflow:hidden;margin-top:.25em;overflow-wrap:anywhere}
+/* The picture is drawn as large as the notice allows, keeping its own shape and
+   never cropped: it grows past the size it was taken at on a big notice and
+   shrinks on a small one, and the paper shows through beside it. */
+.nb-note-photo {display:block;flex:1 1 0;min-height:0;width:100%;object-fit:contain;object-position:center;margin-top:.4em;border-radius:2px}
+.nb-resize {position:absolute;right:0;bottom:0;width:1.4rem;height:1.4rem;border:0;padding:0;background:none;color:inherit;cursor:nwse-resize;touch-action:none;z-index:3}
+.nb-resize::after {content:"";position:absolute;right:.25rem;bottom:.25rem;width:.5rem;height:.5rem;border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.45}
+.nb-resize:hover::after,.nb-resize:focus-visible::after {opacity:.9}
+.nb-resize:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:-1px}
+.nb-note.is-resizing {box-shadow:0 10px 22px rgba(34,31,31,.34)}
+.nb-pin {position:absolute;top:0;left:50%;transform:translate(-50%,-40%);width:1.5rem;height:1.5rem;border-radius:50%;border:0;padding:0;cursor:pointer;z-index:4;box-shadow:0 2px 3px rgba(0,0,0,.45),inset -2px -3px 4px rgba(0,0,0,.28),inset 2px 2px 3px rgba(255,255,255,.4)}
 .nb-pin:focus-visible {outline:3px solid #fff;outline-offset:2px}
 .nb-tack,.nb-all {position:absolute;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid rgba(34,31,31,.25);background:rgba(249,247,241,.92);color:var(--homi-text);box-shadow:0 2px 5px rgba(34,31,31,.2);display:grid;place-items:center;padding:0;cursor:pointer;touch-action:manipulation}
+/* Both of the board's own buttons sit along the top of the cork. A notice is
+   resized by the handle in its bottom-right corner, so nothing of the board's
+   may stand over the bottom of the cork and put that handle out of reach. */
 .nb-tack {top:8px;left:8px}
-.nb-all {bottom:8px;right:8px}
+.nb-all {top:8px;right:8px}
 .nb-tack:focus-visible,.nb-all:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:2px}
 .nb-empty {position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:3.2rem 1rem 1rem;color:#2e1b0b;font-weight:700;font-size:.9rem}
 @container (max-width:200px) {.nb-tack,.nb-all {width:34px;height:34px}}
@@ -146,7 +163,7 @@ function useNoticeboard(props: HomiWebModuleSurfaceProps) {
   });
   const create = (content: NoticeContent, pinned: boolean) => mutate({
     entityType: "notice", entityId: crypto.randomUUID(), operation: "create", baseRevision: "0",
-    payload: { ...content, ...newPlacement(notices), pinned },
+    payload: { ...content, ...newPlacement(notices, content.image !== null), pinned },
   });
   const save = (notice: Notice, content: NoticeContent) => mutate({
     entityType: "notice", entityId: notice.id, operation: "update", baseRevision: notice.revision,
@@ -325,7 +342,7 @@ function ViewerSheet({ notice, data, locale, onEdit, onClose }: {
         <div className="nb-footer">
           <Button variant="secondary" disabled={data.busy} onClick={() => onEdit(notice)}>Edit</Button>
           <Button variant="secondary" disabled={data.busy}
-            onClick={() => void data.place(notice, { pinned: !notice.pinned, x: notice.x, y: notice.y, w: notice.w, rotation: notice.rotation, z: nextZ(data.notices) })}>
+            onClick={() => void data.place(notice, { pinned: !notice.pinned, x: notice.x, y: notice.y, w: notice.w, h: notice.h, rotation: notice.rotation, z: nextZ(data.notices) })}>
             {notice.pinned ? "Unpin from board" : "Pin to board"}
           </Button>
           {data.canDelete(notice) && (confirming
@@ -389,14 +406,36 @@ interface Drag {
   active: boolean; touch: boolean; timer: number | null;
 }
 
+interface Resize {
+  id: string; pointerId: number; startX: number; startY: number; originW: number; originH: number;
+}
+
+// How much one arrow key press changes a notice's width or height.
+const SIZE_STEP = 0.04;
+
+// How much of a long note is put on the paper. A big notice shows more of it
+// than a small one, because the words are sized to the box it was given.
+const BOARD_EXCERPT = 240;
+
+// Resizing keeps the notice's top-left corner where it is, until the notice is
+// big enough to run off the cork: then clampPlacement slides it back so the
+// whole notice stays on the board, rather than refusing to grow.
+function resized(notice: Notice, width: number, height: number, notices: readonly Notice[]): NoticePlacement {
+  return clampPlacement({
+    pinned: true, x: notice.x, y: notice.y, w: width, h: height,
+    rotation: notice.rotation, z: nextZ(notices),
+  });
+}
+
 function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
   notices: readonly Notice[]; onOpen: (notice: Notice) => void; onUnpin: (notice: Notice) => void;
   onMove: (notice: Notice, placement: NoticePlacement) => void;
 }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
+  const resize = useRef<Resize | null>(null);
   const suppress = useRef(false);
-  const [preview, setPreview] = useState<{ id: string; x: number; y: number } | null>(null);
+  const [preview, setPreview] = useState<{ id: string; x: number; y: number; w: number; h: number } | null>(null);
   const pinned = useMemo(() => notices.filter((n) => n.pinned).sort((a, b) => a.z - b.z || a.createdAt.localeCompare(b.createdAt)), [notices]);
 
   // A held touch picks a note up; while it is held, the page must not scroll.
@@ -408,10 +447,23 @@ function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
 
   function clear() {
     if (drag.current?.timer) window.clearTimeout(drag.current.timer);
-    drag.current = null; setPreview(null);
+    drag.current = null; resize.current = null; setPreview(null);
+  }
+  // A move or a resize ends in a click, and that click may land anywhere the
+  // pointer happens to be: on the notice, or past the edge of the board on the
+  // card that carries it, which would open the module. The click that closes a
+  // drag belongs to the drag, so it is swallowed before anything sees it.
+  function swallowClick() {
+    suppress.current = true;
+    const swallow = (event: MouseEvent) => event.stopPropagation();
+    window.addEventListener("click", swallow, true);
+    window.setTimeout(() => {
+      suppress.current = false;
+      window.removeEventListener("click", swallow, true);
+    }, 0);
   }
   function start(event: ReactPointerEvent<HTMLElement>, notice: Notice) {
-    if (event.button !== 0 || (event.target as HTMLElement).closest(".nb-pin")) return;
+    if (event.button !== 0 || (event.target as HTMLElement).closest(".nb-pin, .nb-resize")) return;
     const current: Drag = {
       id: notice.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
       originX: notice.x, originY: notice.y, active: false, touch: event.pointerType === "touch", timer: null,
@@ -435,14 +487,77 @@ function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0) return;
     const placed = clampPlacement({ pinned: true, x: current.originX + (event.clientX - current.startX) / rect.width,
-      y: current.originY + (event.clientY - current.startY) / rect.height, w: notice.w, rotation: notice.rotation, z: notice.z });
-    setPreview({ id: notice.id, x: placed.x, y: placed.y });
+      y: current.originY + (event.clientY - current.startY) / rect.height, w: notice.w, h: notice.h,
+      rotation: notice.rotation, z: notice.z });
+    setPreview({ id: notice.id, x: placed.x, y: placed.y, w: notice.w, h: notice.h });
+  }
+
+  // Dragging the corner handle sets both the width and the height: right and
+  // left make the notice wider and narrower, down and up make it taller and
+  // shorter. The notice keeps its top-left corner, and its writing and photo
+  // follow the box it was given. The pointer leaves the small handle as soon as
+  // the drag starts, so the rest of the drag is followed on the window rather
+  // than on the handle itself.
+  function startResize(event: ReactPointerEvent<HTMLElement>, notice: Notice) {
+    if (event.button !== 0 || resize.current) return;
+    event.stopPropagation();
+    const rect = boardRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const current: Resize = {
+      id: notice.id, pointerId: event.pointerId, startX, startY, originW: notice.w, originH: notice.h,
+    };
+    resize.current = current;
+    let placed = resized(notice, notice.w, notice.h, notices);
+    const follow = (moved: PointerEvent) => {
+      if (moved.pointerId !== current.pointerId) return;
+      placed = resized(
+        notice,
+        current.originW + (moved.clientX - startX) / rect.width,
+        current.originH + (moved.clientY - startY) / rect.height,
+        notices,
+      );
+      setPreview({ id: notice.id, x: placed.x, y: placed.y, w: placed.w, h: placed.h });
+    };
+    const finish = (ended: PointerEvent) => {
+      if (ended.pointerId !== current.pointerId) return;
+      window.removeEventListener("pointermove", follow);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", cancel);
+      if (placed.w !== current.originW || placed.h !== current.originH) {
+        swallowClick();
+        onMove(notice, placed);
+      }
+      clear();
+    };
+    const cancel = (ended: PointerEvent) => {
+      if (ended.pointerId !== current.pointerId) return;
+      window.removeEventListener("pointermove", follow);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", cancel);
+      clear();
+    };
+    window.addEventListener("pointermove", follow);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", cancel);
+  }
+  function resizeKeys(event: KeyboardEvent<HTMLElement>, notice: Notice) {
+    const step: Record<string, readonly [number, number]> = {
+      ArrowRight: [SIZE_STEP, 0], ArrowLeft: [-SIZE_STEP, 0],
+      ArrowDown: [0, SIZE_STEP], ArrowUp: [0, -SIZE_STEP],
+    };
+    const delta = step[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onMove(notice, resized(notice, notice.w + delta[0], notice.h + delta[1], notices));
   }
   function end(event: ReactPointerEvent<HTMLElement>, notice: Notice) {
     const current = drag.current;
     if (current?.active && preview?.id === notice.id) {
-      suppress.current = true; window.setTimeout(() => { suppress.current = false; }, 0);
-      onMove(notice, { pinned: true, x: preview.x, y: preview.y, w: notice.w, rotation: notice.rotation, z: nextZ(notices) });
+      swallowClick();
+      onMove(notice, { pinned: true, x: preview.x, y: preview.y, w: notice.w, h: notice.h, rotation: notice.rotation, z: nextZ(notices) });
     }
     try { event.currentTarget.releasePointerCapture(event.pointerId); } catch { /* ignore */ }
     clear();
@@ -452,7 +567,7 @@ function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
     const step = delta[event.key];
     if (!step) return;
     event.preventDefault();
-    const placed = clampPlacement({ pinned: true, x: notice.x + step[0], y: notice.y + step[1], w: notice.w, rotation: notice.rotation, z: nextZ(notices) });
+    const placed = clampPlacement({ pinned: true, x: notice.x + step[0], y: notice.y + step[1], w: notice.w, h: notice.h, rotation: notice.rotation, z: nextZ(notices) });
     onMove(notice, placed);
   }
 
@@ -463,8 +578,9 @@ function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
         const live = preview?.id === notice.id ? preview : notice;
         const ink = inkFor(notice.color);
         return (
-          <div key={notice.id} className={"nb-note" + (preview?.id === notice.id ? " is-dragging" : "")}
-            style={{ left: live.x * 100 + "%", top: live.y * 100 + "%", width: notice.w * 100 + "%", zIndex: index + 1,
+          <div key={notice.id} className={"nb-note" + (preview?.id === notice.id ? (resize.current ? " is-resizing" : " is-dragging") : "")}
+            style={{ left: live.x * 100 + "%", top: live.y * 100 + "%",
+              width: live.w * 100 + "%", height: live.h * 100 + "%", zIndex: index + 1,
               transform: `rotate(${notice.rotation}deg)`, background: notice.color, color: ink }}
             onPointerDown={(e) => start(e, notice)} onPointerMove={(e) => move(e, notice)}
             onPointerUp={(e) => end(e, notice)} onPointerCancel={clear}>
@@ -473,11 +589,15 @@ function NoticeBoard({ notices, onOpen, onUnpin, onMove }: {
               <span className="nb-note-title">{notice.title}</span>
               {notice.image
                 ? <img className="nb-note-photo" src={notice.image} alt="" draggable={false} />
-                : excerpt(notice, 90) && <span className="nb-note-brief">{excerpt(notice, 90)}</span>}
+                : excerpt(notice, BOARD_EXCERPT) && <span className="nb-note-brief">{excerpt(notice, BOARD_EXCERPT)}</span>}
             </button>
             <button type="button" className="nb-pin" style={{ background: pinColor(notice.id) }}
               aria-label={"Unpin " + notice.title + " from the board"} title="Unpin"
               onPointerDown={(e) => e.stopPropagation()} onClick={() => onUnpin(notice)} />
+            <button type="button" className="nb-resize"
+              aria-label={"Resize notice: " + notice.title} title="Drag to resize"
+              onPointerDown={(e) => startResize(e, notice)}
+              onKeyDown={(e) => resizeKeys(e, notice)} onClick={(e) => e.preventDefault()} />
           </div>
         );
       })}
@@ -492,7 +612,7 @@ function NoticeboardCard(props: HomiWebModuleSurfaceProps) {
     <div className="nb nb-card" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <style>{css}</style>
       <NoticeBoard notices={data.notices} onOpen={(n) => sheets.setViewId(n.id)}
-        onUnpin={(n) => void data.place(n, { pinned: false, x: n.x, y: n.y, w: n.w, rotation: n.rotation, z: n.z })}
+        onUnpin={(n) => void data.place(n, { pinned: false, x: n.x, y: n.y, w: n.w, h: n.h, rotation: n.rotation, z: n.z })}
         onMove={(n, placement) => void data.place(n, placement)} />
       <button type="button" className="nb-tack" aria-label="Add a notice" title="Add a notice" onClick={() => sheets.setEditor(blankEditor())}><TackIcon /></button>
       <button type="button" className="nb-all" aria-label="Open all notices" title="All notices" onClick={() => props.actions.navigate("/modules/noticeboard")}><ListIcon /></button>

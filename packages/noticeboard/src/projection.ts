@@ -47,27 +47,49 @@ export function nextZ(notices: readonly Notice[]): number {
   return notices.reduce((highest, notice) => Math.max(highest, notice.z), 0) + 1;
 }
 
+// The size a notice may be given, as a fraction of the board. The stored
+// columns carry the same limits, so clamping here keeps a drag or a key press
+// from reaching the server as a rejected placement.
+export const MIN_WIDTH = 0.15;
+export const MAX_WIDTH = 0.9;
+export const MIN_HEIGHT = 0.12;
+export const MAX_HEIGHT = 0.9;
+
+// How tall a new notice starts. A notice with a photo starts taller so the
+// picture has room; either way the owner can resize it to anything.
+export const DEFAULT_HEIGHT = 0.36;
+export const DEFAULT_PHOTO_HEIGHT = 0.5;
+
 // A free-looking spot for a new note: staggered from the pinned ones, with a
 // slight random tilt like a real note.
-export function newPlacement(notices: readonly Notice[]): NoticePlacement {
+export function newPlacement(notices: readonly Notice[], hasPhoto = false): NoticePlacement {
   const pinned = notices.filter((notice) => notice.pinned).length;
   const step = pinned % 5;
   const w = 0.46;
-  return {
+  const h = hasPhoto ? DEFAULT_PHOTO_HEIGHT : DEFAULT_HEIGHT;
+  return clampPlacement({
     pinned: true,
     x: Math.min(1 - w, 0.06 + step * 0.1 + Math.random() * 0.06),
-    y: Math.min(0.8, 0.08 + step * 0.13 + Math.random() * 0.05),
+    y: 0.08 + step * 0.13 + Math.random() * 0.05,
     w,
+    h,
     rotation: Math.round((Math.random() * 8 - 4) * 10) / 10,
     z: nextZ(notices),
-  };
+  });
 }
 
+// A notice is kept whole on the cork: it is sized within the limits first, and
+// then its corner is pulled back so that neither its right nor its bottom edge
+// runs off the board and takes the resize handle with it.
 export function clampPlacement(placement: NoticePlacement): NoticePlacement {
+  const w = Math.min(Math.max(placement.w, MIN_WIDTH), MAX_WIDTH);
+  const h = Math.min(Math.max(placement.h, MIN_HEIGHT), MAX_HEIGHT);
   return {
     ...placement,
-    x: Math.min(Math.max(placement.x, 0), Math.max(0, 1 - placement.w)),
-    y: Math.min(Math.max(placement.y, 0), 0.92),
+    w,
+    h,
+    x: Math.min(Math.max(placement.x, 0), Math.max(0, 1 - w)),
+    y: Math.min(Math.max(placement.y, 0), Math.max(0, 1 - h)),
   };
 }
 

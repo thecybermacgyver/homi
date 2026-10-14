@@ -9,6 +9,9 @@ import {
   type HomiServerModuleHostContext,
 } from "@homi/module-sdk";
 import { LIMITS, NOTICEBOARD_MODULE_KEY } from "./constants.js";
+import {
+  DEFAULT_HEIGHT, DEFAULT_PHOTO_HEIGHT, MAX_HEIGHT, MAX_WIDTH, MIN_HEIGHT, MIN_WIDTH,
+} from "./projection.js";
 import type { ChecklistItem, Notice, NoticeContent, NoticePlacement } from "./types.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -27,6 +30,7 @@ interface NoticeRow extends Record<string, unknown> {
   x: number;
   y: number;
   w: number;
+  h: number;
   rotation: number;
   z: number;
   authorPersonId: string;
@@ -61,6 +65,7 @@ function state(row: NoticeRow, deleted = row.deletedAt !== null): Notice {
     x: row.x,
     y: row.y,
     w: row.w,
+    h: row.h,
     rotation: row.rotation,
     z: row.z,
     authorPersonId: row.authorPersonId,
@@ -132,24 +137,41 @@ function parseChecklist(value: unknown): readonly ChecklistItem[] {
   });
 }
 
-function parsePlacement(payload: Readonly<Record<string, unknown>>): NoticePlacement {
+// A notice placed by a client that predates stored heights carries no h. Its
+// height is left as it is rather than rejecting the move, so a change queued
+// offline before an upgrade still arrives.
+function parsePlacement(
+  payload: Readonly<Record<string, unknown>>,
+  heightWhenAbsent: number,
+): NoticePlacement {
   if (typeof payload.pinned !== "boolean") invalid("pinned must be true or false.");
   return {
     pinned: payload.pinned as boolean,
     x: number(payload.x, "x", 0, 1),
     y: number(payload.y, "y", 0, 1),
-    w: number(payload.w, "w", 0.15, 0.9),
+    w: number(payload.w, "w", MIN_WIDTH, MAX_WIDTH),
+    h: Object.hasOwn(payload, "h") ? number(payload.h, "h", MIN_HEIGHT, MAX_HEIGHT) : heightWhenAbsent,
     rotation: number(payload.rotation, "rotation", -8, 8),
     z: Math.round(number(payload.z, "z", 0, 1_000_000)),
   };
 }
 
 const CONTENT_KEYS = ["title", "body", "color", "image", "checklist"];
-const PLACEMENT_KEYS = ["pinned", "x", "y", "w", "rotation", "z"];
+const PLACEMENT_KEYS = ["pinned", "x", "y", "w", "h", "rotation", "z"];
+const LEGACY_PLACEMENT_KEYS = PLACEMENT_KEYS.filter((key) => key !== "h");
 
 function hasExactly(payload: Readonly<Record<string, unknown>>, keys: readonly string[]): boolean {
   const own = Object.keys(payload);
   return own.length === keys.length && keys.every((key) => Object.hasOwn(payload, key));
+}
+
+function isPlacement(payload: Readonly<Record<string, unknown>>): boolean {
+  return hasExactly(payload, PLACEMENT_KEYS) || hasExactly(payload, LEGACY_PLACEMENT_KEYS);
+}
+
+function isCreate(payload: Readonly<Record<string, unknown>>): boolean {
+  return hasExactly(payload, [...CONTENT_KEYS, ...PLACEMENT_KEYS]) ||
+    hasExactly(payload, [...CONTENT_KEYS, ...LEGACY_PLACEMENT_KEYS]);
 }
 
 const selection = `
@@ -163,6 +185,7 @@ const selection = `
   pos_x AS x,
   pos_y AS y,
   width AS w,
+  height AS h,
   rotation,
   z,
   author_person_id::text AS "authorPersonId",
@@ -201,9 +224,12 @@ async function applyNoticeMutation(
     let content: NoticeContent;
     let placement: NoticePlacement;
     try {
-      if (!hasExactly(input.payload, [...CONTENT_KEYS, ...PLACEMENT_KEYS])) invalid("payload keys");
+      if (!isCreate(input.payload)) invalid("payload keys");
       content = parseContent(input.payload);
-      placement = parsePlacement(input.payload);
+      placement = parsePlacement(
+        input.payload,
+        content.image === null ? DEFAULT_HEIGHT : DEFAULT_PHOTO_HEIGHT,
+      );
     } catch {
       return { status: "rejected", revision: null, errorCode: "NOTICEBOARD_CREATE_INVALID", serverState: null };
     }
@@ -215,15 +241,15 @@ async function applyNoticeMutation(
     const inserted = await database.query<NoticeRow>(
       `INSERT INTO mod_noticeboard.notices (
          id, household_id, title, body, color, image, checklist,
-         pinned, pos_x, pos_y, width, rotation, z, author_person_id, revision
+         pinned, pos_x, pos_y, width, height, rotation, z, author_person_id, revision
        ) VALUES (
          $1::uuid, $2::uuid, $3, $4, $5, $6, $7::jsonb,
-         $8, $9, $10, $11, $12, $13, $14::uuid, 1
+         $8, $9, $10, $11, $12, $13, $14, $15::uuid, 1
        ) RETURNING ${selection}`,
       [
         input.entityId, context.householdId, content.title, content.body, content.color,
         content.image, JSON.stringify(content.checklist), placement.pinned,
-        placement.x, placement.y, placement.w, placement.rotation, placement.z,
+        placement.x, placement.y, placement.w, placement.h, placement.rotation, placement.z,
         context.householdPersonId,
       ],
     );
@@ -245,21 +271,21 @@ async function applyNoticeMutation(
     // Three kinds of update. Moving, pinning and ticking list items are small
     // changes that must not clash with someone editing the text, so only a
     // content edit is checked against the revision the editor started from.
-    if (hasExactly(input.payload, PLACEMENT_KEYS)) {
+    if (isPlacement(input.payload)) {
       let placement: NoticePlacement;
       try {
-        placement = parsePlacement(input.payload);
+        placement = parsePlacement(input.payload, current.h);
       } catch {
         return { status: "rejected", revision: current.revision, errorCode: "NOTICEBOARD_UPDATE_INVALID", serverState: state(current) };
       }
       const updated = await database.query<NoticeRow>(
         `UPDATE mod_noticeboard.notices SET
-           pinned = $3, pos_x = $4, pos_y = $5, width = $6, rotation = $7, z = $8,
+           pinned = $3, pos_x = $4, pos_y = $5, width = $6, height = $7, rotation = $8, z = $9,
            revision = revision + 1, updated_at = now()
          WHERE household_id = $1::uuid AND id = $2::uuid
          RETURNING ${selection}`,
         [context.householdId, input.entityId, placement.pinned, placement.x, placement.y,
-          placement.w, placement.rotation, placement.z],
+          placement.w, placement.h, placement.rotation, placement.z],
       );
       const row = updated.rows[0];
       if (!row) throw new Error("Notice placement update returned no row.");

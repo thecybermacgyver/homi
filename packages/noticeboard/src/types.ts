@@ -12,11 +12,13 @@ export interface Notice {
   readonly image: string | null;
   readonly checklist: readonly ChecklistItem[];
   readonly pinned: boolean;
-  // Position and width are fractions of the board, so a board of any size
-  // shows the same arrangement. x and y locate the note's top-left corner.
+  // Position and size are fractions of the board, so a board of any size shows
+  // the same arrangement. x and y locate the note's top-left corner; w and h
+  // are its width and height, and the note's contents are sized to fit them.
   readonly x: number;
   readonly y: number;
   readonly w: number;
+  readonly h: number;
   readonly rotation: number;
   readonly z: number;
   // null for a notice created on this device that has not synchronized yet.
@@ -40,6 +42,7 @@ export interface NoticePlacement {
   readonly x: number;
   readonly y: number;
   readonly w: number;
+  readonly h: number;
   readonly rotation: number;
   readonly z: number;
 }

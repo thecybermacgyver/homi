@@ -68,10 +68,21 @@ assert.match(
   migration,
   /CREATE TABLE IF NOT EXISTS mod_noticeboard\.notices/,
 );
-assert.doesNotMatch(migration, /CREATE\s+SCHEMA/i);
-assert.doesNotMatch(migration, /\bGRANT\b/i);
-assert.doesNotMatch(migration, /INSERT\s+INTO\s+core\.modules/i);
-assert.doesNotMatch(migration, /core\.household_modules/i);
-assert.doesNotMatch(migration, /REFERENCES\s+(?!mod_noticeboard\.)mod_[a-z0-9_]+\./i);
+
+const height = await readFile(
+  new URL("../migrations/0001_noticeboard_notice_height.sql", import.meta.url),
+  "utf8",
+);
+assert.match(height, /ADD COLUMN IF NOT EXISTS height double precision/);
+
+// Every migration stays inside the module's own schema.
+for (const sql of [migration, height]) {
+  assert.doesNotMatch(sql, /CREATE\s+SCHEMA/i);
+  assert.doesNotMatch(sql, /\bGRANT\b/i);
+  assert.doesNotMatch(sql, /INSERT\s+INTO\s+core\.modules/i);
+  assert.doesNotMatch(sql, /core\.household_modules/i);
+  assert.doesNotMatch(sql, /REFERENCES\s+(?!mod_noticeboard\.)mod_[a-z0-9_]+\./i);
+  assert.doesNotMatch(sql, /\b(?:FROM|JOIN|UPDATE|INTO)\s+(?!mod_noticeboard\.)(?:core|mod_[a-z0-9_]+)\./i);
+}
 
 console.log("PASS_HOMI_MODULE_TEMPLATE_PUBLIC_CONTRACT");
