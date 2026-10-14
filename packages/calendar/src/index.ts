@@ -64,7 +64,7 @@ export {
   isCalendarLayerDelete,
 } from "./calendars.js";
 
-export { expandCalendarEvent, expandCalendarEvents, recurrenceOccursOn } from "./recurrence.js";
+export { expandCalendarEvent, expandCalendarEvents, findCalendarOccurrence, recurrenceOccursOn } from "./recurrence.js";
 
 export {
   calendarUuid,

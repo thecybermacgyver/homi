@@ -2,6 +2,14 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.4.1 — 2026-10-14
+
+### Modules
+- **Calendar 0.6.22: moved occurrences of a recurring event now move.** Editing one occurrence of a repeating event (or the whole series) to a different day saved the change but left the entry on its original day, because the views placed it by the repeat-rule date rather than the date it was moved to. Occurrences are now shown, counted, searched and reminded on the date they were moved to, including when they are moved across a month boundary. "All events" edits shift the series by the change you made instead of re-anchoring it on the occurrence you clicked. No Core, SDK or data migration; existing events are unchanged.
+
+### Testing
+- `packages/calendar/scripts/validate-recurrence-moves.mjs` (part of `contract:validate`) covers moved, skipped and cross-range occurrences.
+
 ## 1.4.0 — 2026-10-08
 
 ### Core (web app)

@@ -33,7 +33,7 @@ Recovery from a failed module update follows [Module installer operations](MODUL
 
 - Members are added by an administrator with a temporary password that the administrator hands over; Homi does not send email invitations. A member added this way is a regular member, and there is no in-app way yet to make another member an administrator.
 - Calendar supports Homi calendars and a restricted Apple CalDAV provider. It is not a general-purpose arbitrary CalDAV proxy.
-- The signed public module directory offers Calendar 0.6.21, Chequebook 0.1.27, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
+- The signed public module directory offers Calendar 0.6.22, Chequebook 0.1.27, and Shopping List 0.3.2 as verified. Install them from the directory's Modules screen, or install Calendar and Chequebook from the Core image as described in First deployment.
 - TLS termination, certificates, DNS, HSTS, host firewalling, and off-host backup retention remain operator responsibilities.
 - Module installation and lifecycle changes require a household administrator; ordinary members control only their own Dashboard cards, card styles, and layouts.
 

@@ -1,6 +1,6 @@
 {
   "name": "@homi/calendar",
-  "version": "0.6.21",
+  "version": "0.6.22",
   "private": true,
   "type": "module",
   "exports": {
@@ -24,7 +24,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "manifest:validate": "node scripts/validate-manifest.mjs",
     "security:validate": "node scripts/validate-provider-security.mjs",
-    "contract:validate": "pnpm manifest:validate && pnpm security:validate"
+    "recurrence:validate": "node scripts/validate-recurrence-moves.mjs",
+    "contract:validate": "pnpm manifest:validate && pnpm security:validate && pnpm recurrence:validate"
   },
   "dependencies": {
     "@homi/module-sdk": "workspace:*",

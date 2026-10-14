@@ -27,6 +27,7 @@ import {
 } from "./event-validation.js";
 import {
   expandCalendarEvents,
+  findCalendarOccurrence,
   recurrenceOccursOn,
 } from "./recurrence.js";
 import {
@@ -883,7 +884,7 @@ async function scheduleEventReminders(
   for (const occurrence of occurrences) {
     const startsAt = occurrence.event.allDay
       ? zonedMidnightInstant(
-          occurrence.occurrenceDate,
+          occurrence.displayDate,
           occurrence.event.timeZone,
         )
       : new Date(occurrence.event.startsAt!);
@@ -947,15 +948,7 @@ async function deliverEventReminder(
   if (!event.reminderMinutes.includes(Number(offsetMinutes))) {
     return;
   }
-  const occurrence = expandCalendarEvents(
-    [event],
-    occurrenceDate,
-    utcDateKey(
-      new Date(
-        Date.parse(`${occurrenceDate}T00:00:00Z`) + 86_400_000,
-      ),
-    ),
-  ).find((item) => item.occurrenceDate === occurrenceDate);
+  const occurrence = findCalendarOccurrence(event, occurrenceDate);
   if (!occurrence) return;
 
   await notifications.notify(context, {
@@ -2711,6 +2704,7 @@ async function brokerRange(
       occurrenceId: item.occurrenceId,
       seriesEventId: item.seriesEventId,
       occurrenceDate: item.occurrenceDate,
+      displayDate: item.displayDate,
       recurring: item.recurring,
       event: item.event,
     }));

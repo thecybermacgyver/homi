@@ -785,6 +785,12 @@ function addDays(value: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+function dayDistance(from: string, to: string): number {
+  return Math.round(
+    (Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000,
+  );
+}
+
 function monthStart(value: string): string {
   return value.slice(0, 7) + "-01";
 }
@@ -953,6 +959,51 @@ function localInputValue(
   return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
 }
 
+function shiftSeriesPayload<
+  P extends {
+    allDay: boolean;
+    startsAt: string | null;
+    endsAt: string | null;
+    startDate: string | null;
+    endDateExclusive: string | null;
+    timeZone: string;
+  },
+>(series: CalendarEvent, occurrence: CalendarOccurrence | null, payload: P): P {
+  if (!occurrence || !series.recurrence) return payload;
+  const clicked = occurrence.occurrenceDate;
+  if (payload.allDay) {
+    if (!payload.startDate || !payload.endDateExclusive) return payload;
+    const seriesStart = series.allDay
+      ? series.startDate
+      : series.startsAt
+        ? localInputValue(series.startsAt, series.timeZone).split("T")[0]
+        : null;
+    if (!seriesStart) return payload;
+    const delta = dayDistance(occurrence.event.startDate ?? clicked, payload.startDate);
+    const startDate = addDays(seriesStart, delta);
+    const span = dayDistance(payload.startDate, payload.endDateExclusive);
+    return { ...payload, startDate, endDateExclusive: addDays(startDate, span) };
+  }
+  if (!payload.startsAt || !payload.endsAt) return payload;
+  const seriesStartLocal = series.startsAt
+    ? localInputValue(series.startsAt, series.timeZone).split("T")[0]!
+    : series.startDate;
+  if (!seriesStartLocal) return payload;
+  const occStartLocal = occurrence.event.startsAt
+    ? localInputValue(occurrence.event.startsAt, occurrence.event.timeZone).split("T")[0]!
+    : clicked;
+  const newStartLocal = localInputValue(payload.startsAt, payload.timeZone).split("T");
+  const newEndLocal = localInputValue(payload.endsAt, payload.timeZone).split("T");
+  const delta = dayDistance(occStartLocal, newStartLocal[0]!);
+  const span = dayDistance(newStartLocal[0]!, newEndLocal[0]!);
+  const startDate = addDays(seriesStartLocal, delta);
+  return {
+    ...payload,
+    startsAt: wallTimeToIso(startDate, newStartLocal[1]!, payload.timeZone),
+    endsAt: wallTimeToIso(addDays(startDate, span), newEndLocal[1]!, payload.timeZone),
+  };
+}
+
 function calendarEditorFromOccurrence(
   occurrence: CalendarOccurrence,
   seriesEvent: CalendarEvent,
@@ -1068,7 +1119,7 @@ function CalendarTimeGrid({
         {days.map((day) => (
           <div key={day} className="homi-calendar-all-day-cell">
             {allDay
-              .filter((item) => item.occurrenceDate === day)
+              .filter((item) => item.displayDate === day)
               .map((item) => (
                 <button
                   type="button"
@@ -1103,7 +1154,7 @@ function CalendarTimeGrid({
           const timed = occurrences.filter(
             (item) =>
               !item.event.allDay &&
-              item.occurrenceDate === day,
+              item.displayDate === day,
           );
           return (
             <div
@@ -1592,13 +1643,17 @@ function CalendarPage({
         const recurrenceChanged =
           JSON.stringify(series.recurrence) !==
           JSON.stringify(payload.recurrence);
+        // The form is pre-filled from the clicked occurrence, so a series edit
+        // shifts the series' own start by the change the user made rather than
+        // re-anchoring the whole series on the occurrence they clicked.
+        const shifted = shiftSeriesPayload(series, editor.occurrence, payload);
         await actions.enqueueMutation({
           entityType: "event",
           entityId: series.id,
           operation: "update",
           baseRevision: series.revision,
           payload: {
-            ...payload,
+            ...shifted,
             recurrenceOverrides:
               payload.recurrence === null || recurrenceChanged
                 ? []
@@ -1730,7 +1785,7 @@ function CalendarPage({
           const day = index + 1;
           const key = `${start.slice(0, 8)}${String(day).padStart(2, "0")}`;
           const items = occurrences.filter(
-            (item) => item.occurrenceDate === key,
+            (item) => item.displayDate === key,
           );
           return (
             <div
@@ -1814,7 +1869,7 @@ function CalendarPage({
               style={{ background: colorFor(item) }}
             />
             <span className="homi-calendar-upcoming-date">
-              {item.occurrenceDate}
+              {item.displayDate}
             </span>
             <span className="homi-calendar-upcoming-main">
               <strong>{item.event.title}</strong>
@@ -3386,8 +3441,8 @@ function ComingWeekCard({
   const shown = weekEvents.slice(0, 12);
   const days = new Map<string, CalendarOccurrence[]>();
   for (const item of shown) {
-    days.set(item.occurrenceDate, [
-      ...(days.get(item.occurrenceDate) ?? []),
+    days.set(item.displayDate, [
+      ...(days.get(item.displayDate) ?? []),
       item,
     ]);
   }
@@ -3441,8 +3496,8 @@ function MiniMonthCard({
   const counts = new Map<string, number>();
   for (const item of occurrences) {
     counts.set(
-      item.occurrenceDate,
-      (counts.get(item.occurrenceDate) ?? 0) + 1,
+      item.displayDate,
+      (counts.get(item.displayDate) ?? 0) + 1,
     );
   }
   const weekdays = Array.from({ length: 7 }, (_, index) =>
@@ -3528,15 +3583,15 @@ const calendarSearchProvider: HomiWebModuleSearchProvider = {
     ]
       .sort(
         (a, b) =>
-          a.occurrenceDate.localeCompare(b.occurrenceDate) ||
+          a.displayDate.localeCompare(b.displayDate) ||
           (a.event.startsAt ?? "").localeCompare(b.event.startsAt ?? ""),
       )
       .map((item) => ({
         id: item.occurrenceId,
         title: item.event.title,
-        subtitle: `${item.occurrenceDate} · ${formatOccurrence(item, context.locale, context.timeZone)}${item.event.location ? ` · ${item.event.location}` : ""}`,
+        subtitle: `${item.displayDate} · ${formatOccurrence(item, context.locale, context.timeZone)}${item.event.location ? ` · ${item.event.location}` : ""}`,
         pageId: "calendar",
-        intent: { date: item.occurrenceDate, eventId: item.seriesEventId },
+        intent: { date: item.displayDate, eventId: item.seriesEventId },
       }));
   },
 };

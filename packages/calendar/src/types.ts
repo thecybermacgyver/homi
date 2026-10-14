@@ -1,7 +1,7 @@
 import type { CalendarColor } from "./settings.js";
 
 export const HOMI_CALENDAR_MODULE_KEY = "calendar" as const;
-export const HOMI_CALENDAR_VERSION = "0.6.21" as const;
+export const HOMI_CALENDAR_VERSION = "0.6.22" as const;
 
 export type CalendarRecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
 
@@ -105,7 +105,10 @@ export interface CalendarEventPayload {
 export interface CalendarOccurrence {
   occurrenceId: string;
   seriesEventId: string;
+  /** The recurrence-rule date this occurrence belongs to; stable override key. */
   occurrenceDate: string;
+  /** The date the occurrence is actually shown on (differs once it is moved). */
+  displayDate: string;
   recurring: boolean;
   overridden: boolean;
   event: CalendarOccurrenceReplacement;

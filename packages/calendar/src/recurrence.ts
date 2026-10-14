@@ -256,33 +256,80 @@ function overrideMap(overrides: readonly CalendarOccurrenceOverride[]) {
   return new Map(overrides.map((override) => [override.occurrenceDate, override]));
 }
 
+function replacementDate(replacement: CalendarOccurrenceReplacement): string {
+  return replacement.allDay
+    ? replacement.startDate!
+    : zonedDate(replacement.startsAt!, replacement.timeZone);
+}
+
 export function expandCalendarEvent(
   event: CalendarEvent,
   rangeStartDate: string,
   rangeEndDateExclusive: string,
 ): readonly CalendarOccurrence[] {
   const anchor = anchorDate(event);
-  const dates = event.recurrence
-    ? datesForRule(anchor, event.recurrence, rangeStartDate, rangeEndDateExclusive)
-    : anchor >= rangeStartDate && anchor < rangeEndDateExclusive ? [anchor] : [];
   const overrides = overrideMap(event.recurrenceOverrides);
+  const candidates = new Set<string>();
+  if (event.recurrence) {
+    // An occurrence can be moved out of or into the range, so replaced
+    // occurrences are considered by their override key as well as by the rule.
+    const horizon = rangeEndDateExclusive;
+    for (const date of datesForRule(anchor, event.recurrence, anchor, horizon)) {
+      const override = overrides.get(date);
+      if (override?.action === "replace" && override.replacement) candidates.add(date);
+    }
+    for (const date of datesForRule(anchor, event.recurrence, rangeStartDate, rangeEndDateExclusive)) {
+      candidates.add(date);
+    }
+  } else if (anchor >= rangeStartDate && anchor < rangeEndDateExclusive) {
+    candidates.add(anchor);
+  }
   const occurrences: CalendarOccurrence[] = [];
-  for (const occurrenceDate of dates) {
+  for (const occurrenceDate of [...candidates].sort()) {
     const override = overrides.get(occurrenceDate);
     if (override?.action === "skip") continue;
     const replacement = override?.action === "replace" && override.replacement
       ? override.replacement
       : replacementFromBase(event, occurrenceDate);
+    const displayDate = replacementDate(replacement);
+    if (displayDate < rangeStartDate || displayDate >= rangeEndDateExclusive) continue;
     occurrences.push(Object.freeze({
       occurrenceId: `${event.id}@${occurrenceDate}`,
       seriesEventId: event.id,
       occurrenceDate,
+      displayDate,
       recurring: event.recurrence !== null,
       overridden: override !== undefined,
       event: Object.freeze({ ...replacement }),
     }));
   }
   return Object.freeze(occurrences);
+}
+
+/** Finds one occurrence by its rule date, wherever it has been moved to. */
+export function findCalendarOccurrence(
+  event: CalendarEvent,
+  occurrenceDate: string,
+): CalendarOccurrence | null {
+  const anchor = anchorDate(event);
+  const occurs = event.recurrence
+    ? recurrenceOccursOn(anchor, event.recurrence, occurrenceDate)
+    : anchor === occurrenceDate;
+  if (!occurs) return null;
+  const override = overrideMap(event.recurrenceOverrides).get(occurrenceDate);
+  if (override?.action === "skip") return null;
+  const replacement = override?.action === "replace" && override.replacement
+    ? override.replacement
+    : replacementFromBase(event, occurrenceDate);
+  return Object.freeze({
+    occurrenceId: `${event.id}@${occurrenceDate}`,
+    seriesEventId: event.id,
+    occurrenceDate,
+    displayDate: replacementDate(replacement),
+    recurring: event.recurrence !== null,
+    overridden: override !== undefined,
+    event: Object.freeze({ ...replacement }),
+  });
 }
 
 export function expandCalendarEvents(
