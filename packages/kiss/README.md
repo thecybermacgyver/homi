@@ -43,7 +43,7 @@ Statement ids (for example `words-3`) never change once shipped; new statements 
 
 - The daily question and quiz banks are finite and repeat. Generated content (an LLM provider) is not included.
 - A partner's answer appears within about 20 seconds, or at once with "Check now"; Core's change feed carries ids only, so there is no instant push of the reveal.
-- It is not yet in the verified module directory. Isolated two-account browser acceptance and the accessibility pass have not been run for this module.
+- Verified: the isolated two-account acceptance suite (`qa/acceptance.mjs`, 13 checks) and the axe accessibility pass (`qa/accessibility.mjs`, 28 screens, 0 violations) passed with the published 0.4.2 package.
 
 ## Build and validate
 

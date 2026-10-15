@@ -16,14 +16,14 @@ import type { Answer, Checkin, KissContext, Me, Note, PersonOption, PlannedDate,
 // Palette from the K.I.S.S. brand brief. Fonts fall back to the system's
 // rounded faces so nothing is fetched from a third party.
 const css = `
-.kiss {--k-coral:#ff4d6d;--k-gold:#ffb703;--k-violet:#5e0894;--k-plum:#9d40d6;--k-cream:#fff0f5;
+.kiss {--k-coral:#ff4d6d;--k-gold:#ffb703;--k-violet:#5e0894;--k-plum:#8a2cc4;--k-cream:#fff0f5;
   background:radial-gradient(circle at 20% 0,#7a14c2 0,#7209b7 50%,var(--k-violet) 100%);color:var(--k-cream);
   font-family:"Nunito",ui-rounded,system-ui,sans-serif;border-radius:24px;padding:clamp(1rem,3vw,1.6rem);
   max-width:48rem;margin:auto;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(255,77,109,.25)}
 .kiss h1,.kiss h2,.kiss h3,.kiss p {margin:0}
 .kiss-title {font-family:"Baloo 2",ui-rounded,system-ui,sans-serif;font-size:clamp(1.8rem,6vw,2.4rem);color:var(--k-gold);
   letter-spacing:.02em}
-.kiss-sub {opacity:.85;margin:.1rem 0 1rem}
+.kiss-sub {margin:.1rem 0 1rem}
 .kiss-head {display:flex;align-items:center;justify-content:space-between;gap:.8rem;margin:0 0 .6rem}
 .kiss-head .kiss-sub {margin:0;font-size:clamp(.72rem,2.6vw,1rem)}
 .kiss-streak {display:flex;flex-direction:column;align-items:center;flex:0 0 auto;position:relative;
@@ -53,7 +53,7 @@ const css = `
 .kiss label,.kiss legend {color:var(--k-cream)}
 .kiss textarea,.kiss input[type=text],.kiss select {width:100%;box-sizing:border-box}
 .kiss input[type=range] {width:100%;accent-color:var(--k-coral);min-height:32px}
-.kiss .homi-ui-button--primary {background:var(--k-coral);border-color:var(--k-coral);color:#fff}
+.kiss .homi-ui-button:not(.homi-ui-button--secondary):not(.homi-ui-button--quiet) {background:#c9184a;border-color:#c9184a;color:#fff}
 .kiss .homi-ui-button--secondary,.kiss .homi-ui-button--quiet {background:transparent;color:var(--k-cream);border-color:rgba(255,240,245,.5)}
 .kiss-row {display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
 .kiss-locked {filter:blur(7px);user-select:none;pointer-events:none}
@@ -68,7 +68,7 @@ const css = `
 .kiss-bubble {display:inline-block;max-width:90%;text-align:left;background:var(--k-plum);border:1px solid rgba(255,240,245,.3);
   border-radius:18px;padding:.6rem .9rem;overflow-wrap:anywhere;white-space:pre-wrap}
 .kiss-note.new .kiss-bubble {border-color:var(--k-gold);box-shadow:0 0 14px rgba(255,183,3,.45)}
-.kiss-meta {font-size:.8rem;opacity:.8;margin-top:.15rem}
+.kiss-meta {font-size:.8rem;margin-top:.15rem}
 .kiss-lock {text-align:center;padding:2rem 1rem}
 .kiss-spark {position:absolute;width:6px;height:6px;border-radius:50%;background:var(--k-gold);opacity:.6;
   animation:kiss-float 7s ease-in infinite;pointer-events:none}

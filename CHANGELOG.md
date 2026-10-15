@@ -2,6 +2,12 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.1 — 2026-10-15
+
+### Modules
+- **K.I.S.S. 0.4.2:** colour contrast raised so every screen passes the axe WCAG 2.0/2.1 A and AA rules at phone and desktop widths in light and dark schemes (card purple darkened, buttons and secondary text no longer rely on reduced opacity). No data or behaviour change.
+- **Certification:** Calendar 0.6.23, Noticeboard 0.1.5 and K.I.S.S. 0.4.2 passed their isolated acceptance suites with the exact published packages and are marked verified in the signed directory. K.I.S.S. gained `packages/kiss/qa/acceptance.mjs` (two partners and an administrator who is not a partner: pairing, server-withheld reveal, Vibe Match, streak, check-in, love note, PIN lock, layout) and `qa/accessibility.mjs`.
+
 ## 1.5.0 — 2026-10-15
 
 ### Core and web app
@@ -14,7 +20,7 @@ All notable changes to Homi are recorded here, newest first. Homi follows semant
 ### Modules
 - **Calendar 0.6.23:** defines `calendar.reminder.title` and `calendar.reminder.body` and passes a readable `when` ("in 15 minutes", "in 1 hour 30 minutes") so a reminder reads "Dentist — Starts in 15 minutes."
 - **Noticeboard 0.1.5:** line breaks typed in a note are kept on the board and in the list preview (they were flattened to a single space). Full-note view is unchanged.
-- **K.I.S.S. 0.4.1 (new, not yet in the verified directory):** a private module for two partners. See [its README](packages/kiss/README.md).
+- **K.I.S.S. 0.4.1 (new):** a private module for two partners. See [its README](packages/kiss/README.md).
 
 ### Testing
 - `apps/core/scripts/validate-notification-push.mjs` (`pnpm --filter @homi/core notifications:validate`) round-trips the payload encryption and verifies the VAPID signature.

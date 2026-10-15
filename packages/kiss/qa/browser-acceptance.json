@@ -1,0 +1,19 @@
+{
+  "suite": "kiss-two-account",
+  "date": "2026-10-15T22:19:50.764Z",
+  "passed": [
+    "before pairing the administrator sees only Settings, with no private tabs",
+    "the administrator pairs two members and both partners get the full space",
+    "the administrator, who is not a partner, still sees no private tabs",
+    "partner A locks in an answer and sees the waiting state",
+    "the partner's answer is withheld by the server until the other has answered (partner and administrator)",
+    "once both answered each sees both answers with a Vibe Match",
+    "the streak heart shows a 1 day streak after both answered",
+    "the administrator still receives neither answer",
+    "a check-in reaches the partner and not the administrator",
+    "a love note reaches the partner and not the administrator",
+    "Dates, Quizzes and Passion tabs open without errors",
+    "the PIN hides the screen, rejects a wrong PIN and unlocks with the right one",
+    "no horizontal overflow at 390, 768 and 1440 px and no page errors"
+  ]
+}

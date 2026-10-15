@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-14T17:51:41.318Z",
-  "run": "206887",
+  "date": "2026-10-15T22:09:26.482Z",
+  "run": "071722",
   "results": [
     {
       "name": "two devices of one member and a distinct member share the household"
@@ -11,17 +11,17 @@
     },
     {
       "name": "notes can be dragged, overlap, and the last one touched comes to the front",
-      "z": 127
+      "z": 4
     },
     {
       "name": "the arrangement scales with the board at phone and desktop widths",
       "r390": {
-        "x": 0.20743568320023387,
-        "w": 0.4734406973186292
+        "x": 0.29991742184287623,
+        "w": 0.4674452731483861
       },
       "r1440": {
-        "x": 0.20924365844063858,
-        "w": 0.4698473405372048
+        "x": 0.300933837890625,
+        "w": 0.4654843540585132
       }
     },
     {
