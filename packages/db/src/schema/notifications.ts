@@ -1,6 +1,7 @@
 import {
   index,
   jsonb,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -40,6 +41,10 @@ export const notifications = core.table(
       precision: 3,
     }),
     expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      precision: 3,
+    }),
+    pushSentAt: timestamp("push_sent_at", {
       withTimezone: true,
       precision: 3,
     }),
@@ -89,3 +94,15 @@ export const pushSubscriptions = core.table(
     index("ix_core_push_subscriptions_user").on(table.userId),
   ],
 );
+
+export const pushServerKeys = core.table("push_server_keys", {
+  id: smallint("id").primaryKey(),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    precision: 3,
+  })
+    .notNull()
+    .defaultNow(),
+});

@@ -27,7 +27,7 @@ const css = `
 .nb-row-swatch {flex:0 0 .6rem}
 .nb-row-body {flex:1;min-width:0;padding:.65rem 0}
 .nb-row-title {font-weight:700;font-size:1.05rem;overflow-wrap:anywhere}
-.nb-row-brief {font-size:.9rem;color:var(--homi-text-muted);overflow-wrap:anywhere;margin-top:.15rem!important}
+.nb-row-brief {font-size:.9rem;color:var(--homi-text-muted);overflow-wrap:anywhere;margin-top:.15rem!important;white-space:pre-line}
 .nb-row-meta {display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:.25rem;padding:.65rem .8rem .65rem 0;font-size:.8rem;color:var(--homi-text-muted);white-space:nowrap}
 .nb-row-thumb {width:64px;object-fit:cover;flex:0 0 64px}
 .nb-pinned {font-weight:700;color:var(--homi-sage-text)}
@@ -58,7 +58,7 @@ const css = `
 .nb-note-open {all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;padding:1.25em .8em .8em;cursor:grab;color:inherit;font-size:clamp(7px,calc(4cqw + 5cqh),3rem)}
 .nb-note-open:focus-visible {outline:3px solid var(--homi-primary-action);outline-offset:2px}
 .nb-note-title {display:block;flex:0 0 auto;font-weight:800;overflow-wrap:anywhere}
-.nb-note-brief {display:block;flex:1 1 0;min-height:0;overflow:hidden;margin-top:.25em;overflow-wrap:anywhere}
+.nb-note-brief {display:block;flex:1 1 0;min-height:0;overflow:hidden;margin-top:.25em;overflow-wrap:anywhere;white-space:pre-line}
 /* The picture is drawn as large as the notice allows, keeping its own shape and
    never cropped: it grows past the size it was taken at on a big notice and
    shrinks on a small one, and the paper shows through beside it. */

@@ -34,7 +34,14 @@ export function pinColor(id: string): string {
 }
 
 export function excerpt(notice: Notice, length = 110): string {
-  const text = notice.body.replace(/\s+/g, " ").trim();
+  // Line breaks the writer typed are kept (a run of blank lines becomes one);
+  // only runs of spaces and tabs are tidied.
+  const text = notice.body
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   if (text) return text.length > length ? text.slice(0, length - 1).trimEnd() + "…" : text;
   if (notice.checklist.length > 0) {
     const done = notice.checklist.filter((item) => item.done).length;

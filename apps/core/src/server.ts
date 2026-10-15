@@ -15,6 +15,7 @@ import { createHomiModuleManagerClient } from "./module-manager-client.js";
 import { createHomiModuleSyncService } from "./module-sync.js";
 import { loadHomiServerModules } from "./module-host.js";
 import { createHomiModuleJobRunner } from "./module-jobs.js";
+import { createHomiNotificationService } from "./notifications.js";
 
 const host = process.env.HOMI_HOST ?? "0.0.0.0";
 const port = Number.parseInt(process.env.HOMI_PORT ?? "3001", 10);
@@ -132,6 +133,13 @@ const moduleJobs = createHomiModuleJobRunner(
   modules,
 );
 
+const notifications = createHomiNotificationService({
+  database: database.db,
+  moduleInstallRoot,
+  pushSubject: authBaseURL,
+  log: (message, detail) => console.warn(`[notifications] ${message}`, detail ?? ""),
+});
+
 const app = buildApp({
   checkDatabase: database.check,
   auth,
@@ -145,6 +153,7 @@ const app = buildApp({
   client,
   sync,
   moduleSync,
+  notifications,
   ...(moduleAssets === undefined ? {} : { moduleAssets }),
   ...(moduleDirectory === undefined ? {} : { moduleDirectory }),
   ...(moduleManager === undefined ? {} : { moduleManager }),
@@ -162,9 +171,11 @@ const app = buildApp({
 });
 
 moduleJobs.start();
+notifications.start();
 
 app.addHook("onClose", async () => {
   moduleJobs.stop();
+  notifications.stop();
   await database.close();
 });
 

@@ -1,4 +1,6 @@
 {
   "module.name": "Calendar",
-  "module.description": "Shared household calendar and scheduling."
+  "module.description": "Shared household calendar and scheduling.",
+  "calendar.reminder.title": "{title}",
+  "calendar.reminder.body": "Starts {when}."
 }

@@ -910,6 +910,21 @@ async function scheduleEventReminders(
   }
 }
 
+// "in 15 minutes", "in 1 hour 30 minutes", "in 2 days": how far ahead of the
+// event a reminder is, written for a person to read.
+function reminderWhen(minutes: number): string {
+  const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  if (minutes < 60) return `in ${unit(minutes, "minute")}`;
+  if (minutes < 1440) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `in ${unit(h, "hour")}${m ? ` ${unit(m, "minute")}` : ""}`;
+  }
+  const d = Math.floor(minutes / 1440);
+  const h = Math.floor((minutes % 1440) / 60);
+  return `in ${unit(d, "day")}${h ? ` ${unit(h, "hour")}` : ""}`;
+}
+
 async function deliverEventReminder(
   host: HomiServerModuleHostContext,
   database: HomiModuleDatabase,
@@ -960,6 +975,7 @@ async function deliverEventReminder(
       title: occurrence.event.title,
       occurrenceDate,
       offsetMinutes: Number(offsetMinutes),
+      when: reminderWhen(Number(offsetMinutes)),
     },
     data: {
       moduleKey: CALENDAR_MODULE_KEY,

@@ -2,6 +2,24 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.0 — 2026-10-15
+
+### Core and web app
+- **Notifications now reach people.** Modules have always been able to send a notification through the notifications capability (Calendar reminders are one), but Core only stored them: nothing showed them and nothing sent them to a device. A **bell with an unread count** now sits with the floating Search and Add buttons on every page and opens the member's inbox (mark read, dismiss, mark all read). A member can **turn on notifications for a device**; reminders then arrive there as push notifications even when Homi is closed. Delivery uses standard Web Push (RFC 8030) with RFC 8291 payload encryption and RFC 8292 VAPID signing, implemented with Node's own crypto: no new dependency. Core renders each notification's text from the module's own locale file in the household's language, falling back to the English file and then to the title the module supplied.
+- Core: member-scoped routes `GET /api/v1/core/notifications`, `POST …/notifications/:id/read`, `POST …/notifications/:id/dismiss`, `POST …/notifications/read-all`, and Web Push routes `GET /api/v1/core/push/config`, `POST …/push/subscriptions`, `…/subscriptions/check`, `…/subscriptions/remove`. A notification is delivered once (`push_sent_at`); a push service that reports a device gone (404/410) revokes that subscription.
+- Migration `0012_notification_delivery.sql`: `core.notifications.push_sent_at`, and `core.push_server_keys` for the server's push identity (created on first use). Notifications that exist at upgrade are marked as already pushed so no burst of old reminders arrives.
+- Service worker (cache `homi-shell-v20`) shows push notifications and focuses Homi when one is clicked.
+- No change to the module API: `moduleApiVersion` stays 1 and no module needs to change to benefit.
+
+### Modules
+- **Calendar 0.6.23:** defines `calendar.reminder.title` and `calendar.reminder.body` and passes a readable `when` ("in 15 minutes", "in 1 hour 30 minutes") so a reminder reads "Dentist — Starts in 15 minutes."
+- **Noticeboard 0.1.5:** line breaks typed in a note are kept on the board and in the list preview (they were flattened to a single space). Full-note view is unchanged.
+- **K.I.S.S. 0.4.1 (new, not yet in the verified directory):** a private module for two partners. See [its README](packages/kiss/README.md).
+
+### Testing
+- `apps/core/scripts/validate-notification-push.mjs` (`pnpm --filter @homi/core notifications:validate`) round-trips the payload encryption and verifies the VAPID signature.
+- `apps/web/qa/notifications-acceptance.mjs` drives the inbox and device subscription in a real browser against an isolated stack.
+
 ## 1.4.4 — 2026-10-14
 
 ### Modules

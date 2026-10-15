@@ -15,7 +15,8 @@
     "module-platform:validate": "pnpm build && pnpm --filter @homi/module-template-starter build && node scripts/validate-module-installer.mjs",
     "module-directory:validate": "pnpm build && node scripts/validate-module-directory.mjs",
     "module-lifecycle:validate": "pnpm build && node scripts/validate-household-module-routes.mjs && node scripts/validate-request-logging.mjs",
-    "chequebook:validate": "pnpm build && pnpm --filter @homi/chequebook build && node scripts/validate-chequebook-01.mjs"
+    "chequebook:validate": "pnpm build && pnpm --filter @homi/chequebook build && node scripts/validate-chequebook-01.mjs",
+    "notifications:validate": "pnpm build && node scripts/validate-notification-push.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.5",

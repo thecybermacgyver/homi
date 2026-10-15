@@ -38,7 +38,8 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, a Modules pop-up launcher, Settings (with Manage modules), universal Search across all enabled modules, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.22`, Chequebook `0.1.27`, Shopping List `0.4.1`, Noticeboard `0.1.4`, and Meal Planner `0.1.0`
+- Calendar `0.6.23`, Chequebook `0.1.27`, Shopping List `0.4.1`, Noticeboard `0.1.5`, Meal Planner `0.1.0`, and K.I.S.S. `0.4.1` (a private couples module; not yet in the verified directory)
+- a notification inbox and opt-in device push notifications (Web Push) for every module's reminders
 - per-member Family Board card styles, chosen in Settings → Manage modules (for example Shopping's list or counts by store)
 - a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
 - administrators add household members in the app, with self-service password change and administrator password reset that require a new password at next sign-in

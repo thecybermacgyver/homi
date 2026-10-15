@@ -85,6 +85,13 @@
       "when": 1790202600000,
       "tag": "0011_member_card_layouts",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "12",
+      "when": 1790204400000,
+      "tag": "0012_notification_delivery",
+      "breakpoints": true
     }
   ]
 }

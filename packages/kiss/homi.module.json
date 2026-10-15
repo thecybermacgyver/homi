@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "kiss",
+  "name": "K.I.S.S.",
+  "publisher": "Homi",
+  "version": "0.4.1",
+  "moduleApiVersion": 1,
+  "description": "Keep Igniting Special Sparks: a private space for two partners with a daily question that reveals only when both have answered, check-ins, love notes, date nights, quizzes and a private intimacy checklist.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_kiss",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "household-people",
+    "household-roles",
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "kiss",
+      "label": "K.I.S.S.",
+      "path": "/modules/kiss",
+      "icon": "heart"
+    }
+  ],
+  "setup": {
+    "required": false,
+    "scope": "household"
+  },
+  "settings": {
+    "household": false,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      { "entityType": "partnership", "operations": ["create", "update", "delete"] },
+      { "entityType": "answer", "operations": ["create", "update", "delete"] },
+      { "entityType": "checkin", "operations": ["create", "update"] },
+      { "entityType": "note", "operations": ["create", "update", "delete"] },
+      { "entityType": "date", "operations": ["create", "update", "delete"] },
+      { "entityType": "quiz", "operations": ["create", "update"] },
+      { "entityType": "swipe", "operations": ["create", "update"] }
+    ]
+  },
+  "broker": {
+    "provides": [],
+    "consumes": []
+  },
+  "extensions": {
+    "familyBoard": [],
+    "householdSettings": false,
+    "notifications": false,
+    "search": false
+  }
+}

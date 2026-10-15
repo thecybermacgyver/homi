@@ -64,6 +64,7 @@ import type {
   HomiWebModuleSearchResult,
 } from "@homi/module-sdk";
 import { GlobalSearch, type GlobalSearchSource } from "./GlobalSearch.js";
+import { NotificationsSheet, useNotifications } from "./Notifications.js";
 import { FamilyBoardClock } from "./FamilyBoardClock.js";
 import {
   cacheMemberModulePreferences,
@@ -234,6 +235,7 @@ export function App() {
     readonly actions: HomiWebModuleContextActions;
   } | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchIntent, setSearchIntent] = useState<{
     readonly moduleKey: string;
     readonly pageId: string;
@@ -377,6 +379,12 @@ export function App() {
   const moduleClientId = ready
     ? context.context.clientId
     : sync.offlineContext?.clientId ?? null;
+  const notifications = useNotifications({
+    householdId: ready ? context.context.householdId : null,
+    clientId: ready ? context.context.clientId ?? null : null,
+    online,
+    signedIn: ready,
+  });
   const moduleManagementOnline = ready && online;
   const moduleRuntimeIdentity =
     moduleAuthSubject &&
@@ -1887,12 +1895,36 @@ export function App() {
               }
             : (moduleActions?.search ?? null);
         const createAction = moduleActions?.create ?? null;
-        if (!searchAction && !createAction) return null;
+        const showBell = ready;
+        if (!searchAction && !createAction && !showBell) return null;
         return (
           <div
             className="homi-platform-context-actions"
             aria-label="Module actions"
           >
+            {showBell && (
+              <button
+                type="button"
+                className="homi-platform-context-action homi-notification-bell"
+                aria-label={
+                  notifications.unread > 0
+                    ? `Notifications, ${notifications.unread} unread`
+                    : "Notifications"
+                }
+                title="Notifications"
+                onClick={() => setNotificationsOpen(true)}
+              >
+                🔔
+                {notifications.unread > 0 && (
+                  <span
+                    className="homi-notification-bell__badge"
+                    aria-hidden="true"
+                  >
+                    {notifications.unread > 99 ? "99+" : notifications.unread}
+                  </span>
+                )}
+              </button>
+            )}
             {searchAction && (
               <button
                 type="button"
@@ -1920,6 +1952,13 @@ export function App() {
           </div>
         );
       })()}
+
+      <NotificationsSheet
+        open={notificationsOpen && ready}
+        onClose={() => setNotificationsOpen(false)}
+        state={notifications}
+        locale={displayLocale || "en"}
+      />
 
       <GlobalSearch
         open={searchOpen}

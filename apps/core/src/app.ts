@@ -24,6 +24,10 @@ import type {
   HomiModuleManager,
 } from "./module-manager-client.js";
 import type { HomiModuleSyncService } from "./module-sync.js";
+import {
+  HomiNotificationError,
+  type HomiNotificationService,
+} from "./notifications.js";
 import type {
   HomiHouseholdModuleService,
   HomiHouseholdModuleSummary,
@@ -57,6 +61,7 @@ export interface HomiAppDependencies {
   moduleSync: HomiModuleSyncService;
   householdModules: HomiHouseholdModuleService;
   memberModulePreferences: HomiMemberModulePreferenceService;
+  notifications?: HomiNotificationService;
   accounts?: HomiAccountService;
   moduleAssets?: HomiModuleAssetService;
   moduleDirectory?: HomiModuleDirectoryService;
@@ -896,6 +901,108 @@ export function buildApp(
           .send(asset.body);
       },
     );
+  }
+
+  const notifications = dependencies.notifications;
+  if (notifications) {
+    // A member's own notifications: read, mark read, dismiss.
+    app.get("/api/v1/core/notifications", async (request) => {
+      const context = await resolveContext(request, dependencies);
+      const limit = Number.parseInt(
+        String((request.query as { limit?: unknown }).limit ?? "50"),
+        10,
+      );
+      return {
+        data: await notifications.list(
+          context,
+          Number.isFinite(limit) ? limit : 50,
+        ),
+      };
+    });
+
+    app.post("/api/v1/core/notifications/read-all", async (request) => {
+      const context = await resolveContext(request, dependencies);
+      return { data: { updated: await notifications.markAllRead(context) } };
+    });
+
+    for (const action of ["read", "dismiss"] as const) {
+      app.post(
+        `/api/v1/core/notifications/:notificationId/${action}`,
+        async (request) => {
+          const context = await resolveContext(request, dependencies);
+          const id = (request.params as { notificationId?: unknown })
+            .notificationId;
+          if (typeof id !== "string" || !UUID_PATTERN.test(id)) {
+            validationError("notificationId must be a UUID.");
+          }
+          const found =
+            action === "read"
+              ? await notifications.markRead(context, id)
+              : await notifications.dismiss(context, id);
+          if (!found) {
+            throw new HomiNotificationError(
+              404,
+              "NOTIFICATION_NOT_FOUND",
+              "The notification was not found.",
+            );
+          }
+          return { data: { id } };
+        },
+      );
+    }
+
+    // Web Push: the server's public key, and this device's subscription.
+    app.get("/api/v1/core/push/config", async (request) => {
+      await resolveContext(request, dependencies);
+      return { data: { publicKey: await notifications.publicKey() } };
+    });
+
+    app.post("/api/v1/core/push/subscriptions", async (request) => {
+      const context = await resolveContext(request, dependencies);
+      const body = request.body as {
+        endpoint?: unknown;
+        keys?: { p256dh?: unknown; auth?: unknown };
+      } | null;
+      if (
+        !body ||
+        typeof body.endpoint !== "string" ||
+        typeof body.keys?.p256dh !== "string" ||
+        typeof body.keys?.auth !== "string"
+      ) {
+        validationError("endpoint, keys.p256dh and keys.auth are required.");
+      }
+      await notifications.subscribe(context, {
+        endpoint: body.endpoint,
+        p256dh: body.keys.p256dh,
+        auth: body.keys.auth,
+      });
+      return { data: { subscribed: true } };
+    });
+
+    app.post("/api/v1/core/push/subscriptions/check", async (request) => {
+      const context = await resolveContext(request, dependencies);
+      const endpoint = (request.body as { endpoint?: unknown } | null)
+        ?.endpoint;
+      if (typeof endpoint !== "string") {
+        validationError("endpoint is required.");
+      }
+      return {
+        data: {
+          subscribed: await notifications.hasSubscription(context, endpoint),
+        },
+      };
+    });
+
+    app.post("/api/v1/core/push/subscriptions/remove", async (request) => {
+      const context = await resolveContext(request, dependencies);
+      const endpoint = (request.body as { endpoint?: unknown } | null)
+        ?.endpoint;
+      if (typeof endpoint !== "string") {
+        validationError("endpoint is required.");
+      }
+      await notifications.unsubscribe(context, endpoint);
+      return { data: { subscribed: false } };
+    });
   }
 
   registerSyncRoutes(app, dependencies);

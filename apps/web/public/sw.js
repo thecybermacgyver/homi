@@ -1,4 +1,4 @@
-const SHELL_CACHE = "homi-shell-v19";
+const SHELL_CACHE = "homi-shell-v20";
 const STATIC_SEEDS = [
   "/manifest.webmanifest",
   "/brand/homi_icon_192.png",
@@ -115,5 +115,43 @@ self.addEventListener("fetch", (event) => {
       await cache.put(request, response.clone());
     }
     return response;
+  })());
+});
+
+// Web Push: the server sends the reminder's text already written, encrypted
+// to this device. Always show something: a push the browser cannot attribute
+// to a visible notification is penalised or revoked.
+self.addEventListener("push", (event) => {
+  let note = { title: "Homi", body: "You have a new notification.", tag: "homi", url: "/" };
+  try {
+    if (event.data) note = { ...note, ...event.data.json() };
+  } catch {
+    // keep the generic notification
+  }
+  event.waitUntil((async () => {
+    await self.registration.showNotification(note.title, {
+      body: note.body,
+      tag: note.tag,
+      icon: "/brand/homi_icon_192.png",
+      badge: "/brand/homi_icon_192.png",
+      data: { url: note.url },
+    });
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windows) client.postMessage({ type: "homi-push" });
+  })());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windows) {
+      if ("focus" in client) {
+        await client.focus();
+        return;
+      }
+    }
+    await self.clients.openWindow(target);
   })());
 });

@@ -197,6 +197,32 @@ Core limits each provider to 4 seconds and 20 results and shows a notice if a pr
 
 Forms, editors and confirmations must open in the design system's `BottomSheet` or `Dialog` (or inline in the page), never in a module-made fixed-position overlay. A Family Board card is a layout container, which clips a fixed-position dialog to the card, so a sheet or dialog opened from inside a card sets `portal` (`<BottomSheet portal ...>`), which renders it in `document.body`. Homi's floating navigation and the device safe area cover the bottom of the screen on phones; the shared sheet and dialog size to the visible viewport and leave a bottom scroll buffer so the last controls, such as Save and Cancel, always scroll clear of them. A module-made overlay bypasses that guarantee.
 
+## Notifications
+
+A module sends a notification with the `notifications` Core capability (declare it in `coreCapabilities`, then use `host.notifications.notify(context, input)` in a server handler or job). Core stores it for each recipient, shows it in their inbox (the bell on every page), and pushes it to the devices they turned notifications on for.
+
+```ts
+await host.notifications.notify(context, {
+  personIds: event.personIds,            // omit to notify every active member
+  notificationType: "calendar-reminder",
+  titleKey: "calendar.reminder.title",
+  bodyKey: "calendar.reminder.body",
+  arguments: { title: "Dentist", when: "in 15 minutes" },
+  data: { moduleKey: "calendar", eventId },   // opaque to Core
+});
+```
+
+Core writes the text, not the module: it looks `titleKey` and `bodyKey` up in the module's own locale file (`localization.resources`, for example `locales/en.json`) in the household's language, then in English, and replaces `{name}` placeholders from `arguments` (strings and numbers only). So the module defines the wording and passes ready-to-read values:
+
+```json
+{
+  "calendar.reminder.title": "{title}",
+  "calendar.reminder.body": "Starts {when}."
+}
+```
+
+If a key is missing, Core uses `arguments.title` (and `arguments.body`) when the module supplied them, and otherwise a tidied form of the key. Write the values for people, not codes: pass "in 15 minutes", not `15`. Notifications are private to their recipient: another member, including an administrator, cannot read or clear them. Push is delivered once per notification and only to a device the member turned on; a module never handles push subscriptions.
+
 ## Setup and settings
 
 If `setup.required` is true, the module owns and persists its setup state. Homi hosts that setup flow and does not present the module as configured until required setup is complete.
