@@ -89,9 +89,9 @@ match the validated local artifacts byte for byte. No test records/accounts were
 added to the production household.
 
 Verified pre-install recovery set:
-~/Homi-backups/shopping-20260928-145637
+<backup directory>
 Off-server verified copy:
-~/Homi-backups/shopping-20260928-145637
+<backup directory>
 Contains full database dump, managed-module archive, deployed-source archive,
 image identities and checksums. Calendar/Chequebook data fingerprints before and
 after installation are identical. Prior Web image tag:
@@ -203,5 +203,5 @@ identical module-data and card-preference fingerprints; browser acceptance
 passed all 14 checks including an immediate add-then-tick reaching the server
 and a real two-device conflict staying reviewable across sync cycles and a
 reload until "Keep shared version"; rollback restored production's state
-exactly. The production bundle is ~/Homi-deploy/cardstyles on the server; the
+exactly. The production bundle is the release deployment directory on the server; the
 earlier a49b652 bundle is kept as cardstyles-SUPERSEDED-a49b652.
