@@ -194,6 +194,35 @@ async function apiData<T>(
   return body.data as T;
 }
 
+async function postData<T>(
+  context: HomiWebModuleHostContext,
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      ...headers(context),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await readJson(response);
+  if (!response.ok) {
+    throw responseError(
+      body,
+      "Chequebook could not save this information.",
+    );
+  }
+  if (!isObject(body) || !Object.hasOwn(body, "data")) {
+    throw new Error(
+      "Chequebook response shape is invalid.",
+    );
+  }
+  return body.data as T;
+}
+
 async function putData<T>(
   context: HomiWebModuleHostContext,
   path: string,
@@ -223,8 +252,17 @@ async function putData<T>(
   return body.data as T;
 }
 
+// Unposted occurrences older than this drop off "Coming up".
+const LATE_LOOKBACK_DAYS = 90;
+
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function daysAgo(days: number): string {
+  const value = new Date(today() + "T00:00:00Z");
+  value.setUTCDate(value.getUTCDate() - days);
+  return value.toISOString().slice(0, 10);
 }
 
 function monthKey(date = today()): string {
@@ -798,6 +836,10 @@ function ChequebookPage({
   const [rules, setRules] = useState<
     readonly ChequebookRecurringRule[]
   >([]);
+  const [occurrenceStates, setOccurrenceStates] =
+    useState<
+      readonly ChequebookRecurringOccurrence[]
+    >([]);
   const [limits, setLimits] = useState<
     readonly ChequebookBudgetLimit[]
   >([]);
@@ -1047,6 +1089,22 @@ function ChequebookPage({
       setAccounts(setup.accounts);
       setCategories(setup.categories);
       setTransactions(nextTransactions);
+      void apiData<
+        readonly ChequebookRecurringOccurrence[]
+      >(
+        context,
+        `/api/v1/modules/chequebook/recurring-occurrences?start=${daysAgo(
+          LATE_LOOKBACK_DAYS,
+        )}&end=${monthEnd(addMonths(monthKey(), 2))}`,
+      )
+        .then((states) =>
+          setOccurrenceStates(
+            states.filter(
+              (item) => item.status !== "pending",
+            ),
+          ),
+        )
+        .catch(() => undefined);
       setRules(nextRules);
       setLimits(nextLimits);
       setSummary(nextSummary);
@@ -1796,6 +1854,105 @@ function ChequebookPage({
     [accountFilter, month, transactions],
   );
 
+  async function resolveOccurrence(
+    occurrence: ChequebookRecurringOccurrence,
+    action: "skip" | "link" | "restore",
+    transactionId?: string,
+    success?: string,
+  ): Promise<void> {
+    try {
+      await postData(
+        context,
+        "/api/v1/modules/chequebook/recurring-occurrences/resolve",
+        {
+          ruleId: occurrence.ruleId,
+          occurrenceDate: occurrence.occurrenceDate,
+          action,
+          transactionId,
+        },
+      );
+      await refreshOnline();
+      setMessage(
+        success ??
+          "Coming up has been updated.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Chequebook could not update this item.",
+      );
+    }
+  }
+
+  const resolvedKeys = useMemo(
+    () =>
+      new Map(
+        occurrenceStates.map((item) => [
+          item.ruleId + ":" + item.occurrenceDate,
+          item,
+        ]),
+      ),
+    [occurrenceStates],
+  );
+
+  const skippedOccurrences = useMemo(
+    () =>
+      occurrenceStates.filter(
+        (item) => item.status === "skipped",
+      ),
+    [occurrenceStates],
+  );
+
+  // A register entry that looks like the missing occurrence: same type,
+  // amount and account, dated shortly before to well after the due date,
+  // and not already tied to a recurring item.
+  function possibleMatch(
+    occurrence: ChequebookRecurringOccurrence,
+  ): ChequebookTransaction | null {
+    const taken = new Set(
+      occurrenceStates
+        .map((item) => item.postedTransactionId)
+        .filter((id) => id !== null),
+    );
+    const earliest = new Date(
+      occurrence.occurrenceDate + "T00:00:00Z",
+    );
+    earliest.setUTCDate(earliest.getUTCDate() - 7);
+    const from = earliest.toISOString().slice(0, 10);
+    const rule = rules.find(
+      (item) => item.id === occurrence.ruleId,
+    );
+    return (
+      transactions
+        .filter(
+          (item) =>
+            item.recurringRuleId === null &&
+            !taken.has(item.id) &&
+            item.kind === occurrence.kind &&
+            Number(item.amount) ===
+              Number(occurrence.amount) &&
+            item.accountId ===
+              occurrence.accountId &&
+            (rule === undefined ||
+              item.transferAccountId ===
+                rule.transferAccountId) &&
+            item.date >= from,
+        )
+        .sort(
+          (a, b) =>
+            Math.abs(
+              Date.parse(a.date) -
+                Date.parse(occurrence.occurrenceDate),
+            ) -
+            Math.abs(
+              Date.parse(b.date) -
+                Date.parse(occurrence.occurrenceDate),
+            ),
+        )[0] ?? null
+    );
+  }
+
   const upcoming = useMemo(() => {
     const posted = new Set(
       transactions
@@ -1813,7 +1970,7 @@ function ChequebookPage({
     );
     return expandRecurringRules(
       rules,
-      today(),
+      daysAgo(LATE_LOOKBACK_DAYS),
       monthEnd(addMonths(monthKey(), 2)),
     )
       .filter(
@@ -1822,10 +1979,15 @@ function ChequebookPage({
             item.ruleId +
               ":" +
               item.occurrenceDate,
+          ) &&
+          !resolvedKeys.has(
+            item.ruleId +
+              ":" +
+              item.occurrenceDate,
           ),
       )
       .slice(0, 30);
-  }, [rules, transactions]);
+  }, [rules, transactions, resolvedKeys]);
 
   const currency =
     settings?.currency ?? "CAD";
@@ -1842,9 +2004,12 @@ function ChequebookPage({
         .cheq-list{display:grid;gap:8px}
         .cheq-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
         .cheq-row button{width:100%;text-align:left}
+        .cheq-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
         .cheq-amount{font-weight:800;white-space:nowrap}
         .cheq-expense{color:var(--homi-danger,#b42318)}
         .cheq-income{color:var(--homi-success,#067647)}
+        .cheq-row.is-late{color:var(--homi-danger,#b42318);background:color-mix(in srgb,var(--homi-danger,#b42318) 10%,transparent);border:1px solid var(--homi-danger,#b42318);border-radius:8px;padding:6px 8px}
+        .cheq-row.is-late .cheq-muted{color:inherit}
         .cheq-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
         .cheq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
         .cheq-form{display:grid;gap:14px}
@@ -2255,8 +2420,10 @@ function ChequebookPage({
             <p className="cheq-muted">
               Post an occurrence when it
               actually enters or leaves the
-              account. Forecasting will stop
-              counting it as pending.
+              account. Skip one that will not
+              happen this time. Either way,
+              forecasting will stop counting
+              it as pending.
             </p>
             <div className="cheq-list">
               {upcoming.length === 0 ? (
@@ -2266,9 +2433,20 @@ function ChequebookPage({
                 </p>
               ) : (
                 upcoming.map(
-                  (occurrence) => (
+                  (occurrence) => {
+                    const late =
+                      occurrence.occurrenceDate <
+                      today();
+                    const match = possibleMatch(
+                      occurrence,
+                    );
+                    return (
                     <div
-                      className="cheq-row"
+                      className={
+                        late
+                          ? "cheq-row is-late"
+                          : "cheq-row"
+                      }
                       key={
                         occurrence.ruleId +
                         occurrence.occurrenceDate
@@ -2279,24 +2457,114 @@ function ChequebookPage({
                           {occurrence.label}
                         </strong>
                         <div className="cheq-muted">
-                          {
-                            occurrence.occurrenceDate
-                          }
+                          {late
+                            ? "LATE · " +
+                              occurrence.occurrenceDate
+                            : occurrence.occurrenceDate}
                         </div>
+                        {match !== null && (
+                          <div className="cheq-muted">
+                            Register has{" "}
+                            {match.description} on{" "}
+                            {match.date} for{" "}
+                            {formatMoney(
+                              match.amount,
+                              currency,
+                              locale,
+                            )}
+                            . Already paid?
+                          </div>
+                        )}
                       </span>
-                      <Button
-                        variant="secondary"
-                        onClick={() =>
-                          openNewTransaction(
-                            occurrence,
-                          )
+                      <span className="cheq-actions">
+                        {match !== null && (
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              void resolveOccurrence(
+                                occurrence,
+                                "link",
+                                match.id,
+                                "Marked as already posted.",
+                              )
+                            }
+                          >
+                            Posted
+                          </Button>
+                        )}
+                        <Button
+                          variant="secondary"
+                          onClick={() =>
+                            openNewTransaction(
+                              occurrence,
+                            )
+                          }
+                        >
+                          Post
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          disabled={!online}
+                          onClick={() =>
+                            void resolveOccurrence(
+                              occurrence,
+                              "skip",
+                              undefined,
+                              "Skipped. It won't count toward forecasts.",
+                            )
+                          }
+                        >
+                          Skip
+                        </Button>
+                      </span>
+                    </div>
+                    );
+                  },
+                )
+              )}
+              {skippedOccurrences.length > 0 && (
+                <details>
+                  <summary className="cheq-muted">
+                    Skipped (
+                    {skippedOccurrences.length})
+                  </summary>
+                  {skippedOccurrences.map(
+                    (occurrence) => (
+                      <div
+                        className="cheq-row"
+                        key={
+                          occurrence.ruleId +
+                          occurrence.occurrenceDate
                         }
                       >
-                        Post
-                      </Button>
-                    </div>
-                  ),
-                )
+                        <span>
+                          <strong>
+                            {occurrence.label}
+                          </strong>
+                          <div className="cheq-muted">
+                            {
+                              occurrence.occurrenceDate
+                            }
+                          </div>
+                        </span>
+                        <Button
+                          variant="secondary"
+                          disabled={!online}
+                          onClick={() =>
+                            void resolveOccurrence(
+                              occurrence,
+                              "restore",
+                              undefined,
+                              "Restored to Coming up.",
+                            )
+                          }
+                        >
+                          Restore
+                        </Button>
+                      </div>
+                    ),
+                  )}
+                </details>
               )}
             </div>
           </Surface>

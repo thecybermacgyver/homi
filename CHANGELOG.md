@@ -2,6 +2,21 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.4 — 2026-10-22
+
+### Modules
+- **Chequebook 0.1.30:** the "Already posted" button in Coming up is now just "Posted" so the row has more room. Web-only; no Core restart.
+
+## 1.5.3 — 2026-10-22
+
+### Modules
+- **Chequebook 0.1.29:** each item in Coming up can be skipped (with a Restore list), and an item you already entered by hand is detected in the register and can be marked "Already posted" instead of being posted twice. Deleting a linked transaction reopens the item. Needs a Core restart to load the new server code.
+
+## 1.5.2 — 2026-10-22
+
+### Modules
+- **Chequebook 0.1.28:** a recurring item whose date has passed no longer disappears from Coming up. It stays in the list, turns red and is labelled LATE until you post it (items up to 90 days overdue are kept).
+
 ## 1.5.1 — 2026-10-15
 
 ### Modules

@@ -966,6 +966,12 @@ async function applyTransactionMutation(
       [context.householdId, input.entityId],
     );
     const row = result.rows[0]!;
+    await database.query(
+      `UPDATE mod_chequebook.recurring_occurrences
+       SET status='pending',posted_transaction_id=NULL,updated_at=now()
+       WHERE posted_transaction_id=$1::uuid`,
+      [input.entityId],
+    );
     if (
       current.recurringRuleId !== null &&
       current.recurringOccurrenceDate !== null
@@ -2002,6 +2008,68 @@ export function createHomiServerModule(
             end,
           ),
         };
+      });
+
+      app.post("/api/v1/modules/chequebook/recurring-occurrences/resolve", async (request) => {
+        const context = await requestContext(host, request);
+        const body = object(request.body);
+        const ruleId = uuid(body.ruleId, "ruleId");
+        const occurrenceDate = dateOnly(body.occurrenceDate, "occurrenceDate");
+        const action = body.action;
+        if (action !== "skip" && action !== "link" && action !== "restore") {
+          throw httpError(400, "CHEQUEBOOK_OCCURRENCE_ACTION_INVALID", "Choose skip, link or restore.");
+        }
+        const ruleResult = await database.query<RecurringRow>(
+          `SELECT ${RECURRING_SELECT} FROM mod_chequebook.recurring_rules
+           WHERE household_id=$1::uuid AND id=$2::uuid AND deleted_at IS NULL`,
+          [context.householdId, ruleId],
+        );
+        const ruleRow = ruleResult.rows[0];
+        if (!ruleRow) throw httpError(404, "CHEQUEBOOK_RECURRING_NOT_FOUND", "Recurring transaction not found.");
+        const occurrence = expandRecurringRules(
+          [recurringState(ruleRow)],
+          occurrenceDate,
+          occurrenceDate,
+        )[0];
+        if (!occurrence || occurrence.occurrenceDate !== occurrenceDate) {
+          throw httpError(400, "CHEQUEBOOK_OCCURRENCE_INVALID", "That date is not an occurrence of this recurring transaction.");
+        }
+        let status: "pending" | "posted" | "skipped" = "pending";
+        let transactionId: string | null = null;
+        if (action === "skip") {
+          status = "skipped";
+        } else if (action === "link") {
+          transactionId = uuid(body.transactionId, "transactionId");
+          const tx = await database.query(
+            `SELECT 1 FROM mod_chequebook.transactions
+             WHERE household_id=$1::uuid AND id=$2::uuid AND deleted_at IS NULL`,
+            [context.householdId, transactionId],
+          );
+          if (tx.rows.length !== 1) {
+            throw httpError(404, "CHEQUEBOOK_TRANSACTION_NOT_FOUND", "Transaction not found.");
+          }
+          status = "posted";
+        } else {
+          const existing = await database.query<{ status: string }>(
+            `SELECT status FROM mod_chequebook.recurring_occurrences
+             WHERE recurring_rule_id=$1::uuid AND occurrence_date=$2::date`,
+            [ruleId, occurrenceDate],
+          );
+          if (existing.rows[0]?.status === "posted") {
+            throw httpError(409, "CHEQUEBOOK_OCCURRENCE_POSTED", "Delete the posted transaction to reopen this occurrence.");
+          }
+        }
+        await database.query(
+          `INSERT INTO mod_chequebook.recurring_occurrences
+           (recurring_rule_id,occurrence_date,status,posted_transaction_id,updated_at)
+           VALUES ($1::uuid,$2::date,$3,$4::uuid,now())
+           ON CONFLICT (recurring_rule_id,occurrence_date)
+           DO UPDATE SET status=EXCLUDED.status,
+             posted_transaction_id=EXCLUDED.posted_transaction_id,
+             updated_at=now()`,
+          [ruleId, occurrenceDate, status, transactionId],
+        );
+        return { data: { ruleId, occurrenceDate, status, postedTransactionId: transactionId } };
       });
 
       app.get("/api/v1/modules/chequebook/budget-limits", async (request) => {
