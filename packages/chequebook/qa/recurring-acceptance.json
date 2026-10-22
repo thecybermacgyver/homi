@@ -1,0 +1,17 @@
+{
+  "suite": "chequebook-coming-up-1.0.0",
+  "version": "0.1.30",
+  "date": "2026-10-22T13:56:30.864Z",
+  "passed": 9,
+  "results": [
+    "overdue recurring items stay in Coming up, turn red, say LATE and keep a Post button; future ones are not late",
+    "a hand-entered register transaction with the same amount and account is offered as a match; unrelated items are not",
+    "Posted links the register entry, removes the item and changes no balance",
+    "Skip removes the item, lists it under Skipped, and a second device sees the linked and skipped state",
+    "Restore returns a skipped item to Coming up, still marked late",
+    "Post from a late row creates the transaction, updates the balance and removes the item",
+    "deleting the linked register entry reopens the item in Coming up",
+    "Coming up has no horizontal overflow at phone, tablet and desktop widths",
+    "no JavaScript page errors"
+  ]
+}

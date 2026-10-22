@@ -7,6 +7,9 @@ All notable changes to Homi are recorded here, newest first. Homi follows semant
 ### Modules
 - **Chequebook 0.1.30:** the "Already posted" button in Coming up is now just "Posted" so the row has more room. Web-only; no Core restart.
 
+### Certification
+- **Chequebook 0.1.30** passed the offline multi-user suite (11/11) and the new `packages/chequebook/qa/recurring-acceptance.mjs` Coming up suite (9/9) on an isolated stack with the exact published package (digest sha256:20418d31…), and is marked verified in signed directory release `module-directory-2026.10.22.1`.
+
 ## 1.5.3 — 2026-10-22
 
 ### Modules

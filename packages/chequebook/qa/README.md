@@ -19,3 +19,11 @@ across full browser restarts, reconnect without self-conflicts, balances that
 equal the server's on every device, reviewable stale-edit conflicts, and
 responsive layout. `browser-acceptance.json` records the latest passing run.
 `replay-deleted-acceptance.mjs` is the separate deleted-history replay check.
+
+`recurring-acceptance.mjs` (same isolated stack and credentials) covers the
+Coming up list: overdue items stay listed in red with LATE and a Post button,
+a hand-entered register transaction is offered as a match and can be marked
+Posted without changing any balance, items can be skipped and restored with the
+state shared by a second device, Post from a late row, deleting a linked
+transaction reopens the item, and layout. `recurring-acceptance.json` records
+the latest passing run.
