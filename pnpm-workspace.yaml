@@ -9,6 +9,12 @@ allowBuilds:
 # better-auth pulls in zod; versions before 4.6.6 can exhaust memory validating oversized collections.
 overrides:
   zod: ^4.6.6
+  # Patched releases for the remaining pnpm audit advisories (fast-uri is resolved in two major lines).
+  'fast-uri@<4': ^3.1.9
+  'fast-uri@>=4': ^4.2.3
+  fastify: 5.12.6
+  # drizzle-kit's loader pins an old esbuild; only used by the db:generate tool.
+  '@esbuild-kit/core-utils>esbuild': 0.25.10
 
 minimumReleaseAgeExclude:
   - '@better-auth/core@1.7.5'
