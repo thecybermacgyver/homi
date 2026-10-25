@@ -8,7 +8,7 @@ All notable changes to Homi are recorded here, newest first. Homi follows semant
 - **K.I.S.S. 0.4.3:** a "The past week" section under the Daily Question lists the last seven days, newest first, so a missed day can be looked back on. A day you both answered shows both answers; a day you missed can be answered there, which opens your partner's answer for that day. Privacy is unchanged: the server still withholds a partner's answer until you have answered that same day. A caught-up day counts toward the streak. Web-only; no Core restart.
 
 ### Certification
-- K.I.S.S. 0.4.3 passed the two-account acceptance suite (18/18, five new past-week checks) and the axe pass (28 screens, 0 violations) on an isolated stack with the Core and web images that production runs.
+- K.I.S.S. 0.4.3 passed the two-account acceptance suite (18/18, five new past-week checks) and the axe pass (28 screens, 0 violations) on an isolated stack with the Core and web images that production runs, using the exact published package (digest sha256:81562070…), and is marked verified in signed directory release `module-directory-2026.10.25.1`.
 
 ## 1.5.4 — 2026-10-22
 
