@@ -4,10 +4,12 @@
 // members (calendar-second@ and noticeboard-second@example.invalid, same
 // password) who become the partners. All data is invented.
 //   HOMI_TEST_CREDENTIALS=... HOMI_TEST_PROFILES=<fresh dir> HOMI_TEST_CHROME=/usr/bin/google-chrome \
+//     HOMI_TEST_STACK_DIR=<stack compose dir> [HOMI_TEST_SSH=<host>] \
 //     HOMI_TEST_URL=http://localhost:3200 node packages/kiss/qa/acceptance.mjs
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 const ROOT=new URL('./',import.meta.url).pathname;
 const env=Object.fromEntries(readFileSync(process.env.HOMI_TEST_CREDENTIALS,'utf8').trim().split('\n').map(s=>{const i=s.indexOf('=');return [s.slice(0,i),s.slice(i+1).replace(/^"|"$/g,'')];}));
 const base=process.env.HOMI_TEST_URL??'http://localhost:3200';
@@ -17,6 +19,12 @@ const run=Date.now().toString().slice(-7);
 const PW=env.HOMI_BOOTSTRAP_PASSWORD,errors=[],results=[],contexts=[];
 const pass=s=>{results.push(s);console.log('PASS',s);};
 const SECRET='Secret answer '+run, NOTE='Love note '+run;
+const ago=n=>new Date(Date.now()-n*86400000).toISOString().slice(0,10);
+// Past-week fixtures are written straight to the isolated stack's database. HOMI_TEST_SSH is the ssh host that runs the stack
+// and HOMI_TEST_STACK_DIR its compose directory; with no HOMI_TEST_SSH the stack is local.
+const sql=q=>{const cmd='cd '+process.env.HOMI_TEST_STACK_DIR+' && docker compose exec -T db psql -U homi_bootstrap -d homi -At -v ON_ERROR_STOP=1';
+  return (process.env.HOMI_TEST_SSH?execFileSync('ssh',[process.env.HOMI_TEST_SSH,cmd],{input:q}):execFileSync('sh',['-c',cmd],{input:q})).toString();};
+if(!process.env.HOMI_TEST_STACK_DIR)throw new Error('Set HOMI_TEST_STACK_DIR to the isolated stack compose directory');
 async function launch(label,width=390){const ctx=await chromium.launchPersistentContext(profiles+'/p-'+label+'-'+run,{headless:true,viewport:{width,height:844},executablePath:process.env.HOMI_TEST_CHROME??undefined});contexts.push(ctx);const p=ctx.pages()[0]??await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));return {ctx,p};}
 async function login(d,email){await d.p.goto(base);await d.p.getByLabel('Email',{exact:true}).fill(email);await d.p.getByLabel('Password',{exact:true}).fill(PW);await d.p.getByRole('button',{name:'Sign in',exact:true}).click();await d.p.getByLabel('Email',{exact:true}).waitFor({state:'detached',timeout:20000}).catch(async e=>{throw new Error('sign-in failed for '+email+': '+(await d.p.locator('body').innerText()).slice(0,300));});await d.p.waitForTimeout(800);}
 async function openKiss(d){await d.p.goto(base);await d.p.getByRole('button',{name:/Modules/}).first().click();await d.p.getByRole('dialog').getByRole('button',{name:'K.I.S.S.'}).first().click();await d.p.getByRole('heading',{name:'K.I.S.S.',exact:true}).waitFor({timeout:20000});await d.p.waitForTimeout(800);}
@@ -32,6 +40,7 @@ pass('before pairing the administrator sees only Settings, with no private tabs'
 await tab(admin,'Settings').click().catch(()=>{});
 await admin.p.getByLabel('First partner').selectOption({label:'calendar-second'});
 await admin.p.getByLabel('Second partner').selectOption({label:'noticeboard-second'});
+await admin.p.getByLabel('Together since').fill(ago(5));
 await admin.p.getByRole('button',{name:'Start K.I.S.S.'}).click();
 await openKiss(a);await openKiss(b);
 await poll(async()=>await tab(a,'Today').count(),'partner A sees the tabs');await poll(async()=>await tab(b,'Today').count(),'partner B sees the tabs');
@@ -58,6 +67,31 @@ await a.p.getByRole('img',{name:/Streak: 1 day/}).waitFor();
 pass('the streak heart shows a 1 day streak after both answered');
 const adAfter=await api(admin,'/answers');assert(!adAfter.text.includes(SECRET)&&!adAfter.text.includes('Reply '+run));
 pass('the administrator still receives neither answer');
+// past week
+const seed=(day,who,body)=>`insert into mod_kiss.answers (id,household_id,day,question_id,body,resonance,author_person_id) select gen_random_uuid(),p.household_id,current_date-${day},'l-1','${body}',3,p.id from core.household_people p where p.display_name='${who}';`;
+const PAST3A='Three days ago A '+run,PAST3B='Three days ago B '+run,PAST2B='Hidden past B '+run,PAST2A='Catching up A '+run;
+sql(seed(3,'calendar-second',PAST3A)+seed(3,'noticeboard-second',PAST3B)+seed(2,'noticeboard-second',PAST2B));
+await openKiss(a);
+const week=a.p.locator('section[aria-label="The past week"]'),rows=week.locator('button.kiss-chip');
+await week.waitFor({timeout:20000});
+assert.equal(await rows.count(),5,'five days since the pairing began, today excluded');
+assert.match(await rows.nth(2).innerText(),/Both answered/);assert.match(await rows.nth(1).innerText(),/Not answered yet/);
+pass('the past week lists each day since the pairing began, newest first, with its status');
+await rows.nth(2).click();await week.getByText(PAST3A).waitFor();await week.getByText(PAST3B).waitFor();
+pass('a day both answered shows both answers');
+const hidden=await api(a,'/answers');assert(!hidden.text.includes(PAST2B),'A must not receive B\'s past answer before answering that day');
+assert(!(await a.p.content()).includes(PAST2B));
+pass('a partner\'s answer for a day you missed stays withheld by the server');
+await rows.nth(1).click();await a.p.locator('#kiss-past-'+ago(2)).fill(PAST2A);
+await week.getByRole('button',{name:'Lock in my answer'}).click();
+await week.getByText(PAST2B).waitFor({timeout:20000});
+assert.match(await rows.nth(1).innerText(),/Both answered/);
+pass('catching up on a missed day opens the partner\'s answer for that day');
+await rows.nth(0).click();await a.p.locator('#kiss-past-'+ago(1)).fill('Yesterday '+run);
+await week.getByRole('button',{name:'Lock in my answer'}).click();
+await week.getByText('has not answered this one',{exact:false}).waitFor({timeout:20000});
+const adPast=await api(admin,'/answers');assert(!adPast.text.includes(PAST2A)&&!adPast.text.includes(PAST2B)&&!adPast.text.includes(PAST3A));
+pass('a caught-up day with no reply waits for the partner, and the administrator receives none of the past answers');
 // check-in
 await tab(a,'Check-in').click();await a.p.getByRole('button',{name:'Share check-in'}).click();
 await poll(async()=>(await api(b,'/checkins')).text.includes('battery'),'partner sees the check-in');

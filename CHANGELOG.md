@@ -2,6 +2,14 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.5 — 2026-10-25
+
+### Modules
+- **K.I.S.S. 0.4.3:** a "The past week" section under the Daily Question lists the last seven days, newest first, so a missed day can be looked back on. A day you both answered shows both answers; a day you missed can be answered there, which opens your partner's answer for that day. Privacy is unchanged: the server still withholds a partner's answer until you have answered that same day. A caught-up day counts toward the streak. Web-only; no Core restart.
+
+### Certification
+- K.I.S.S. 0.4.3 passed the two-account acceptance suite (18/18, five new past-week checks) and the axe pass (28 screens, 0 violations) on an isolated stack with the Core and web images that production runs.
+
 ## 1.5.4 — 2026-10-22
 
 ### Modules

@@ -7,6 +7,7 @@ import { Button, FormField, Select, Switch, Tabs, TextArea, TextField } from "@h
 import { KISS_MODULE_KEY, LIMITS, PHASES, type Phase } from "./constants.js";
 import { ADVICE, prompt as promptFor, questionById, questionFor, streakOf, vibeMatch } from "./engine.js";
 import { Dates } from "./dates.js";
+import { History } from "./history.js";
 import { Intimacy } from "./intimacy.js";
 import { LOGO } from "./logo.js";
 import { Quizzes } from "./quizzes.js";
@@ -596,6 +597,9 @@ function KissPage(props: HomiWebModuleSurfaceProps) {
                 <div className="kiss-card"><p>K.I.S.S. has not been set up for you. Ask a household administrator to pair the two partners.</p></div>
               )}
               {me && active === "today" && ready && <Today data={data} props={props} day={day} />}
+              {me && ctx && active === "today" && ready && me.partnership && (
+                <History ctx={ctx} answers={data.answers} day={day} phase={me.partnership.phase} startedOn={me.partnership.startedOn} />
+              )}
               {me && active === "checkin" && ready && <CheckIn data={data} day={day} />}
               {me && active === "notes" && ready && <Notes data={data} />}
               {me && ctx && active === "dates" && ready && <Dates ctx={ctx} dates={data.dates} />}

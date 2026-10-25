@@ -1,6 +1,6 @@
 {
   "suite": "kiss-two-account",
-  "date": "2026-10-15T22:19:50.764Z",
+  "date": "2026-10-25T15:02:58.393Z",
   "passed": [
     "before pairing the administrator sees only Settings, with no private tabs",
     "the administrator pairs two members and both partners get the full space",
@@ -10,6 +10,11 @@
     "once both answered each sees both answers with a Vibe Match",
     "the streak heart shows a 1 day streak after both answered",
     "the administrator still receives neither answer",
+    "the past week lists each day since the pairing began, newest first, with its status",
+    "a day both answered shows both answers",
+    "a partner's answer for a day you missed stays withheld by the server",
+    "catching up on a missed day opens the partner's answer for that day",
+    "a caught-up day with no reply waits for the partner, and the administrator receives none of the past answers",
     "a check-in reaches the partner and not the administrator",
     "a love note reaches the partner and not the administrator",
     "Dates, Quizzes and Passion tabs open without errors",
