@@ -6,6 +6,10 @@ packages:
 allowBuilds:
   esbuild: true
 
+# better-auth pulls in zod; versions before 4.6.6 can exhaust memory validating oversized collections.
+overrides:
+  zod: ^4.6.6
+
 minimumReleaseAgeExclude:
   - '@better-auth/core@1.7.5'
   - '@better-auth/drizzle-adapter@1.7.5'
