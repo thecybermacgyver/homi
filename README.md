@@ -1,6 +1,8 @@
 # Homi
 
-Homi is a self-hosted, server-authoritative household platform. Core provides identity, households, permissions, offline synchronization, a responsive shell, and a public module SDK. Household features are independently packaged modules that install through the managed lifecycle instead of being compiled into Core.
+**Homi is a self-hosted family organizer.** Run it on your own server and your household gets a shared family calendar, a chequebook, a shopping list, a meal planner, a noticeboard and a large-screen Family Board dashboard, all in one installable app that keeps working offline. Your family's data stays on your hardware.
+
+Under the hood, Homi is a self-hosted, server-authoritative household platform. Core provides identity, households, permissions, offline synchronization, a responsive shell, and a public module SDK. Household features are independently packaged modules that install through the managed lifecycle instead of being compiled into Core.
 
 > Project status: **Homi 1.0**. Core, Calendar, Chequebook, and Shopping List are in everyday household use, and clean-machine installation passes. Homi is published under AGPL-3.0; see the [changelog](CHANGELOG.md) and [roadmap](docs/ROADMAP.md).
 
