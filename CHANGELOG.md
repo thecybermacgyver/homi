@@ -2,16 +2,18 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
-## 1.5.6 — 2026-11-06
-
-### Modules
-- **Calendar 0.6.24:** the event Notes field is a large multi-line box (about 240px, resizable, larger text) that scrolls within itself, instead of a single line. The 5000-character limit is unchanged. Web-only; installed on production without a Core restart.
+## 1.5.7 — 2026-11-06
 
 ### Security
 - **Core:** `better-auth` and `@better-auth/drizzle-adapter` 1.7.5 → 1.7.7, fixing the advisories that failed the `pnpm audit` Validate check on `main`. Verified on an isolated stack (sign-in, password suite, Calendar suite) before production.
 
 ### Directory
 - Calendar 0.6.24 is `verified` in the signed directory (`module-directory-2026.11.06.1`); the audit of every release passes.
+
+## 1.5.6 — 2026-11-06
+
+### Modules
+- **Calendar 0.6.24:** the event Notes field is a large multi-line box (about 240px, resizable, larger text) that scrolls within itself, instead of a single line. The 5000-character limit is unchanged. Web-only; installed on production without a Core restart.
 
 ## 1.5.5 — 2026-10-25
 
