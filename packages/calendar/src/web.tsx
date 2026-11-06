@@ -27,6 +27,7 @@ import {
   SetupLayout,
   Surface,
   Tabs,
+  TextArea,
   TextField,
 } from "@homi/ui";
 import { CALENDAR_MODULE_KEY } from "./constants.js";
@@ -1930,6 +1931,7 @@ function CalendarPage({
         .homi-calendar-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
         .homi-calendar-checkboxes{display:flex;flex-wrap:wrap;gap:10px}
         .homi-calendar-checkboxes label{display:flex;align-items:center;gap:6px}
+        .homi-ui-textarea.homi-calendar-notes{min-height:240px;height:40vh;max-height:60vh;overflow-y:auto;resize:vertical;font-size:1.05rem;line-height:1.55;padding:14px;white-space:pre-wrap}
         .homi-calendar-editor-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
         @media(max-width:760px){.homi-calendar-month-cell{min-height:72px;padding:5px}.homi-calendar-month-events{display:none}.homi-calendar-month-dots{display:flex}.homi-calendar-form-grid{grid-template-columns:1fr}.homi-calendar-upcoming-row{grid-template-columns:5px 72px minmax(0,1fr)}.homi-calendar-upcoming-row>span:last-child{display:none}.homi-calendar-toolbar__nav input[type=date]{max-width:142px}}
       `}</style>
@@ -2546,8 +2548,11 @@ function CalendarPage({
               </Surface>
 
               <FormField label="Notes" htmlFor="calendar-editor-notes">
-                <TextField
+                <TextArea
                   id="calendar-editor-notes"
+                  className="homi-calendar-notes"
+                  rows={10}
+                  maxLength={5000}
                   value={editor.notes}
                   onChange={(event) => setEditor({ ...editor, notes: event.currentTarget.value })}
                 />

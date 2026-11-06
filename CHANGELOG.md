@@ -2,6 +2,11 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.6 — 2026-11-06
+
+### Modules
+- **Calendar 0.6.24:** the event Notes field is a large multi-line box (about 240px, resizable, larger text) that scrolls within itself, instead of a single line. The 5000-character limit is unchanged. Web-only; installed on production without a Core restart.
+
 ## 1.5.5 — 2026-10-25
 
 ### Modules
