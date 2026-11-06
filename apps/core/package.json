@@ -19,10 +19,10 @@
     "notifications:validate": "pnpm build && node scripts/validate-notification-push.mjs"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "1.7.5",
+    "@better-auth/drizzle-adapter": "1.7.7",
     "@homi/db": "workspace:*",
     "@homi/module-sdk": "workspace:*",
-    "better-auth": "1.7.5",
+    "better-auth": "1.7.7",
     "drizzle-orm": "0.45.2",
     "fastify": "5.12.4",
     "pg": "8.23.0"
