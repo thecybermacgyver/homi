@@ -7,6 +7,12 @@ All notable changes to Homi are recorded here, newest first. Homi follows semant
 ### Modules
 - **Calendar 0.6.24:** the event Notes field is a large multi-line box (about 240px, resizable, larger text) that scrolls within itself, instead of a single line. The 5000-character limit is unchanged. Web-only; installed on production without a Core restart.
 
+### Security
+- **Core:** `better-auth` and `@better-auth/drizzle-adapter` 1.7.5 → 1.7.7, fixing the advisories that failed the `pnpm audit` Validate check on `main`. Verified on an isolated stack (sign-in, password suite, Calendar suite) before production.
+
+### Directory
+- Calendar 0.6.24 is `verified` in the signed directory (`module-directory-2026.11.06.1`); the audit of every release passes.
+
 ## 1.5.5 — 2026-10-25
 
 ### Modules
