@@ -2,6 +2,17 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.10 — 2026-11-07
+
+### Fixed
+- **Modules and the header icon were lost when the app updated itself.** The service worker kept the saved module files and brand images in the same versioned cache as the app shell and deleted that whole cache whenever its version changed, so a device that updated while online and was then offline showed "Some modules could not be loaded" and no header icon until it next loaded Homi online. Module files now live in their own cache (`homi-modules-v1`) that an update never deletes, and an update copies the module files and brand images saved by the previous version across before removing the old cache. The header icon (`/brand/homi_icon.png`) is now saved when the worker installs, like the logos already were. The shell cache is `homi-shell-v24` and the worker registers as `/sw.js?v=24`.
+- `apps/web/qa/service-worker-outage-acceptance.mjs` now has 12 checks, adding the icon and logos saved on install, saved modules surviving an upgrade from the previous worker, and saved brand images surviving it.
+
+## 1.5.9 — 2026-11-07
+
+### Fixed
+- **A signed-in device showed the sign-in screen when the server was down.** Homi 1.5.8 let the installed app open from its saved copy, but the app then asked the server whether it was signed in, got the proxy's HTML error page, and took that for "signed out" (tapping Sign in then said the authentication response was not valid JSON). The app's offline mode, which keeps a device signed in on its saved household, only starts when a request fails like a dropped network, and a proxy error page does not. The service worker now turns a 5xx HTML error page on any `/api/` or `/health/` request, GET or POST, into a failed network call, so a device that has signed in once opens straight into its saved data and syncs when the server returns. Homi's own JSON answers (a 401, a 500 with JSON) still reach the app unchanged.
+
 ## 1.5.8 — 2026-11-07
 
 ### Fixed
