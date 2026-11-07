@@ -4,6 +4,13 @@ Run only against dedicated localhost acceptance stacks with fixture accounts and
 invented data. Never use a real household database.
 
 - `board-layout-acceptance.mjs`, `password-acceptance.mjs`: Family Board arranging and password flows.
+- `service-worker-outage-acceptance.mjs`: installed app during a server outage.
+  Self-contained (no stack, no database, no credentials): it serves the real
+  `public/sw.js` from a throwaway localhost server, lets a Chromium page cache
+  the app shell, then returns proxy 521/522/502 errors and a never-answering
+  origin and checks the app still opens from its saved copy. It also checks a
+  genuine 404 is not masked and a healthy server refreshes the saved copy.
+  Optionally set `HOMI_TEST_CHROME` to a Chrome/Chromium path.
 - `pwa-update-acceptance.mjs`: PWA install and update. One persistent browser
   profile acts as an installed device and is never cleared. The script checks
   the manifest and Chrome's installability report, then upgrades the stack

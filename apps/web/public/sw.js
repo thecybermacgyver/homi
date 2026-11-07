@@ -1,4 +1,20 @@
-const SHELL_CACHE = "homi-shell-v20";
+const SHELL_CACHE = "homi-shell-v21";
+// When the server is down, Cloudflare (or any proxy) still answers, with a 5xx
+// error page. That is a successful fetch as far as the browser is concerned,
+// so only a thrown error used to reach the offline fallback. Treat a 5xx or a
+// slow answer as "offline" whenever there is a saved copy to fall back to.
+const NAVIGATION_TIMEOUT_MS = 5000;
+const isServerFailure = (response) => response.status >= 500;
+async function fetchWithTimeout(request, timeoutMs, init) {
+  if (!timeoutMs) return fetch(request, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(request, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 const STATIC_SEEDS = [
   "/manifest.webmanifest",
   "/brand/homi_icon_192.png",
@@ -57,7 +73,9 @@ self.addEventListener("fetch", (event) => {
       try {
         const response = await fetch(request, { cache: "no-store" });
         if (response.ok) await cache.put(request, response.clone());
-        return response;
+        if (!isServerFailure(response)) return response;
+        const cached = await cache.match(request, { ignoreSearch: true });
+        return cached ?? response;
       } catch {
         const cached = await cache.match(request, { ignoreSearch: true });
         if (cached) return cached;
@@ -77,7 +95,9 @@ self.addEventListener("fetch", (event) => {
       try {
         const response = await fetch(request, { cache: "no-store" });
         if (response.ok) await cache.put(request, response.clone());
-        return response;
+        if (!isServerFailure(response)) return response;
+        const cached = await cache.match(request);
+        return cached ?? response;
       } catch {
         const cached = await cache.match(request);
         if (cached) return cached;
@@ -90,14 +110,17 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL_CACHE);
+      const cached = await cache.match("/");
       try {
-        const response = await fetch(request);
+        // With no saved copy there is nothing better to show, so wait as long as it takes.
+        const response = await fetchWithTimeout(request, cached ? NAVIGATION_TIMEOUT_MS : 0);
         if (response.ok) {
           await cache.put("/", response.clone());
+          return response;
         }
+        if (cached && isServerFailure(response)) return cached;
         return response;
       } catch {
-        const cached = await cache.match("/");
         if (cached) return cached;
         throw new Error("Homi application shell is unavailable offline.");
       }

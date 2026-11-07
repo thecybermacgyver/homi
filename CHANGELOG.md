@@ -2,6 +2,12 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.5.8 — 2026-11-07
+
+### Fixed
+- **The installed app did not open when the server was down.** When Homi's server was unreachable, Cloudflare (or any proxy in front of Homi) answered with its own 5xx error page, and the service worker handed that page to the device instead of the saved copy of Homi, so the installed app on a phone or desktop showed "Web server is down" instead of working offline. The service worker now falls back to its saved app shell (and saved module assets and runtime) when the answer is a server error (5xx), and when a server that is reachable but not answering takes longer than five seconds. Real errors below 500 (a genuine 404, a sign-in 401) are still shown as they are, and with no saved copy yet the first visit still waits for the server. The shell cache is now `homi-shell-v21` and the worker registers as `/sw.js?v=21`, so each installed device picks the fix up the next time it opens Homi while the server is up.
+- New self-contained regression check `apps/web/qa/service-worker-outage-acceptance.mjs` (proxy errors 521, 522 and 502, a server that never answers, a genuine 404 not masked, and a healthy server refreshing the saved copy); it fails on the previous worker.
+
 ## 1.5.7 — 2026-11-06
 
 ### Security

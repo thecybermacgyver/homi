@@ -4,6 +4,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 
 ## Included
 
+- Offline start during an outage (1.5.8): the installed app opens from its saved copy when the server is down or not answering, even when a proxy such as Cloudflare answers with its own error page; each device picks this up the next time it opens Homi online.
 - Notifications (1.5): a bell with an unread count among the floating buttons opens each member's inbox, and a member can turn on notifications per device so reminders (Calendar's, for one) arrive as push notifications even when Homi is closed. Delivery is standard Web Push, implemented in Core.
 - K.I.S.S. 0.4.3: a private module for two partners (daily question that reveals when both have answered, a week of past questions to look back on or catch up on, a daily-answer streak, check-ins, love notes, date nights, daily quizzes, a private Yes/No/Maybe checklist). Not yet in the verified directory.
 - Homi Core with accounts, households, permissions, audited changes, offline-first synchronization, PWA delivery, backup/recovery, and the managed module platform.
