@@ -11,7 +11,10 @@ import {
 } from "react";
 import {
   HOMI_FAMILY_BOARD_COLUMNS,
+  HOMI_FAMILY_BOARD_GRANULARITY,
   HOMI_FAMILY_BOARD_MAX_ROW,
+  HOMI_FAMILY_BOARD_MIN_CARD_CELLS,
+  snapToFamilyBoardGrid,
   resolveHomiFamilyBoardCardLimits,
   type HomiFamilyBoardCardLimits,
   type HomiFamilyBoardLayout,
@@ -81,6 +84,13 @@ function changed(
   );
 }
 
+// A measurement in cells, shown without trailing zeros (2.375 stays 2.375).
+const cells = (value: number): string => String(Math.round(value * 1000) / 1000);
+
+// Line numbers on the fine CSS grid (8 lines per cell) for a placement.
+const fine = (value: number): number =>
+  Math.round(value * HOMI_FAMILY_BOARD_GRANULARITY);
+
 const EDGE_SCROLL_ZONE = 56;
 const EDGE_SCROLL_STEP = 14;
 
@@ -133,19 +143,21 @@ export function FamilyBoardGrid({
     if (!editing) setDrag(null);
   }, [editing]);
 
+  // Steps are per whole cell. The grid's negative margin makes its width
+  // exactly (columns x cell pitch), so no gap arithmetic is needed.
   function metrics(): Metrics | null {
     const grid = gridRef.current;
     if (!grid) return null;
     const style = window.getComputedStyle(grid);
-    const columnGap = Number.parseFloat(style.columnGap) || 0;
-    const rowGap = Number.parseFloat(style.rowGap) || 0;
     const row = Number.parseFloat(
       style.getPropertyValue("--homi-board-row"),
     ) || 56;
-    const width = grid.clientWidth;
+    const gap = Number.parseFloat(
+      style.getPropertyValue("--homi-board-gap"),
+    ) || 16;
     return {
-      columnStep: (width - columnGap * (columns - 1)) / columns + columnGap,
-      rowStep: row + rowGap,
+      columnStep: grid.clientWidth / columns,
+      rowStep: row + gap,
     };
   }
 
@@ -166,8 +178,10 @@ export function FamilyBoardGrid({
     const measured = metrics();
     const cardLimits = limits.get(current.key);
     if (!measured || !cardLimits) return null;
-    const columnsMoved = Math.round(dx / measured.columnStep);
-    const rowsMoved = Math.round(dy / measured.rowStep);
+    // Fractions of a cell, to the nearest 1/8: the card follows the pointer
+    // closely instead of jumping a whole cell at a time.
+    const columnsMoved = snapToFamilyBoardGrid(dx / measured.columnStep);
+    const rowsMoved = snapToFamilyBoardGrid(dy / measured.rowStep);
     const origin = current.origin;
     return fitPlacement(
       current.mode === "move"
@@ -178,8 +192,8 @@ export function FamilyBoardGrid({
           }
         : {
             ...origin,
-            w: Math.max(1, origin.w + columnsMoved),
-            h: Math.max(1, origin.h + rowsMoved),
+            w: Math.max(HOMI_FAMILY_BOARD_MIN_CARD_CELLS, origin.w + columnsMoved),
+            h: Math.max(HOMI_FAMILY_BOARD_MIN_CARD_CELLS, origin.h + rowsMoved),
           },
       cardLimits,
       columns,
@@ -263,8 +277,8 @@ export function FamilyBoardGrid({
       event.shiftKey
         ? {
             ...current,
-            w: Math.max(1, current.w + across),
-            h: Math.max(1, current.h + down),
+            w: Math.max(HOMI_FAMILY_BOARD_MIN_CARD_CELLS, current.w + across / 2),
+            h: Math.max(HOMI_FAMILY_BOARD_MIN_CARD_CELLS, current.h + down / 2),
           }
         : {
             ...current,
@@ -279,8 +293,8 @@ export function FamilyBoardGrid({
     );
     if (sameFamilyBoardPlacement(current, next)) return;
     setAnnouncement(
-      `${item.label}: column ${next.x + 1}, row ${next.y + 1}, ` +
-        `${next.w} wide by ${next.h} tall.`,
+      `${item.label}: column ${cells(next.x + 1)}, row ${cells(next.y + 1)}, ` +
+        `${cells(next.w)} wide by ${cells(next.h)} tall.`,
     );
     void save(placeFamilyBoardCard(shown, item.key, next));
   }
@@ -303,15 +317,18 @@ export function FamilyBoardGrid({
         `homi-family-board__grid--${layout}`,
         editing ? "is-editing" : "",
       ].join(" ")}
-      style={{ "--homi-board-columns": columns } as CSSProperties}
+      style={{
+        "--homi-board-columns": columns,
+        "--homi-board-fine-columns": columns * HOMI_FAMILY_BOARD_GRANULARITY,
+      } as CSSProperties}
     >
       {drag && dragged && (
         <div
           className="homi-family-board__drop-target"
           aria-hidden="true"
           style={{
-            gridColumn: `${dragged.x + 1} / span ${dragged.w}`,
-            gridRow: `${dragged.y + 1} / span ${dragged.h}`,
+            gridColumn: `${fine(dragged.x) + 1} / span ${fine(dragged.w)}`,
+            gridRow: `${fine(dragged.y) + 1} / span ${fine(dragged.h)}`,
           }}
         />
       )}
@@ -328,8 +345,8 @@ export function FamilyBoardGrid({
             ].join(" ")}
             data-family-board-card={item.key}
             style={{
-              gridColumn: `${placement.x + 1} / span ${placement.w}`,
-              gridRow: `${placement.y + 1} / span ${placement.h}`,
+              gridColumn: `${fine(placement.x) + 1} / span ${fine(placement.w)}`,
+              gridRow: `${fine(placement.y) + 1} / span ${fine(placement.h)}`,
               ...(active && follow ? { transform: follow } : {}),
             }}
           >
@@ -342,7 +359,7 @@ export function FamilyBoardGrid({
                 role="group"
                 tabIndex={0}
                 aria-label={
-                  `${item.label}, ${placement.w} wide by ${placement.h} tall. ` +
+                  `${item.label}, ${cells(placement.w)} wide by ${cells(placement.h)} tall. ` +
                   "Arrow keys move the card; Shift with arrow keys resizes it."
                 }
                 onPointerDown={(event) => beginDrag(event, item.key, "move")}

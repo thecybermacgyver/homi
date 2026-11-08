@@ -537,27 +537,35 @@
 }
 
 /* Cards sit on a grid of equal columns (8 wide, 4 on a phone) and
-   fixed-height rows. Each card's cell comes from the member's saved layout,
-   so empty cells stay empty and the gaps between cards stay even. */
+   fixed-height rows, measured in cells. Positions and sizes may be any multiple
+   of 1/8 of a cell, so the grid underneath is 8 times finer in both directions
+   (--homi-board-fine-columns is columns x 8); a member sizes a card almost
+   continuously. The spacing between cards is a margin on each card, so it stays
+   even at any size, and the grid's negative margin gives the board its edge. */
 .homi-family-board__grid {
   --homi-board-row: 56px;
+  --homi-board-gap: 16px;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--homi-board-columns, 8), minmax(0, 1fr));
-  grid-auto-rows: var(--homi-board-row);
-  gap: 16px;
+  grid-template-columns: repeat(var(--homi-board-fine-columns, 64), minmax(0, 1fr));
+  grid-auto-rows: calc((var(--homi-board-row) + var(--homi-board-gap)) / 8);
+  gap: 0;
+  margin: calc(var(--homi-board-gap) / -2);
 }
 
 .homi-family-board__grid--phone {
   --homi-board-row: 52px;
-  gap: 12px;
+  --homi-board-gap: 12px;
 }
 
 .homi-family-board__cell {
   position: relative;
+  margin: calc(var(--homi-board-gap) / 2);
   min-width: 0;
   min-height: 0;
   display: grid;
+  /* The card fills the cell exactly, however tall its contents are. */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   container-type: size;
 }
 
@@ -698,6 +706,7 @@
 }
 
 .homi-family-board__drop-target {
+  margin: calc(var(--homi-board-gap) / 2);
   border: 2px dashed rgba(249, 247, 241, 0.86);
   border-radius: 18px;
   background: rgba(249, 247, 241, 0.2);
@@ -807,6 +816,24 @@
   box-shadow:
     0 2px 3px rgba(34, 31, 31, 0.08),
     0 7px 14px rgba(34, 31, 31, 0.09);
+}
+
+/* A card whose module declared frame "none": no box, title or padding. The
+   module's surface fills the board cell and draws its own edges and shadow. */
+.homi-family-card--bare {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  cursor: pointer;
+}
+
+.homi-family-card--bare:focus-visible {
+  outline: 3px solid var(--homi-primary-action, #2b6cb0);
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 
 .homi-family-card--module-link {
@@ -1409,4 +1436,27 @@
 .homi-notifications__actions {
   display: flex;
   gap: 4px;
+}
+
+/* A card's contents scale to fill the card. The host takes the cell's exact
+   size and clips; the content inside is laid out at (card width / scale). */
+.homi-family-board__cell .homi-family-module-surface.homi-family-module-surface--fit {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.homi-fit {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.homi-fit__content {
+  transform-origin: 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homi-fit__content > * {
+  flex: 1 0 auto;
 }

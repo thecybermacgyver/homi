@@ -2,6 +2,80 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.9.1 — 2026-11-08
+
+### Fixed
+- **The Weather card did not scale properly.** With cards now free to be any size, the Weather card refused to be shorter than about 104 pixels, so a smaller card spilled out of its box over its neighbours, and a bigger one grew its icon while the text stayed small. Weather 0.1.5 draws the card at one natural size (fixed type, a fixed-width icon, no minimum height) and declares `"fit": "scale"`, so Homi scales the whole card to its box: the card fills its box exactly at every size from half a cell to a tall or very wide card, nothing touches the edge or is cut off, and the icon, temperature and words grow together. Which detail rows appear (the button, the high and low, the next hours and days) depends on the card's real size.
+- **The Current card named the whole city.** For a position in a district of an amalgamated city (Scarborough, in Toronto) it named the whole city while its link, which goes by coordinates, went to the district. The place name now comes from the local community (`zoom=14`: hamlet, village, town, suburb or city district), shown with the city when they differ ("Scarborough, Toronto"); a plain town or city is shown with its province as before. The approximate location now asks geojs.io first (in testing it named the right community where ipwho.is named a larger city nearby) with ipwho.is as the backup.
+- **Scale-to-fit** now also treats text wider than the card as not fitting (strictly, with no rounding allowance), and the host no longer clips, so a scaled surface keeps its shadow.
+
+### Verification
+- New `packages/weather/qa/browser-sizes.mjs` renders the card at 16 sizes on a monitor and a phone layout in Chrome with Homi's real styles and scale-to-fit: it fills its box to within 1.5 px, nothing touches the edge, the conditions are never cut off, and the temperature grows with the card (23 < 41 < 65 px on a monitor). `qa/server-check.mjs` now also names a recorded Toronto-district position "Scarborough, Toronto" and covers the new service order.
+
+## 1.9.0 — 2026-11-08
+
+### Changed
+- **Smooth resizing and moving.** Cards used to snap to a whole cell, and on a monitor a cell is about 220 pixels wide (the board has 8 columns), so resizing felt chunky and the contents of a card scaled in big jumps. A card's position and size may now be any multiple of 1/8 of a cell (a card can be 2 3/8 cells wide) and can be as small as half a cell, so dragging a corner or moving a card follows the pointer in steps of about 28 pixels across and 7 down on a monitor (about 11 and 6 on a phone). Layouts already saved (whole cells) render exactly as before, and the spacing between cards is unchanged. The keyboard still moves a card by a whole cell and resizes it by half a cell.
+- **How:** the Dashboard grid is 8 times finer underneath (`apps/web/src/FamilyBoardGrid.tsx`, `platform-shell.css`), the gap between cards is now a margin on each card so it stays even at any size, and `HOMI_FAMILY_BOARD_GRANULARITY`, `HOMI_FAMILY_BOARD_MIN_CARD_CELLS` and `snapToFamilyBoardGrid` are exported by the SDK. Saved layouts keep their shape (x, y, w, h in cells), so no saved layout is rewritten and devices holding the old layouts need no refresh. Migration `0014_card_layout_fine_grid.sql` relaxes the layout constraints to multiples of 1/8 (no smaller than half a cell, within the board, at most 40 rows tall); it only relaxes them and is safe to run twice. Documented in `docs/MODULE_AUTHORING.md`.
+
+### Verification
+- `apps/web/qa/board-fine-resize-acceptance.mjs` drags a card's corner and body on the real board in Chrome: whole-cell layouts render exactly as before (card sizes and the gap, on a monitor and a phone); eight small drags gave eight different widths with the biggest jump 21 px where a whole cell is 171 px; the saved sizes are multiples of 1/8; moving is fine-grained; nothing overlaps. The migration was tested on an isolated Postgres against the production state (whole numbers kept, eighths accepted; a fraction that is not an eighth, a card smaller than half a cell, a negative position, a card past the board edge, an extra key or a text value still refused) and `apps/core/scripts/validate-member-module-preferences-57.mjs` passes on a fresh database with fractional layouts.
+
+## 1.8.2 — 2026-11-08
+
+### Fixed
+- **Resizing a card taller than 12 rows could not be saved.** 1.8.0 freed card sizes in the app and in Core's own check, but the database still carried the original rule that a saved card layout is at most 12 rows tall, so enlarging a card (the Noticeboard, for one) was refused by the database and the device kept retrying every few seconds (`ck_core_member_module_preferences_wide_layout` violated, an error line in the Core log each time). Migration `0013_card_layout_any_size.sql` replaces the phone and wide layout constraints with the same rules and a limit of 40 rows; it only relaxes them, so every saved layout stays valid, and it is safe to run twice. A retrying device saves its resize as soon as the migration is applied.
+- `apps/core/scripts/validate-member-module-preferences-57.mjs` (database-backed) now runs through the freed rules, saves a 40-row card on both layouts, and passed against a fresh database with all migrations applied.
+
+## 1.8.1 — 2026-11-08
+
+### Fixed
+- **Cards were enlarged twice.** 1.8.0 scaled every card's contents to fit, but the Noticeboard, Shopping List, Meal Planner, Calendar, Chequebook and Weather cards were already built to adapt to their card, so on a real Dashboard they came out oversized (giant pins and buttons, a giant checkbox, cut-off text). The default of the manifest field `fit` is now `"native"` (the surface is given the card's exact size and adapts itself, as every module was built to) and `"scale"` is the opt-in for a surface that cannot adapt. Cards can still be any size from one cell to the whole board. A scaled surface now stretches to the full card, so a background it draws fills the whole card.
+- **Weather found no location without GPS.** When the device cannot give a precise position (no GPS or location service, a timeout, or the member said no) the Current card now uses an estimate of the nearest city from the internet connection, labelled "Approximate location", and a precise position still wins whenever the device can give one. The Weather page offers "Use precise location". Weather 0.1.4. The estimate comes from the Homi server, which asks ipwho.is (and geojs.io as a backup) about the visitor's public address, or about the household's own connection when the visitor is on the home network; it is at best city level and can name a nearby city. See `packages/weather/README.md`.
+
+### Changed
+- **Calendar 0.6.25 and Chequebook 0.1.31:** their Dashboard cards sit on Homi's own cream (`--card-cream`, the colour of the shopping-list notepad) with a soft border and shadow, so they read as cards on the green Family Board now that the frame is gone.
+
+### Verification
+- `packages/weather/qa/browser-location.mjs` (5 scenarios in Chrome: no GPS, location refused, not yet asked, precise position wins, estimate service down) and the extended `qa/server-check.mjs` (address handling, both services, backup, failure) cover the location fallback; `apps/web/qa/card-fit-acceptance.mjs` now also checks a scaled surface fills its card.
+
+## 1.8.0 — 2026-11-08
+
+### Changed
+- **The Dashboard draws no frame around cards.** Every module card now appears without Homi's white box, title, module name and sparkle, so the Noticeboard's cork board, the Meal Planner's coloured rows, the Shopping List's notepad and the Weather cards sit directly on the Family Board. Choosing an empty part of a card still opens the module. A module can ask for the old titled card per card with `"frame": "card"` (the default of `frame` is now `"none"`).
+- **Any card size, from one cell to the whole board.** A member can resize any card to any size that fits their phone, monitor or screen (up to 8 columns, or 4 on a phone, and 40 rows). A module's declared `size.min` and `size.max` are still accepted in a manifest but no longer limit the member; `size.default` is the starting size. The saved-layout check in Core uses the same rule.
+- **Card contents shrink and expand to fit the card.** New manifest field `extensions.familyBoard[].fit`: `"scale"` (the default) lays the card's surface out and scales it so it fills whatever size the member chose, re-flowing rather than squashing and shrinking until even the widest word fits; `"native"` leaves a surface that adapts itself (Weather) at the card's exact size. Implemented in `apps/web/src/FitToCard.tsx`; no module needed a change. Documented in `docs/MODULE_AUTHORING.md`.
+
+### Fixed
+- The SDK now exports the `HomiFamilyBoardFrame` type that 1.7.0 added (and the new `HomiFamilyBoardFit`).
+
+### Weather 0.1.3
+- All six Weather cards declare `"fit": "native"`, since they size themselves.
+
+### Verification
+- `apps/web/qa/card-fit-acceptance.mjs` renders one list in cards from one cell to a full screen with Homi's real Dashboard styles in Chrome: the contents always fit inside the card with no word cut off, the text grows steadily with the card (5.8 px in one cell to 89.5 px in a full screen), a list that grows re-fits, and the layout settles. `packages/module-sdk/scripts/validate-contract.mjs` and the web tests cover the new size rules and `fit`. `apps/core/scripts/validate-member-module-preferences-57.mjs` (database-backed, not run here) is updated for the freed size rules.
+
+## 1.7.0 — 2026-11-07
+
+### Added
+- **Module cards can be drawn without Homi's frame.** A Family Board card in a module manifest may now declare `"frame": "none"`. Homi normally wraps every module card in a framed card with a title (`"frame": "card"`, still the default); a bare card has no box, title, padding or click-through, so the module draws its whole look, and the board still shows, hides, moves and resizes it and still lists it by its label in Settings, Manage modules. This is a public manifest and SDK change (`HomiFamilyBoardFrame`), documented in `docs/MODULE_AUTHORING.md` and covered by `packages/module-sdk/scripts/validate-contract.mjs`; existing modules are unchanged.
+
+### Changed
+- **Weather 0.1.2:** all six Weather cards are bare, so a weather card is just the weather card, with no white frame or "Weather: Current location" title around it.
+
+## 1.6.1 — 2026-11-07
+
+### Fixed
+- **Weather 0.1.1: the module failed to load** with "Failed to resolve module specifier \"react/jsx-runtime\"". The build rewrites the `react` imports to Homi's `/module-runtime/` paths only in the main web file, and the weather illustrations live in a second file that was missed, so the browser could not resolve React there and no Weather page or card could start. The build now rewrites both files, fails if any browser file imports a bare name, and a new check (`packages/weather/qa/browser-load.mjs`) loads the built module in Chrome with Homi's own runtime and confirms every page and Dashboard card is defined; it reproduces the original error on the 0.1.0 build.
+
+## 1.6.0 — 2026-11-07
+
+### Added
+- **Weather 0.1.0 (new module).** The weather where you are and for places you save, with a **Current** card that follows the device's location and up to five **Place** cards for saved places. Each member's saved places and settings are their own and follow them across their devices. A card changes colour and illustration with the weather and shows the temperature, chance of precipitation, conditions and place; "See full forecast" opens weather.com, yr.no or Windy for that place (each member chooses). A °C / °F switch sets temperature and wind units. The last forecast is kept on the device for offline use. Forecasts come from Open-Meteo through the Homi server; place search uses Open-Meteo geocoding and the Current card's place name uses OpenStreetMap Nominatim, all from the server, with coordinates rounded to two decimals, a per-member rate limit and a short cache. Installed by an administrator like any module. See `packages/weather/README.md`.
+
+### Changed
+- **Location is now allowed for Homi itself.** The web server's `Permissions-Policy` header changes from `geolocation=()` to `geolocation=(self)` so the Weather module can ask a member for their device's location. Camera and microphone stay off, and a device still asks its member first.
+
 ## 1.5.10 — 2026-11-07
 
 ### Fixed

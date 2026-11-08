@@ -4606,7 +4606,9 @@ async function boardState(
 // the card is tapped, so each card shows only its figure. Card cells are CSS
 // size containers, so the figure scales with the size the member chose.
 const boardCss = `
-.cheq-board { display: grid; align-content: center; gap: 4px; min-height: 100%; }
+/* Chequebook cards sit on Homi's own cream, like the Calendar and shopping-list cards. */
+.cheq-board { box-sizing: border-box; display: grid; align-content: center; gap: 4px; min-height: 100%; min-width: 0; padding: 14px 16px; color: var(--board-text, #221f1f); background: var(--card-cream, #f9f7f1); border: 1px solid rgba(34, 31, 31, 0.13); border-radius: 18px; box-shadow: 0 2px 3px rgba(34, 31, 31, 0.08), 0 7px 14px rgba(34, 31, 31, 0.09); }
+.homi-family-board__cell .homi-family-module-surface > .cheq-board { flex: 1 0 auto; min-height: 0; overflow: auto; scrollbar-width: thin; }
 .cheq-board-figure { font-size: clamp(1.5rem, 17cqi, 3rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .cheq-board-figure.is-positive { color: var(--homi-sage-strong, #3f6b4b); }
 .cheq-board-figure.is-negative { color: var(--homi-danger, #b3261e); }

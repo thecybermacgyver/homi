@@ -247,7 +247,10 @@ importers:
         version: 19.3.0(@types/react@19.3.0)
       '@vitejs/plugin-react':
         specifier: 6.1.1
-        version: 6.1.1(vite@8.2.4(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+        version: 6.1.1(vite@8.2.4(@types/node@24.13.4)(esbuild@0.25.10)(jiti@2.7.0)(tsx@4.23.15))
+      esbuild:
+        specifier: 0.25.10
+        version: 0.25.10
       fake-indexeddb:
         specifier: ^6.2.5
         version: 6.2.5
@@ -259,7 +262,7 @@ importers:
         version: 7.0.2
       vite:
         specifier: 8.2.4
-        version: 8.2.4(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+        version: 8.2.4(@types/node@24.13.4)(esbuild@0.25.10)(jiti@2.7.0)(tsx@4.23.15)
 
   packages/calendar:
     dependencies:
@@ -489,6 +492,37 @@ importers:
       react-dom:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/weather:
+    dependencies:
+      '@homi/module-sdk':
+        specifier: workspace:*
+        version: link:../module-sdk
+      '@homi/ui':
+        specifier: workspace:*
+        version: link:../ui
+      fastify:
+        specifier: 5.12.6
+        version: 5.12.6
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+    devDependencies:
+      '@types/node':
+        specifier: 24.13.4
+        version: 24.13.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.25.10
+        version: 0.25.10
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -3410,10 +3444,10 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@vitejs/plugin-react@6.1.1(vite@8.2.4(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))':
+  '@vitejs/plugin-react@6.1.1(vite@8.2.4(@types/node@24.13.4)(esbuild@0.25.10)(jiti@2.7.0)(tsx@4.23.15))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.2.4(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)
+      vite: 8.2.4(@types/node@24.13.4)(esbuild@0.25.10)(jiti@2.7.0)(tsx@4.23.15)
 
   abstract-logging@2.0.1: {}
 
@@ -4197,7 +4231,7 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  vite@8.2.4(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15):
+  vite@8.2.4(@types/node@24.13.4)(esbuild@0.25.10)(jiti@2.7.0)(tsx@4.23.15):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
@@ -4206,7 +4240,7 @@ snapshots:
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 24.13.4
-      esbuild: 0.28.2
+      esbuild: 0.25.10
       fsevents: 2.3.3
       jiti: 2.7.0
       tsx: 4.23.15

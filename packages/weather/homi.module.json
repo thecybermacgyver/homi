@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "moduleKey": "weather",
+  "name": "Weather",
+  "publisher": "Homi",
+  "version": "0.1.5",
+  "moduleApiVersion": 1,
+  "description": "Weather for where you are and the places you save. Each member keeps their own saved places; a Current card follows the device's location and up to five place cards show the places you choose on the Dashboard.",
+  "entrypoints": {
+    "server": "./dist/server.js",
+    "web": "./dist/web.js"
+  },
+  "database": {
+    "schema": "mod_weather",
+    "migrations": "./migrations"
+  },
+  "coreCapabilities": [
+    "localization",
+    "sync"
+  ],
+  "requestedPermissions": [
+    "household.read"
+  ],
+  "navigation": [
+    {
+      "id": "weather",
+      "label": "Weather",
+      "path": "/modules/weather",
+      "icon": "cloud"
+    }
+  ],
+  "setup": {
+    "required": false,
+    "scope": "household"
+  },
+  "settings": {
+    "household": false,
+    "user": false
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": "./locales"
+  },
+  "sync": {
+    "entities": [
+      {
+        "entityType": "place",
+        "operations": [
+          "create",
+          "update",
+          "delete"
+        ]
+      },
+      {
+        "entityType": "preferences",
+        "operations": [
+          "create",
+          "update"
+        ]
+      }
+    ]
+  },
+  "broker": {
+    "provides": [],
+    "consumes": []
+  },
+  "extensions": {
+    "familyBoard": [
+      {
+        "surfaceId": "current",
+        "label": "Weather: Current location",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      },
+      {
+        "surfaceId": "place-1",
+        "label": "Weather: Place 1",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      },
+      {
+        "surfaceId": "place-2",
+        "label": "Weather: Place 2",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      },
+      {
+        "surfaceId": "place-3",
+        "label": "Weather: Place 3",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      },
+      {
+        "surfaceId": "place-4",
+        "label": "Weather: Place 4",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      },
+      {
+        "surfaceId": "place-5",
+        "label": "Weather: Place 5",
+        "slot": "weather-overview",
+        "size": {
+          "default": {
+            "w": 4,
+            "h": 3
+          },
+          "min": {
+            "w": 2,
+            "h": 2
+          },
+          "max": {
+            "w": 6,
+            "h": 5
+          }
+        },
+        "frame": "none",
+        "fit": "scale"
+      }
+    ],
+    "householdSettings": false,
+    "notifications": false,
+    "search": false
+  }
+}

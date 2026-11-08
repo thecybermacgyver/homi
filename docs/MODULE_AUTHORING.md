@@ -124,7 +124,53 @@ that member's devices. The card surface receives
 current module version no longer declares falls back to the default. Modules do
 not store or synchronise card presentation themselves.
 
+### Family Board card frame and fit
+
+Homi draws a Family Board card without a frame by default: no box, title or
+padding, so the module's surface is the card and the Dashboard looks clean.
+Choosing an empty part of a card still opens the module's page. A surface that
+offers its own links (a weather card that opens a forecast) stops the click from
+bubbling so only its own link acts. Give the surface an accessible name, because
+Homi prints no title; the card's `label` still names it in Settings, Manage
+modules.
+
+A module may ask for Homi's old framed card (a titled box) per card:
+
+```json
+{ "surfaceId": "current", "label": "Weather: Current", "slot": "weather-overview", "frame": "card" }
+```
+
+`frame` is `"none"` (the default) or `"card"`.
+
+How the contents follow the size the member gives the card is `fit`:
+
+- `"native"` (the default): the surface gets the card's exact size and adapts
+  itself, as a surface built with container queries and size-relative type does
+  (the cell is a CSS size container, as described below). This is how the
+  first-party cards are built. A surface that fills its card should fill the
+  whole cell, including any background it draws.
+- `"scale"`: for a surface that cannot adapt. Homi lays it out at a width of
+  (card width / scale) and scales it, choosing the largest scale at which
+  everything, including the widest word, fits inside the card. A bigger card
+  shows bigger content and a smaller card smaller content, and the layout
+  re-flows instead of being squashed. Do not use it on a surface that already
+  adapts to its card, or it is enlarged twice.
+
+```json
+{ "surfaceId": "tips", "label": "Tips", "slot": "noticeboard", "fit": "scale" }
+```
+
 ### Family Board card sizes
+
+A member can size any card from half a cell to the whole board, on every screen
+(up to 8 columns wide, or 4 on a phone, and 40 rows tall), in steps of 1/8 of a
+cell: resizing follows the pointer closely instead of jumping a whole cell. A
+saved position or size is therefore any multiple of 1/8 (a card can be 2 3/8
+cells wide); a module never sees this, because its surface is simply given the
+card's size. A manifest's `size.default` stays in whole cells. A manifest's
+`size.min` and `size.max` are still accepted but no longer limit the member;
+only `size.default`, the size a card starts at, matters. Because a card can be
+any size, the contents must follow it: a surface adapts itself to the size of its cell (`fit` "native"), or asks Homi to scale it (`fit` "scale"); see above.
 
 The Family Board is a grid: 8 columns on screens at least 720 px wide, 4 on
 phones, and fixed-height rows (56 px wide, 52 px on phones) with even gaps.

@@ -440,13 +440,15 @@ try {
     baseRevision: BigInt(cleared.serverRevision),
     payload: { wideLayout: { x: 0, y: 0, w: 5, h: 2 } },
   });
-  assert.equal(tooLarge.status, "rejected");
-  assert.equal(tooLarge.errorCode, "MODULE_PREFERENCE_LAYOUT_OUT_OF_BOUNDS");
+  // A card's declared max (4 x 4 here) no longer limits the member: any size
+  // that fits the board is accepted, so this 5-wide placement is applied.
+  assert.equal(tooLarge.status, "applied");
+  assert.deepEqual(tooLarge.serverState?.wideLayout, { x: 0, y: 0, w: 5, h: 2 });
   for (const payload of [
     { phoneLayout: { x: 1, y: 0, w: 4, h: 3 } },
-    { wideLayout: { x: 0, y: 0, w: 2, h: 13 } },
+    { wideLayout: { x: 0, y: 0, w: 2, h: 41 } },
     { wideLayout: { x: 0, y: 0, w: 2, h: 2, z: 1 } },
-    { wideLayout: { x: 0.5, y: 0, w: 2, h: 2 } },
+    { wideLayout: { x: 0.3, y: 0, w: 2, h: 2 } },
   ]) {
     await assert.rejects(
       () => preferences.applyMutation(contextA, {
@@ -468,6 +470,45 @@ try {
     payload: { wideLayout: { x: 0, y: 4, w: 8, h: 12 } },
   });
   assert.equal(undeclaredSize.status, "applied");
+  // The saved-layout rule in the database itself allows a card up to 40 rows
+  // tall (migration 0013); it used to stop at 12 and refuse the member's save.
+  const tallCard = await preferences.applyMutation(contextA, {
+    clientMutationId: crypto.randomUUID(),
+    entityId: aOne.id,
+    baseRevision: BigInt(undeclaredSize.serverRevision),
+    payload: { wideLayout: { x: 0, y: 4, w: 8, h: 40 }, phoneLayout: { x: 0, y: 4, w: 4, h: 40 } },
+  });
+  assert.equal(tallCard.status, "applied");
+  assert.deepEqual(tallCard.serverState?.wideLayout, { x: 0, y: 4, w: 8, h: 40 });
+  assert.deepEqual(tallCard.serverState?.phoneLayout, { x: 0, y: 4, w: 4, h: 40 });
+  // Positions and sizes may be any multiple of 1/8 of a cell (migration 0014), so a
+  // member resizing a card sees it follow the pointer closely; anything finer is refused.
+  const fineCard = await preferences.applyMutation(contextA, {
+    clientMutationId: crypto.randomUUID(),
+    entityId: aOne.id,
+    baseRevision: BigInt(tallCard.serverRevision),
+    payload: { wideLayout: { x: 0.5, y: 4.125, w: 2.375, h: 3.625 }, phoneLayout: { x: 0.125, y: 4, w: 3.875, h: 0.5 } },
+  });
+  assert.equal(fineCard.status, "applied");
+  assert.deepEqual(fineCard.serverState?.wideLayout, { x: 0.5, y: 4.125, w: 2.375, h: 3.625 });
+  assert.deepEqual(fineCard.serverState?.phoneLayout, { x: 0.125, y: 4, w: 3.875, h: 0.5 });
+  for (const payload of [
+    { wideLayout: { x: 0, y: 0, w: 2.3, h: 2 } },
+    { wideLayout: { x: 0, y: 0, w: 0.25, h: 2 } },
+    { phoneLayout: { x: 2, y: 0, w: 2.125, h: 2 } },
+  ]) {
+    await assert.rejects(
+      () => preferences.applyMutation(contextA, {
+        clientMutationId: crypto.randomUUID(),
+        entityId: aOne.id,
+        baseRevision: BigInt(fineCard.serverRevision),
+        payload,
+      }),
+      (error) =>
+        error instanceof HomiMemberModulePreferenceError &&
+        error.code === "MODULE_PREFERENCE_LAYOUT_INVALID",
+    );
+  }
 
   const aPlaced = (await preferences.list(contextA)).find(
     (item) => item.id === aSummary.id,
@@ -476,7 +517,9 @@ try {
     (item) => item.id === bSummary.id,
   );
   assert.equal(aPlaced?.phoneLayout, null);
-  assert.deepEqual(aPlaced?.wideLayout, { x: 6, y: 0, w: 2, h: 4 });
+  // The 5-wide placement that used to be refused for exceeding the card's declared
+  // max is now the saved layout.
+  assert.deepEqual(aPlaced?.wideLayout, { x: 0, y: 0, w: 5, h: 2 });
   assert.equal(bUnplaced?.wideLayout, null);
   assert.equal(
     (await sync.getChanges(contextB, 0n, 100)).changes.filter(

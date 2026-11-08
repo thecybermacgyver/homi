@@ -77,26 +77,35 @@ test("a card whose saved spot is now taken moves below instead of overlapping", 
   noOverlaps(arrangement);
 });
 
-test("saved places are fitted to the board and the module's limits", () => {
+test("saved places are fitted to the board, not to a module's declared limits", () => {
+  // A declared max of 4 x 3 no longer limits the member: the card keeps its
+  // size and only moves left so it stays on the board.
   assert.deepEqual(
     fitPlacement({ x: 7, y: 0, w: 6, h: 9 }, small, 8),
-    { x: 4, y: 0, w: 4, h: 3 },
+    { x: 2, y: 0, w: 6, h: 9 },
   );
+  // A card can be one column wide on a phone and as tall as the screen needs.
   const phone = resolveHomiFamilyBoardCardLimits(undefined, "phone");
   assert.deepEqual(
     fitPlacement({ x: 3, y: 2, w: 1, h: 4 }, phone, 4),
-    { x: 2, y: 2, w: 2, h: 4 },
+    { x: 3, y: 2, w: 1, h: 4 },
+  );
+  assert.deepEqual(
+    fitPlacement({ x: 0, y: 0, w: 9, h: 99 }, halfWidth, 8),
+    { x: 0, y: 0, w: 8, h: 40 },
   );
 });
 
-test("a card declared one column wide is never narrower than two on a phone", () => {
+test("any card can be half a cell on any screen, and starts at least two columns wide on a phone", () => {
   const size = {
     default: { w: 2, h: 2 },
     min: { w: 1, h: 2 },
     max: { w: 4, h: 6 },
   };
-  assert.equal(resolveHomiFamilyBoardCardLimits(size, "wide").min.w, 1);
-  assert.equal(resolveHomiFamilyBoardCardLimits(size, "phone").min.w, 2);
+  assert.deepEqual(resolveHomiFamilyBoardCardLimits(size, "wide").min, { w: 0.5, h: 0.5 });
+  assert.deepEqual(resolveHomiFamilyBoardCardLimits(size, "phone").min, { w: 0.5, h: 0.5 });
+  assert.deepEqual(resolveHomiFamilyBoardCardLimits(size, "wide").max, { w: 8, h: 40 });
+  assert.deepEqual(resolveHomiFamilyBoardCardLimits(size, "phone").max, { w: 4, h: 40 });
   assert.equal(
     resolveHomiFamilyBoardCardLimits(
       { ...size, default: { w: 1, h: 2 } },
@@ -135,4 +144,20 @@ test("moving a card away leaves its old space empty", () => {
   );
   const moved = placeFamilyBoardCard(start, "a", { x: 4, y: 0, w: 4, h: 4 });
   assert.deepEqual(moved.get("b"), { x: 0, y: 4, w: 4, h: 4 });
+});
+
+test("fractional placements pack, push and compare exactly", () => {
+  // Multiples of 1/8 are exact in binary, so overlap and push arithmetic is exact.
+  const a = { x: 0, y: 0, w: 2.375, h: 3.125 };
+  const b = { x: 2.375, y: 0, w: 1.625, h: 3.125 };
+  assert.equal(overlaps(a, b), false, "cards that meet edge to edge do not overlap");
+  assert.equal(overlaps(a, { ...b, x: 2.25 }), true);
+  const arrangement = new Map([["a", a], ["b", b]]);
+  const placed = placeFamilyBoardCard(arrangement, "a", { x: 1.5, y: 0.125, w: 2.375, h: 2.5 });
+  assert.deepEqual(placed.get("a"), { x: 1.5, y: 0.125, w: 2.375, h: 2.5 });
+  const pushed = placed.get("b")!;
+  assert.equal(pushed.x, 2.375);
+  assert.equal(pushed.y, 2.625, "the card it landed on moves straight down to just clear it (0.125 + 2.5)");
+  assert.equal(overlaps(placed.get("a")!, pushed), false);
+  assert.deepEqual(fitPlacement({ x: 7.5, y: 0, w: 2.375, h: 0.125 }, halfWidth, 8), { x: 5.625, y: 0, w: 2.375, h: 0.5 }, "kept on the board and no smaller than half a cell");
 });

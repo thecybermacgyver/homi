@@ -1,6 +1,6 @@
 # Homi
 
-**Homi is a self-hosted family organizer.** Run it on your own server and your household gets a shared family calendar, a chequebook, a shopping list, a meal planner, a noticeboard and a large-screen Family Board dashboard, all in one installable app that keeps working offline. Your family's data stays on your hardware.
+**Homi is a self-hosted family organizer.** Run it on your own server and your household gets a shared family calendar, a chequebook, a shopping list, a meal planner, weather, a noticeboard and a large-screen Family Board dashboard, all in one installable app that keeps working offline. Your family's data stays on your hardware.
 
 Under the hood, Homi is a self-hosted, server-authoritative household platform. Core provides identity, households, permissions, offline synchronization, a responsive shell, and a public module SDK. Household features are independently packaged modules that install through the managed lifecycle instead of being compiled into Core.
 
@@ -40,10 +40,11 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, a Modules pop-up launcher, Settings (with Manage modules), universal Search across all enabled modules, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.24`, Chequebook `0.1.30`, Shopping List `0.4.1`, Noticeboard `0.1.5`, Meal Planner `0.1.0`, and K.I.S.S. `0.4.3` (a private couples module)
+- Calendar `0.6.25`, Chequebook `0.1.31`, Shopping List `0.4.1`, Noticeboard `0.1.5`, Meal Planner `0.1.0`, Weather `0.1.5`, and K.I.S.S. `0.4.3` (a private couples module)
+- [Weather](packages/weather/README.md): the weather where you are (with an approximate fallback when a device has no precise location) and for places each member saves, on Dashboard cards that change colour and illustration with the conditions; each member's places are private to them
 - a notification inbox and opt-in device push notifications (Web Push) for every module's reminders
 - per-member Family Board card styles, chosen in Settings → Manage modules (for example Shopping's list or counts by store)
-- a Family Board grid each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts
+- a Family Board each member arranges by dragging and corner-resizing cards, with separate phone and wide-screen layouts: cards have no frame, can be any size from half a cell to the whole board in steps of 1/8 of a cell, and their contents grow and shrink to fit
 - administrators add household members in the app, with self-service password change and administrator password reset that require a new password at next sign-in
 - gated cross-module broker communication with install/enable guidance when a provider is unavailable
 - editable household Chequebook categories and bidirectional recurring Calendar/Chequebook entries
@@ -108,6 +109,8 @@ The two module installs are deliberately separate from the Core image lifecycle.
 
 Shopping List is not bundled in the Core image. Build it with `pnpm --filter @homi/shopping build`, copy `homi.module.json`, `package.json`, `dist`, `migrations`, and `locales` from `packages/shopping` into an empty directory, and install that directory as described in [Module installer operations](docs/MODULE_INSTALLER_OPERATIONS.md#install-or-update). The signed module directory currently offers the earlier Shopping List 0.2.2.
 
+Weather is not bundled in the Core image either. Build it with `pnpm --filter @homi/weather build`, copy `homi.module.json`, `package.json`, `dist`, `migrations`, and `locales` from `packages/weather` into an empty directory, and install that directory the same way, or download `weather-<version>.homi-module` from the [Weather release](https://github.com/thecybermacgyver/homi/releases) and extract it. Its forecasts, place search and place names are fetched by the Homi server from Open-Meteo, geojs.io, ipwho.is and OpenStreetMap Nominatim, never by a browser (see [the Weather README](packages/weather/README.md#outside-services) for exactly what is sent). The Current card asks the device for its location, which Homi's web server now allows for Homi itself (`Permissions-Policy: geolocation=(self)`).
+
 ### Adding household members
 
 After bootstrap, a Household Administrator adds each further member in the app: **Settings → Members → Add member**. Enter the person's name and email; Homi fills in a strong temporary password and creates their account immediately. Nothing is emailed, so give the person their email and the temporary password yourself. When they first sign in they must choose their own password, and the temporary one stops working. Members are regular members, and an administrator can reset a forgotten password from the same screen.
@@ -146,6 +149,7 @@ The installer never runs package-manager or arbitrary lifecycle scripts. It vali
 - `packages/shopping` — first-party Shopping List module
 - `packages/noticeboard` — first-party Noticeboard module
 - `packages/mealplanner` — first-party Meal Planner module
+- `packages/weather` — first-party Weather module
 - `templates/homi-module-template` — independent starter module
 
 ## Security and release status

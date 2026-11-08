@@ -54,6 +54,7 @@ import {
   FamilyBoardGrid,
   useFamilyBoardLayout,
 } from "./FamilyBoardGrid.js";
+import { FitToCard } from "./FitToCard.js";
 import {
   sameFamilyBoardPlacement,
   type FamilyBoardArrangement,
@@ -871,6 +872,8 @@ export function App() {
             label: contribution.label,
             slot: contribution.slot,
             size: contribution.size,
+            frame: contribution.frame ?? ("none" as const),
+            fit: contribution.fit ?? ("native" as const),
             surfaceId: contribution.surfaceId,
             surface:
               module.definition.familyBoard?.[
@@ -1355,6 +1358,63 @@ export function App() {
       }
     };
 
+    // The card's contents follow the size the member chose: given the card's
+    // exact size when the surface adapts by itself (the default, how every
+    // module was built), or laid out and scaled to fit when it asks for "scale".
+    const surfaceNode = (
+      <div
+        className={
+          contribution.fit === "scale"
+            ? "homi-family-module-surface homi-family-module-surface--fit"
+            : "homi-family-module-surface"
+        }
+      >
+        {(() => {
+          const surface = (
+            <ModuleSurface
+              context={moduleSurfaceContext}
+              actions={moduleActionsFor(
+                module.descriptor.moduleKey,
+              )}
+              {...(contribution.cardStyle === null
+                ? {}
+                : { presentation: { cardStyle: contribution.cardStyle } })}
+            />
+          );
+          return contribution.fit === "scale"
+            ? <FitToCard>{surface}</FitToCard>
+            : surface;
+        })()}
+      </div>
+    );
+
+    // Homi draws no frame or title by default; the module draws its whole look.
+    // Choosing an empty part of a card still opens the module, as it always did.
+    if (contribution.frame === "none" && !(requiresSetup && !configured)) {
+      return (
+        <article
+          key={[
+            module.descriptor.moduleKey,
+            contribution.surfaceId,
+          ].join(":")}
+          className="homi-family-card--bare"
+          aria-label={contribution.label}
+          role="link"
+          tabIndex={0}
+          onClick={openModule}
+          onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openModule();
+            }
+          }}
+        >
+          {surfaceNode}
+        </article>
+      );
+    }
+
     return (
       <article
         key={[
@@ -1410,17 +1470,7 @@ export function App() {
             </Button>
           </div>
         ) : (
-          <div className="homi-family-module-surface">
-            <ModuleSurface
-              context={moduleSurfaceContext}
-              actions={moduleActionsFor(
-                module.descriptor.moduleKey,
-              )}
-              {...(contribution.cardStyle === null
-                ? {}
-                : { presentation: { cardStyle: contribution.cardStyle } })}
-            />
-          </div>
+          surfaceNode
         )}
       </article>
     );

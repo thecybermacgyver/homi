@@ -1,0 +1,6 @@
+{
+  "module.name": "Weather",
+  "module.description": "Weather for where you are and the places you save.",
+  "page.title": "Weather",
+  "action.add": "Add a place"
+}

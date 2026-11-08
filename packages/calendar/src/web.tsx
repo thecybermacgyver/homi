@@ -3336,6 +3336,10 @@ function useSummary(
 // Family Board cards adapt to the size each member gives them. Homi makes
 // every card cell a CSS size container, so these rules use @container.
 const boardCss = `
+/* Calendar cards sit on Homi's own cream, the colour of the shopping-list notepad
+   and of Homi's framed cards, so they read as cards on the green Family Board. */
+.cal-surface { box-sizing: border-box; min-width: 0; padding: 14px 16px; color: var(--board-text, #221f1f); background: var(--card-cream, #f9f7f1); border: 1px solid rgba(34, 31, 31, 0.13); border-radius: 18px; box-shadow: 0 2px 3px rgba(34, 31, 31, 0.08), 0 7px 14px rgba(34, 31, 31, 0.09); }
+.homi-family-board__cell .homi-family-module-surface > .cal-surface { flex: 1 0 auto; min-height: 0; overflow: auto; scrollbar-width: thin; }
 .cal-board { display: grid; gap: 8px; min-height: 0; }
 .cal-board-headline { display: flex; align-items: baseline; gap: 8px; }
 .cal-board-count { font-size: clamp(1.8rem, 16cqi, 2.6rem); font-weight: 850; line-height: 1; }
@@ -3408,7 +3412,7 @@ function TodayCountCard({
         Date.now(),
   );
   return (
-    <div className="cal-board cal-board-today">
+    <div className="cal-surface cal-board cal-board-today">
       <BoardStyle />
       <div className="cal-board-headline">
         <span className="cal-board-count">{todayEvents.length}</span>
@@ -3452,7 +3456,7 @@ function ComingWeekCard({
     ]);
   }
   return (
-    <div className="cal-board">
+    <div className="cal-surface cal-board">
       <BoardStyle />
       {weekEvents.length === 0 ? (
         <span className="cal-board-empty">
@@ -3512,7 +3516,7 @@ function MiniMonthCard({
     }).format(new Date(Date.UTC(2023, 0, 1 + index))),
   );
   return (
-    <div>
+    <div className="cal-surface">
       <BoardStyle />
       <div className="cal-month-name">
         {new Intl.DateTimeFormat(context.locale, {

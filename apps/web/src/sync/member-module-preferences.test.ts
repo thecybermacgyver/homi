@@ -128,7 +128,7 @@ test("server preferences carry separate phone and wide placements", async () => 
 
   for (const invalid of [
     preference({ phoneLayout: { x: 4, y: 0, w: 4, h: 5 } }),
-    preference({ wideLayout: { x: 0, y: 0, w: 2, h: 13 } }),
+    preference({ wideLayout: { x: 0, y: 0, w: 2, h: 41 } }),
     preference({ wideLayout: { x: 0, y: 0, w: 2 } }),
   ]) {
     await assert.rejects(

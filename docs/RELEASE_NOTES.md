@@ -4,6 +4,10 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 
 ## Included
 
+- Smooth resizing (1.9): a card can be placed and sized in eighths of a cell, so dragging a corner follows the pointer instead of snapping a whole cell at a time.
+- Cleaner Dashboard (1.8): cards are drawn without Homi's frame or title, any card can be resized from one cell to the whole board, and its contents shrink or expand to fit. A module can still ask for the framed card (`frame: "card"`) or ask Homi to scale a surface that cannot adapt (`fit: "scale"`); by default a card sizes itself. Calendar and Chequebook cards sit on Homi's cream. Weather falls back to an approximate location from the internet connection when the device has no precise one.
+- Module cards without a frame (1.7): a module can declare `"frame": "none"` so its Family Board card is drawn bare. Weather 0.1.2 uses it.
+- Weather 0.1.0 (1.6): the weather where you are (a Current card that follows the device) and for up to five places each member saves, with cards that change colour and illustration with the conditions, a °C / °F switch, and the last forecast kept for offline. Each member's places are private to them.
 - Offline start during an outage (1.5.8 to 1.5.10): the installed app opens from its saved copy, and a device that has signed in once stays signed in on its saved household, when the server is down or not answering, even when a proxy such as Cloudflare answers with its own error page; each device picks this up the next time it opens Homi online.
 - Notifications (1.5): a bell with an unread count among the floating buttons opens each member's inbox, and a member can turn on notifications per device so reminders (Calendar's, for one) arrive as push notifications even when Homi is closed. Delivery is standard Web Push, implemented in Core.
 - K.I.S.S. 0.4.3: a private module for two partners (daily question that reveals when both have answered, a week of past questions to look back on or catch up on, a daily-answer streak, check-ins, love notes, date nights, daily quizzes, a private Yes/No/Maybe checklist). Not yet in the verified directory.

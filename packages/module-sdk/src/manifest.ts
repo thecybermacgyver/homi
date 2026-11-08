@@ -79,10 +79,26 @@ export interface HomiModuleFamilyBoardStyleManifest {
   label: string;
 }
 
+// How the Family Board draws a card: "card" (the default) wraps the module's
+// surface in Homi's framed card with a title; "none" draws the surface bare, so
+// the module owns the whole look of the card. The board still moves, resizes,
+// shows and hides a bare card like any other.
+export type HomiFamilyBoardFrame = "card" | "none";
+
+// How a card's contents follow the size the member gives it. "native" (the
+// default) gives the surface the card's exact size and leaves the module to
+// adapt itself, as surfaces built with container queries and size-relative type
+// do. "scale" is for a surface that cannot: Homi lays it out and scales it so it
+// fills the card, whatever the size. Never use "scale" on a surface that already
+// adapts, or it is enlarged twice.
+export type HomiFamilyBoardFit = "native" | "scale";
+
 export interface HomiModuleFamilyBoardManifest {
   surfaceId: string;
   label: string;
   slot: HomiFamilyBoardSlot;
+  frame?: HomiFamilyBoardFrame;
+  fit?: HomiFamilyBoardFit;
   // Card styles each member may choose between. The first is the default.
   styles?: readonly HomiModuleFamilyBoardStyleManifest[];
   // Default and allowed card size in wide-layout grid units.
@@ -594,7 +610,7 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
     assertKnownKeys(
       item,
       `extensions.familyBoard[${index}]`,
-      ["surfaceId", "label", "slot", "styles", "size"],
+      ["surfaceId", "label", "slot", "styles", "size", "frame", "fit"],
     );
 
     const surfaceId = text(
@@ -642,10 +658,33 @@ function parseExtensions(value: unknown): HomiModuleExtensionManifest {
             `extensions.familyBoard[${index}].size`,
           );
 
+    if (
+      item.frame !== undefined &&
+      item.frame !== "card" &&
+      item.frame !== "none"
+    ) {
+      throw new HomiModuleManifestError(
+        `extensions.familyBoard[${index}].frame must be "card" or "none".`,
+      );
+    }
+    const frame = item.frame as HomiFamilyBoardFrame | undefined;
+    if (
+      item.fit !== undefined &&
+      item.fit !== "scale" &&
+      item.fit !== "native"
+    ) {
+      throw new HomiModuleManifestError(
+        `extensions.familyBoard[${index}].fit must be "scale" or "native".`,
+      );
+    }
+    const fit = item.fit as HomiFamilyBoardFit | undefined;
+
     return Object.freeze({
       surfaceId,
       label,
       slot,
+      ...(frame === undefined ? {} : { frame }),
+      ...(fit === undefined ? {} : { fit }),
       ...(styles === undefined ? {} : { styles }),
       ...(size === undefined ? {} : { size }),
     });

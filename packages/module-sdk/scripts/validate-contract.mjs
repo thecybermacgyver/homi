@@ -6,6 +6,7 @@ import {
   HomiModuleManifestError,
   assertHomiModuleCompatibility,
   isHomiFamilyBoardPlacement,
+  snapToFamilyBoardGrid,
   resolveHomiFamilyBoardCardLimits,
   defineHomiServerModule,
   parseHomiModuleManifest,
@@ -263,20 +264,22 @@ assert.deepEqual(declaredSize, {
   min: { w: 2, h: 2 },
   max: { w: 6, h: 8 },
 });
+// A declared min and max are accepted but no longer limit the member: any card
+// can be any size from half a cell to the whole board.
 assert.deepEqual(resolveHomiFamilyBoardCardLimits(declaredSize, "wide"), {
   default: { w: 3, h: 4 },
-  min: { w: 2, h: 2 },
-  max: { w: 6, h: 8 },
+  min: { w: 0.5, h: 0.5 },
+  max: { w: 8, h: 40 },
 });
 assert.deepEqual(resolveHomiFamilyBoardCardLimits(declaredSize, "phone"), {
   default: { w: 4, h: 4 },
-  min: { w: 2, h: 2 },
-  max: { w: 4, h: 8 },
+  min: { w: 0.5, h: 0.5 },
+  max: { w: 4, h: 40 },
 });
 assert.deepEqual(resolveHomiFamilyBoardCardLimits(undefined, "wide"), {
   default: { w: 4, h: 4 },
-  min: { w: 2, h: 2 },
-  max: { w: 8, h: 12 },
+  min: { w: 0.5, h: 0.5 },
+  max: { w: 8, h: 40 },
 });
 assert.deepEqual(
   resolveHomiFamilyBoardCardLimits({ default: { w: 2, h: 2 } }, "phone").default,
@@ -292,7 +295,7 @@ rejectsManifest(
   (candidate) => {
     candidate.extensions.familyBoard[0].size = { default: { w: 2, h: 0 } };
   },
-  /\.h must be a whole number from 1 to 12/,
+  /\.h must be a whole number from 1 to 40/,
 );
 rejectsManifest(
   (candidate) => {
@@ -312,8 +315,63 @@ rejectsManifest(
 
 assert.equal(isHomiFamilyBoardPlacement({ x: 4, y: 0, w: 4, h: 3 }, "wide"), true);
 assert.equal(isHomiFamilyBoardPlacement({ x: 4, y: 0, w: 4, h: 3 }, "phone"), false);
-assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1.5, h: 3 }, "wide"), false);
-assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1, h: 13 }, "wide"), false);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1.3, h: 3 }, "wide"), false);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1, h: 41 }, "wide"), false);
+// Positions and sizes may be any multiple of 1/8 of a cell, no smaller than half a cell.
+assert.equal(isHomiFamilyBoardPlacement({ x: 0.5, y: 1.25, w: 2.375, h: 3.125 }, "wide"), true);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0.125, y: 0, w: 3.875, h: 0.5 }, "phone"), true);
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 2.3, h: 2 }, "wide"), false, "not a multiple of 1/8");
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 0.375, h: 2 }, "wide"), false, "smaller than half a cell");
+assert.equal(isHomiFamilyBoardPlacement({ x: 6, y: 0, w: 2.125, h: 2 }, "wide"), false, "off the right edge");
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: Number.NaN, h: 2 }, "wide"), false);
+assert.equal(snapToFamilyBoardGrid(2.31), 2.25);
+assert.equal(snapToFamilyBoardGrid(2.32), 2.375);
+assert.equal(snapToFamilyBoardGrid(0.07), 0.125, "rounds to the nearest eighth");
+assert.equal(snapToFamilyBoardGrid(3), 3, "whole cells stay whole");
+assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1, h: 40 }, "wide"), true);
+assert.equal(isHomiFamilyBoardPlacement({ x: 3, y: 0, w: 1, h: 1 }, "phone"), true);
 assert.equal(isHomiFamilyBoardPlacement({ x: 0, y: 0, w: 1 }, "wide"), false);
+
+// A card may ask the board to draw it without Homi's frame.
+assert.equal(
+  Object.hasOwn(parsed.extensions.familyBoard[0], "frame"),
+  false,
+  "a card that declares no frame keeps the default framed card",
+);
+const bareHomeCard = copy(template);
+bareHomeCard.extensions.familyBoard[0].frame = "none";
+assert.equal(parseHomiModuleManifest(bareHomeCard).extensions.familyBoard[0].frame, "none");
+const framedHomeCard = copy(template);
+framedHomeCard.extensions.familyBoard[0].frame = "card";
+assert.equal(parseHomiModuleManifest(framedHomeCard).extensions.familyBoard[0].frame, "card");
+const scaledHomeCard = copy(template);
+scaledHomeCard.extensions.familyBoard[0].fit = "scale";
+assert.equal(parseHomiModuleManifest(scaledHomeCard).extensions.familyBoard[0].fit, "scale");
+const nativeHomeCard = copy(template);
+nativeHomeCard.extensions.familyBoard[0].fit = "native";
+assert.equal(parseHomiModuleManifest(nativeHomeCard).extensions.familyBoard[0].fit, "native");
+assert.equal(
+  Object.hasOwn(parsed.extensions.familyBoard[0], "fit"),
+  false,
+  "a card that declares no fit sizes itself, as every module was built to",
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].fit = "stretch";
+  },
+  /fit must be "scale" or "native"/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].frame = "bare";
+  },
+  /frame must be "card" or "none"/,
+);
+rejectsManifest(
+  (candidate) => {
+    candidate.extensions.familyBoard[0].frame = true;
+  },
+  /frame must be "card" or "none"/,
+);
 
 console.log("PASS_MODULE_SDK_MANIFEST_COMPATIBILITY_CONTRACT");

@@ -92,6 +92,20 @@
       "when": 1790204400000,
       "tag": "0012_notification_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "13",
+      "when": 1790206200000,
+      "tag": "0013_card_layout_any_size",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "14",
+      "when": 1790208000000,
+      "tag": "0014_card_layout_fine_grid",
+      "breakpoints": true
     }
   ]
 }

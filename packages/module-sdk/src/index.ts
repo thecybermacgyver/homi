@@ -9,9 +9,12 @@ export {
 
 export {
   HOMI_FAMILY_BOARD_COLUMNS,
+  HOMI_FAMILY_BOARD_GRANULARITY,
   HOMI_FAMILY_BOARD_MAX_CARD_ROWS,
+  HOMI_FAMILY_BOARD_MIN_CARD_CELLS,
   HOMI_FAMILY_BOARD_MAX_ROW,
   isHomiFamilyBoardPlacement,
+  snapToFamilyBoardGrid,
   resolveHomiFamilyBoardCardLimits,
   type HomiFamilyBoardCardDimensions,
   type HomiFamilyBoardCardLimits,
@@ -27,6 +30,8 @@ export {
   assertHomiModuleCompatibility,
   parseHomiModuleManifest,
   type HomiCoreCapability,
+  type HomiFamilyBoardFit,
+  type HomiFamilyBoardFrame,
   type HomiFamilyBoardSlot,
   type HomiModuleBrokerManifest,
   type HomiModuleDatabaseManifest,
