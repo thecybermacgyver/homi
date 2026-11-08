@@ -10,7 +10,7 @@ Publication decision 2026-09-21: Homi is licensed under AGPL-3.0. Keep the GitHu
 4. Synchronization — COMPLETE
 5. Homi application shell, design system, and module platform — COMPLETE
 6. First-party Calendar module — COMPLETE; Calendar 0.6.5 is validated locally and deployed in production through the managed module lifecycle
-7. Calendar multi-device test — PENDING
+7. Calendar multi-device test — COMPLETE (isolated three-profile acceptance passed 2026-10-01 at Calendar 0.6.16, deployed; owner real-device confirmation requested)
 8. Expand first-party/community modules — COMPLETE for the 1.0 release (further modules continue as post-1.0 work); Chequebook 0.1.11 and Calendar 0.6.5 are validated, installed, enabled, and connected through gated public broker contracts; Core-owned contextual Search/Add, generic missing-capability status, and the signed private-GitHub directory with isolated backup-first admin installation are implemented
 
 ## Master Step 5 — Homi platform progress

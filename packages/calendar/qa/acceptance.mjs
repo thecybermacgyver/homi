@@ -63,6 +63,20 @@ await a.p.getByRole('button',{name:'Dismiss reviewed change',exact:true}).click(
 await poll(async()=>(await stuck(a)).length===0,'conflict dismissed');await eventRow(a,t3+' B').first().waitFor();
 for(const d of [b,c])await eventRow(d,t3+' B').first().waitFor();
 pass('dismissing the reviewed change keeps the shared version on every device');
+const noteLines=Array.from({length:60},(_,i)=>'Note line '+(i+1)+' '+run).join('\n');
+await upcoming(a);await eventRow(a,t3+' B').first().click();
+const box=a.p.locator('#calendar-editor-notes');await box.waitFor();
+assert.equal(await box.evaluate(e=>e.tagName),'TEXTAREA');
+await box.fill(noteLines);
+const geo=await box.evaluate(e=>({h:e.clientHeight,sh:e.scrollHeight,oy:getComputedStyle(e).overflowY}));
+assert.ok(geo.h>=200,'notes box is large: '+geo.h);assert.ok(geo.sh>geo.h,'long notes scroll inside the box');assert.ok(['auto','scroll'].includes(geo.oy));
+await box.evaluate(e=>{e.scrollTop=e.scrollHeight;});assert.ok(await box.evaluate(e=>e.scrollTop>0));
+await a.p.getByRole('button',{name:'Save event',exact:true}).click();await eventRow(a,t3+' B').first().waitFor();
+await eventRow(a,t3+' B').first().click();await a.p.locator('#calendar-editor-notes').waitFor();
+assert.equal(await a.p.locator('#calendar-editor-notes').inputValue(),noteLines);
+await a.p.getByRole('button',{name:'Cancel',exact:true}).click();
+await poll(async()=>{await upcoming(b);await eventRow(b,t3+' B').first().click();const v=await b.p.locator('#calendar-editor-notes').inputValue();await b.p.getByRole('button',{name:'Cancel',exact:true}).click();return v===noteLines;},'long notes reach the second device');
+pass('multi-line notes: large box, long text scrolls inside it, saves in full and reaches the second device');
 await a.p.setViewportSize({width:390,height:900});await a.p.getByRole('tab',{name:'Month',exact:true}).click();
 await a.p.locator('.homi-calendar-month-dots').first().waitFor();assert.ok(await a.p.locator('.homi-calendar-month-dots[aria-label$="event"],.homi-calendar-month-dots[aria-label$="events"]').count()>0);pass('narrow month cells show coloured event dots with a count');
 for(const width of [390,768,1440]){await a.p.setViewportSize({width,height:900});assert.equal(await a.p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await a.p.screenshot({path:ROOT+'/calendar-month-'+width+'.png',fullPage:true});}

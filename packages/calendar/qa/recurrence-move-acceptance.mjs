@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync} from 'node:fs';
 const env=Object.fromEntries(readFileSync(process.env.HOMI_TEST_CREDENTIALS,'utf8').trim().split('\n').map(s=>{const i=s.indexOf('=');return [s.slice(0,i),s.slice(i+1).replace(/^"|"$/g,'')];}));
 const base='http://localhost:3400';
-const ctx=await chromium.launchPersistentContext(process.env.HOMI_TEST_PROFILES+'/recur-'+Date.now(),{headless:true,viewport:{width:1440,height:900}});
+const ctx=await chromium.launchPersistentContext(process.env.HOMI_TEST_PROFILES+'/recur-'+Date.now(),{headless:true,viewport:{width:1440,height:900},executablePath:process.env.HOMI_TEST_CHROME??undefined});
 const p=ctx.pages()[0]??await ctx.newPage();
 const errors=[];p.on('pageerror',e=>errors.push(e.message));
 const day=n=>new Date(Date.now()+n*864e5).toISOString().slice(0,10);
