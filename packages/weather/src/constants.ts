@@ -1,7 +1,7 @@
 import type { LinkSite, Prefs } from "./types.js";
 
 export const WEATHER_MODULE_KEY = "weather" as const;
-export const WEATHER_VERSION = "0.1.5" as const;
+export const WEATHER_VERSION = "0.1.6" as const;
 
 export const LIMITS = {
   name: 80,

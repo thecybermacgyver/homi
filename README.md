@@ -40,7 +40,7 @@ Additional release details and known limitations are in [the release notes](docs
 - Core-owned Dashboard, a Modules pop-up launcher, Settings (with Manage modules), universal Search across all enabled modules, and Add surfaces
 - independent module packages, immutable version/digest registry, transactional migrations, rollback, enable/disable, setup, assets, jobs, sync adapters, settings, and Family Board contributions
 - public `@homi/module-sdk`, `@homi/ui`, and starter module template
-- Calendar `0.6.25`, Chequebook `0.1.31`, Shopping List `0.4.1`, Noticeboard `0.1.5`, Meal Planner `0.1.0`, Weather `0.1.5`, and K.I.S.S. `0.4.3` (a private couples module)
+- Calendar `0.6.25`, Chequebook `0.1.31`, Shopping List `0.4.1`, Noticeboard `0.1.5`, Meal Planner `0.1.0`, Weather `0.1.6`, and K.I.S.S. `0.4.3` (a private couples module)
 - [Weather](packages/weather/README.md): the weather where you are (with an approximate fallback when a device has no precise location) and for places each member saves, on Dashboard cards that change colour and illustration with the conditions; each member's places are private to them
 - a notification inbox and opt-in device push notifications (Web Push) for every module's reminders
 - per-member Family Board card styles, chosen in Settings → Manage modules (for example Shopping's list or counts by store)

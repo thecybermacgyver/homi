@@ -25,7 +25,7 @@ export const css = `
    scales it to whatever size the member gives the card (fit "scale"), so the icon, the
    temperature and the words always grow and shrink together. Which extra rows appear
    depends on the card's real size, so a small card shows the essentials only. */
-.wx {--wx-from:#cfd8de;--wx-to:#b4c2cb;--wx-ink:#14232d;box-sizing:border-box;width:max-content;min-width:100%;position:relative;display:grid;grid-template-columns:minmax(0,7.5rem) auto;justify-content:center;align-items:center;align-content:center;gap:.4rem 1rem;
+.wx {--wx-from:#cfd8de;--wx-to:#b4c2cb;--wx-ink:#14232d;box-sizing:border-box;width:max-content;min-width:100%;position:relative;display:grid;grid-template-columns:minmax(0,7.5rem) auto;justify-content:space-evenly;align-items:center;align-content:center;gap:.4rem 1rem;
   border-radius:22px;padding:1rem 1.2rem;color:var(--wx-ink);text-decoration:none;font:inherit;text-align:left;
   background:linear-gradient(135deg,var(--wx-from),var(--wx-to));box-shadow:0 8px 18px rgba(20,35,45,.22);isolation:isolate}
 a.wx:hover {box-shadow:0 10px 22px rgba(20,35,45,.3)}

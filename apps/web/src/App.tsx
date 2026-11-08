@@ -1950,6 +1950,7 @@ export function App() {
         return (
           <div
             className="homi-platform-context-actions"
+            role="group"
             aria-label="Module actions"
           >
             {showBell && (

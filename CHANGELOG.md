@@ -2,6 +2,18 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.9.2 — 2026-11-08
+
+### Changed
+- **Wide Weather cards spread their content.** On a wide, short card the icon and the weather were bunched together in the middle with empty gradient on both sides. The icon and the text now spread across the card (Weather 0.1.6, one CSS line: `justify-content: space-evenly`). Narrow and tall cards look as before.
+
+### Fixed
+- **A labelling mistake in Homi's floating buttons.** The group holding the notification bell, search and Add buttons had an accessible name ("Module actions") but no role, which screen readers may ignore and accessibility scanners flag (`aria-prohibited-attr`). It is now a `role="group"`.
+
+### Verification
+- `packages/weather/qa/browser-sizes.mjs`: all 16 sizes on a monitor and a phone layout still fill their box exactly, with nothing cut off.
+- Weather 0.1.6 passes the isolated two-device acceptance suite (`homi-weather-multiuser-1.0.0`); results are in `packages/weather/qa/browser-acceptance.json`.
+
 ## 1.9.1 — 2026-11-08
 
 ### Fixed

@@ -3,7 +3,7 @@
   "moduleKey": "weather",
   "name": "Weather",
   "publisher": "Homi",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "moduleApiVersion": 1,
   "description": "Weather for where you are and the places you save. Each member keeps their own saved places; a Current card follows the device's location and up to five place cards show the places you choose on the Dashboard.",
   "entrypoints": {
