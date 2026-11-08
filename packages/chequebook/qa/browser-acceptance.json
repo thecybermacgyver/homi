@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-22T13:52:57.361Z",
-  "run": "7110734",
+  "date": "2026-11-08T01:37:50.992Z",
+  "run": "1790176",
   "results": [
     "two registered devices for one member and a distinct authorized household member",
     "online transaction propagates automatically to the second device and the second member",
@@ -13,5 +13,6 @@
     "dismissing the reviewed change keeps the shared version on every device",
     "phone/tablet/desktop register layout has no horizontal overflow",
     "no JavaScript page errors"
-  ]
+  ],
+  "package": "chequebook 0.1.31 sha256:06fac6e9aa0f09fa700274c65d4194fc22e77fc635e31cb51092462ef376db58 (the exact package published as chequebook-v0.1.31)"
 }

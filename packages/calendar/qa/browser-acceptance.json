@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-15T22:07:47.937Z",
-  "run": "2003221",
+  "date": "2026-11-08T01:36:08.648Z",
+  "run": "1691132",
   "results": [
     "two registered devices for one member and a distinct authorized household member",
     "online create propagates automatically to the second device and the second member",
@@ -10,8 +10,10 @@
     "creates and deletes made on any device or member propagate to the others",
     "stale offline edit is surfaced for review and the shared (other device) version stays on screen",
     "dismissing the reviewed change keeps the shared version on every device",
+    "multi-line notes: large box, long text scrolls inside it, saves in full and reaches the second device",
     "narrow month cells show coloured event dots with a count",
     "phone/tablet/desktop month layout has no horizontal overflow",
     "no JavaScript page errors"
-  ]
+  ],
+  "package": "calendar 0.6.25 sha256:7543b9c7f75676f6d3f38617bfe948d814a98ff3195d0c06bc07567b986bccff (the exact package published as calendar-v0.6.25)"
 }

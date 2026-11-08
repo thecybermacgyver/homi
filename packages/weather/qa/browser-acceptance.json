@@ -1,0 +1,66 @@
+{
+  "suite": "homi-weather-multiuser-1.0.0",
+  "date": "2026-11-08T01:17:20.438Z",
+  "run": "543046",
+  "results": [
+    {
+      "name": "two devices of one member and a distinct member share the household"
+    },
+    {
+      "name": "the Dashboard shows the Current card and five empty place cards"
+    },
+    {
+      "name": "the Current card uses the device position, or an approximate one labelled as such, and links to the right forecast"
+    },
+    {
+      "name": "places saved on one device reach the other device and its Dashboard cards, in both directions"
+    },
+    {
+      "name": "another member sees none of a member's places and cannot read or delete them"
+    },
+    {
+      "name": "choosing a place for a Dashboard card moves it on every device and a card holds one place at a time"
+    },
+    {
+      "name": "the Celsius or Fahrenheit choice follows the member to their other device and does not change another member's cards",
+      "before": "none"
+    },
+    {
+      "name": "Core's Add opens the add-a-place sheet and Escape closes it"
+    },
+    {
+      "name": "after a full restart while offline the Dashboard and the places load with their last forecast; changes made offline survive another restart"
+    },
+    {
+      "name": "reconnect delivers every queued change without conflicts and the other device agrees"
+    },
+    {
+      "name": "a stale offline edit is surfaced for review and the shared version stays on screen"
+    },
+    {
+      "name": "no horizontal overflow at 390, 768 and 1440 px, every card fills its box, and no page errors"
+    },
+    {
+      "name": "the axe pass (WCAG 2.0 and 2.1 A and AA) finds no violation on 9 screens",
+      "screens": 9,
+      "needsReview": 18,
+      "needsReviewRules": [
+        "aria-prohibited-attr",
+        "color-contrast"
+      ]
+    },
+    {
+      "name": "removing a place removes it everywhere"
+    }
+  ],
+  "package": "weather 0.1.5 sha256:eaacb9165eadeeb3028bae8520bed48802840377ec2dd2ab3458a41c07b1abb3 (the exact package published as weather-v0.1.5)",
+  "stack": "isolated Homi stack on the production Core and web images (core sha256:4cb2a716e677..., web sha256:ef4dd50e43e8...), fixture owner and second member, invented data",
+  "notApplicable": {
+    "universalSearch": "Weather declares search:false, so it contributes no Core Search results",
+    "moduleUpgrade": "0.1.5 is the first published version; there is no earlier public version to upgrade from"
+  },
+  "needsReview": {
+    "color-contrast": "text over gradient backgrounds cannot be measured by axe; every look is checked by calculation at build time (scripts/validate-themes.mjs, 4.5:1 or better)",
+    "aria-prohibited-attr": "Homi Core's own floating action group (.homi-platform-context-actions) carries an aria-label on a div with no role; not part of the Weather module"
+  }
+}
