@@ -2,6 +2,14 @@
 
 All notable changes to Homi are recorded here, newest first. Homi follows semantic versioning from 1.0, and entries before 1.0 are identified by date; each module is versioned independently and every module release is published with a signed, verified entry in the [module directory](docs/MODULE_DIRECTORY.md). Known limitations are in [the release notes](docs/RELEASE_NOTES.md#known-limitations).
 
+## 1.9.3 — 2026-11-08
+
+### Fixed
+- **The Dashboard could not be scrolled on a phone.** When there were more cards than fit on the screen, you could see that there was more below but dragging a finger up did nothing. The cards' size-fitting (`apps/web/src/FitToCard.tsx`) measures a card by briefly changing its own style, and it also watched for style changes, including its own, so once it ran it re-fitted about 60 times a second. Each measurement briefly shrank the page, the browser clamped the scroll position, and the page was thrown back to the top. The fitter now ignores the changes it makes itself (so an idle Dashboard is completely still) and puts the scroll position back after measuring.
+
+### Verification
+- New `apps/web/qa/phone-scroll-acceptance.mjs` drives a phone-sized touch device with real touch events against an isolated stack: a swipe on a card and on the page margin moves the page and it stays put, a scroll position is kept, an idle Dashboard makes no DOM changes, and repeated swipes reach the last card. It fails on 1.9.2 (the page stays at the top) and passes on 1.9.3. The card-fit acceptance, the Weather card-size test (16 sizes, monitor and phone) and the web tests still pass.
+
 ## 1.9.2 — 2026-11-08
 
 ### Changed

@@ -4,6 +4,7 @@ Status: Homi 1.0, released 2026-10-02. Homi runs in everyday household use. From
 
 ## Included
 
+- The Dashboard scrolls on a phone again (1.9.3): cards no longer keep re-fitting themselves and throwing the page back to the top.
 - Wide Weather cards spread their content, and Homi's floating-button group is labelled correctly for screen readers (1.9.2, Weather 0.1.6).
 - Smooth resizing (1.9): a card can be placed and sized in eighths of a cell, so dragging a corner follows the pointer instead of snapping a whole cell at a time.
 - Cleaner Dashboard (1.8): cards are drawn without Homi's frame or title, any card can be resized from one cell to the whole board, and its contents shrink or expand to fit. A module can still ask for the framed card (`frame: "card"`) or ask Homi to scale a surface that cannot adapt (`fit: "scale"`); by default a card sizes itself. Calendar and Chequebook cards sit on Homi's cream. Weather falls back to an approximate location from the internet connection when the device has no precise one.

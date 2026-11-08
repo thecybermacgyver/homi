@@ -40,9 +40,29 @@ export function FitToCard({ children }: { readonly children: ReactNode }) {
     const innerElement = inner.current;
     if (!hostElement || !innerElement) return;
     let frame = 0;
+    // Fitting measures by briefly changing the surface's own style, and that
+    // collapses the page's height for a moment. Two consequences are guarded
+    // against: (1) the surface must not react to the changes it makes itself
+    // (otherwise it re-fits on every frame, forever), and (2) the browser
+    // clamps the scroll position when the page shrinks, so the page would be
+    // thrown back to the top while the member scrolls on a phone.
+    let mutations: MutationObserver;
 
     const fit = () => {
       frame = 0;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      try {
+        fitNow();
+      } finally {
+        if (window.scrollX !== scrollX || window.scrollY !== scrollY) {
+          window.scrollTo(scrollX, scrollY);
+        }
+        mutations.takeRecords();
+      }
+    };
+
+    const fitNow = () => {
       const width = hostElement.clientWidth;
       const height = hostElement.clientHeight;
       if (width < 1 || height < 1) return;
@@ -76,7 +96,7 @@ export function FitToCard({ children }: { readonly children: ReactNode }) {
     const observer = new ResizeObserver(schedule);
     observer.observe(hostElement);
     // Content that loads or changes (a list filling in) changes its height.
-    const mutations = new MutationObserver(schedule);
+    mutations = new MutationObserver(schedule);
     mutations.observe(innerElement, { childList: true, subtree: true, characterData: true, attributes: true });
     fit();
     return () => {
